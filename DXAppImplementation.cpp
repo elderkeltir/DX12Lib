@@ -13,9 +13,11 @@ DXAppImplementation::DXAppImplementation(UINT width, UINT height, std::wstring n
 
 void DXAppImplementation::OnInit()
 {
+    gD3DApp = this;
+    ResourceManager::OnInit();
     LoadPipeline();
     LoadAssets();
-    gD3DApp = this;
+    
 }
 
 // Load the rendering pipeline dependencies.

@@ -11,6 +11,7 @@ class ResourceManager {
 public:
     ResourceManager();
     virtual ~ResourceManager();
+    virtual void OnInit();
 
     virtual TextureManager* GetTextureManager() const;
     virtual FileManager* GetFileManager() const;
