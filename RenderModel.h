@@ -6,7 +6,7 @@
 #include <array>
 #include <string>
 
-#include "Transformations.h"
+class Transformations;
 
 class RenderModel {
 public:

@@ -1,6 +1,6 @@
-#include "stdafx.h"
-
 #include "DXAppImplementation.h"
+#include "Application.h"
+#include "DXHelper.h"
 
 DXAppImplementation *gD3DApp = nullptr;
 

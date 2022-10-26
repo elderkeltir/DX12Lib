@@ -1,5 +1,5 @@
-#include "stdafx.h"
-
+#include "Application.h"
+#include "DXHelper.h"
 #include "DXApp.h"
 
 using namespace Microsoft::WRL;

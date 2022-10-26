@@ -2,6 +2,7 @@
 
 #include <string>
 #include <memory>
+#include <filesystem>
 
 namespace Assimp
 {
@@ -17,7 +18,10 @@ public:
     FileManager();
     ~FileManager();
 
-    bool ReadModelFromFBX(const char * inFilePath, uint32_t id, RenderModel* outMesh, uint32_t *outMeshNum);
+    bool ReadModelFromFBX(const char * name, uint32_t id, RenderModel* outMesh, uint32_t *outMeshNum);
+
+    const std::filesystem::path& GetModelDir() const;
 private:
     std::unique_ptr<Assimp::Importer> m_modelImporter;
+    std::filesystem::path m_model_dir;
 };

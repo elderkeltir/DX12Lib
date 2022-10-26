@@ -1,12 +1,13 @@
-#include "stdafx.h"
 #include "TextureManager.h"
 
 #include "Texture.h"
+#include "DXAppImplementation.h"
 
-std::map<std::wstring, std::unique_ptr<Texture>> TextureManager::m_textures;
+extern DXAppImplementation *gD3DApp;
 
 TextureManager::TextureManager()
 {
+	m_texture_dir = gD3DApp->GetRootDir() / L"content" / L"textures";
 }
 
 
@@ -39,4 +40,8 @@ void TextureManager::Clear()
 	{
 		text.second->Clear();
 	}
+}
+
+const std::filesystem::path& TextureManager::GetTextureDir() const{
+	return m_texture_dir;
 }

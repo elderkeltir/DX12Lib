@@ -1,6 +1,10 @@
 #include "ShaderManager.h"
 #include <assert.h>
 
+#include "DXAppImplementation.h"
+
+extern DXAppImplementation *gD3DApp;
+
 const wchar_t *targets[] = {
     L"vs_6_0",
     L"ps_6_0",
@@ -12,6 +16,9 @@ ShaderManager::ShaderManager()
     DxcCreateInstance(CLSID_DxcUtils, IID_PPV_ARGS(&m_utils));
     DxcCreateInstance(CLSID_DxcCompiler, IID_PPV_ARGS(&m_compiler));
     m_utils->CreateDefaultIncludeHandler(&m_includeHandler);
+
+    m_shader_source_dir = gD3DApp->GetRootDir() / L"content" / L"shaders";
+    m_shader_bin_dir = gD3DApp->GetRootDir() / L"build" / L"Debug";
 }
 
 void ShaderManager::Load(const std::wstring &name, const std::wstring &entry_point, ShaderType target){
@@ -178,4 +185,12 @@ void ShaderManager::Load(const std::wstring &name, const std::wstring &entry_poi
         // Use reflection interface here.
         
     }
+}
+
+const std::filesystem::path& ShaderManager::GetShaderSourceDir() const{
+    return m_shader_source_dir;
+}
+
+const std::filesystem::path& ShaderManager::GetShaderBinaryDir() const{
+    return m_shader_bin_dir;
 }

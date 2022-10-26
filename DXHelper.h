@@ -1,4 +1,6 @@
 #pragma once
+
+#include "stdafx.h"
 #include <stdexcept>
 
 // Note that while ComPtr is used to manage the lifetime of resources on the CPU,

@@ -1,4 +1,3 @@
-#include "stdafx.h"
 #include "FileManager.h"
 
 #include <vector>
@@ -12,6 +11,7 @@
 
 #include "RenderModel.h"
 #include "DXAppImplementation.h"
+#include "TextureManager.h"
 
 extern DXAppImplementation *gD3DApp;
 
@@ -44,6 +44,7 @@ void TraverseMeshes(aiNode* rootNode, const aiMatrix4x4 &trans, std::vector<Mini
 FileManager::FileManager() : 
 	m_modelImporter(std::make_unique<Assimp::Importer>())
 {
+	m_model_dir = gD3DApp->GetRootDir() / L"content" / L"models";
 }
 
 
@@ -51,10 +52,12 @@ FileManager::~FileManager()
 {
 }
 
-bool FileManager::ReadModelFromFBX(const char * inFilePath, uint32_t id, RenderModel* outModel, uint32_t *outModelNum)
+bool FileManager::ReadModelFromFBX(const char * name, uint32_t id, RenderModel* outModel, uint32_t *outModelNum)
 {
+	std::wstring name_long(&name[0], &name[strlen(name)]);
+	std::string file_path = (m_model_dir / name_long).u8string();
 	// fetch data
-	const aiScene* scene = m_modelImporter->ReadFile(inFilePath,
+	const aiScene* scene = m_modelImporter->ReadFile(file_path,
 		aiProcess_CalcTangentSpace |
 		aiProcess_Triangulate |
 		aiProcess_SortByPType);
@@ -236,3 +239,6 @@ bool FileManager::ReadModelFromFBX(const char * inFilePath, uint32_t id, RenderM
 	return false;
 }
 
+const std::filesystem::path& FileManager::GetModelDir() const{
+	return m_model_dir;
+}

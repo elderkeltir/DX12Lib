@@ -1,4 +1,5 @@
 #include "RenderModel.h"
+#include "Transformations.h"
 
 RenderModel::RenderModel() :
     m_transformations(std::make_unique<Transformations>())

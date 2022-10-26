@@ -1,7 +1,13 @@
 #pragma once
 
-#include "DXHelper.h"
-#include "Application.h"
+#include <d3d12.h>
+#include <dxgi1_6.h>
+#include <DirectXMath.h>
+#include "d3dx12.h"
+#include <string>
+
+//
+//#include "Application.h"
 
 class DXApp
 {
