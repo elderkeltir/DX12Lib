@@ -1,6 +1,7 @@
 #pragma once
 
 #include "DXApp.h"
+#include "ResourceManager.h"
 
 // Note that while ComPtr is used to manage the lifetime of resources on the CPU,
 // it has no understanding of the lifetime of resources on the GPU. Apps must account
@@ -9,15 +10,15 @@
 // An example of this can be found in the class method: OnDestroy().
 using Microsoft::WRL::ComPtr;
 
-class DXAppImplementation : public DXApp
+class DXAppImplementation : public DXApp, public ResourceManager
 {
 public:
     DXAppImplementation(UINT width, UINT height, std::wstring name);
 
-    virtual void OnInit();
-    virtual void OnUpdate();
-    virtual void OnRender();
-    virtual void OnDestroy();
+    virtual void OnInit() override;
+    virtual void OnUpdate() override;
+    virtual void OnRender() override;
+    virtual void OnDestroy() override;
 
 private:
     static const UINT FrameCount = 2;

@@ -2,6 +2,8 @@
 
 #include "DXAppImplementation.h"
 
+DXAppImplementation *gD3DApp = nullptr;
+
 DXAppImplementation::DXAppImplementation(UINT width, UINT height, std::wstring name) :
     DXApp(width, height, name),
     m_frameIndex(0),
@@ -13,6 +15,7 @@ void DXAppImplementation::OnInit()
 {
     LoadPipeline();
     LoadAssets();
+    gD3DApp = this;
 }
 
 // Load the rendering pipeline dependencies.
@@ -45,7 +48,7 @@ void DXAppImplementation::LoadPipeline()
 
         ThrowIfFailed(D3D12CreateDevice(
             warpAdapter.Get(),
-            D3D_FEATURE_LEVEL_11_0,
+            D3D_FEATURE_LEVEL_12_0,
             IID_PPV_ARGS(&m_device)
             ));
     }
@@ -56,7 +59,7 @@ void DXAppImplementation::LoadPipeline()
 
         ThrowIfFailed(D3D12CreateDevice(
             hardwareAdapter.Get(),
-            D3D_FEATURE_LEVEL_11_0,
+            D3D_FEATURE_LEVEL_12_0,
             IID_PPV_ARGS(&m_device)
             ));
     }
@@ -169,6 +172,7 @@ void DXAppImplementation::OnRender()
 
 void DXAppImplementation::OnDestroy()
 {
+    gD3DApp = nullptr;
     // Ensure that the GPU is no longer referencing resources that are about to be
     // cleaned up by the destructor.
     WaitForPreviousFrame();
