@@ -21,14 +21,16 @@ set(THIRD_PARTY_DIR ${ROOT_FOLDER}/thirdParty)
 # include directories
 include_directories(${PROJECT_SOURCE_DIR})
 include_directories(${THIRD_PARTY_DIR}/assimp/include)
+include_directories(${CMAKE_BINARY_DIR}/thirdParty/assimp/include)
 include_directories(${THIRD_PARTY_DIR}/DirectXTK12/Inc)
 include_directories(${THIRD_PARTY_DIR}/DirectXShaderCompiler/inc)
+include_directories(${THIRD_PARTY_DIR}/rapidjson/include)
 # message(STATUS "foo include dir: ${THIRD_PARTY_DIR}/assimp/include")
 # include_directories("C:\\code\\DX12Lib\\thirdParty\\assimp\\include")
 
 # 
-add_subdirectory(${THIRD_PARTY_DIR}/assimp)
-add_subdirectory(${THIRD_PARTY_DIR}/DirectXTK12)
+# add_subdirectory(${THIRD_PARTY_DIR}/assimp)
+# add_subdirectory(${THIRD_PARTY_DIR}/DirectXTK12)
 
 # source files
 add_executable(DX12Lib WIN32 main.cpp
@@ -37,11 +39,13 @@ add_executable(DX12Lib WIN32 main.cpp
     DXAppImplementation.cpp
     FileManager.cpp
     Texture.cpp
-    RenderModel.cpp
+    RenderMesh.cpp
     TextureManager.cpp
     ResourceManager.cpp
     ShaderManager.cpp
-    Transformations.cpp)
+    Transformations.cpp
+    Level.cpp
+    FreeCamera.cpp)
 
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
@@ -50,8 +54,8 @@ include(CPack)
 target_link_options(${PROJECT_NAME} PRIVATE "/entry:WinMainCRTStartup")
 target_link_libraries(${PROJECT_NAME} d3d12.lib)
 target_link_libraries(${PROJECT_NAME} dxgi.lib)
-target_link_libraries(${PROJECT_NAME} assimp)
-target_link_libraries(${PROJECT_NAME} DirectXTK12)
+target_link_libraries(${PROJECT_NAME} ${CMAKE_BINARY_DIR}/thirdParty/assimp/lib/$<CONFIGURATION>/assimp-vc143-mtd.lib)
+target_link_libraries(${PROJECT_NAME} ${CMAKE_BINARY_DIR}/bin/CMake/$<CONFIGURATION>/DirectXTK12d.lib)
 target_link_libraries(${PROJECT_NAME} ${THIRD_PARTY_DIR}/DirectXShaderCompiler/lib/x64/dxcompiler.lib)
 
 # Copy thirdparty bins

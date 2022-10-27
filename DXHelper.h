@@ -1,6 +1,6 @@
 #pragma once
 
-#include "stdafx.h"
+#include "win_mini_header.h"
 #include <stdexcept>
 
 // Note that while ComPtr is used to manage the lifetime of resources on the CPU,

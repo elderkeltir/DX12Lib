@@ -1,0 +1,12 @@
+{
+    "model": "box.fbx",
+    "textures" :{
+        "difuse": "box_dif.dds",
+        "normal": "box_norm.dds",
+        "specular": "box_spec.dds"
+    },
+    "shaders": {
+        "vertex": "basic_vertex.hlsl",
+        "pixel": "basic_pixel.hlsl"
+    }
+}

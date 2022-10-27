@@ -11,16 +11,20 @@
 // referenced by the GPU.
 // An example of this can be found in the class method: OnDestroy().
 using Microsoft::WRL::ComPtr;
+class Level;
 
 class DXAppImplementation : public DXApp, public ResourceManager
 {
 public:
     DXAppImplementation(UINT width, UINT height, std::wstring name);
+    ~DXAppImplementation();
 
     virtual void OnInit() override;
     virtual void OnUpdate() override;
     virtual void OnRender() override;
     virtual void OnDestroy() override;
+
+    Level* GetLevel();
 
 private:
     static const UINT FrameCount = 2;
@@ -46,4 +50,7 @@ private:
     void LoadAssets();
     void PopulateCommandList();
     void WaitForPreviousFrame();
+
+    //
+    std::unique_ptr<Level> m_level;
 };

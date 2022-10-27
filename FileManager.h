@@ -3,6 +3,9 @@
 #include <string>
 #include <memory>
 #include <filesystem>
+#include <array>
+
+#include "RenderMesh.h"
 
 namespace Assimp
 {
@@ -10,7 +13,7 @@ namespace Assimp
 }
 
 
-class RenderModel;
+// class RenderMesh;
 
 class FileManager
 {
@@ -18,10 +21,13 @@ public:
     FileManager();
     ~FileManager();
 
-    bool ReadModelFromFBX(const char * name, uint32_t id, RenderModel* outMesh, uint32_t *outMeshNum);
-
+    const RenderMesh* LoadModel(const std::wstring &name);
     const std::filesystem::path& GetModelDir() const;
 private:
-    std::unique_ptr<Assimp::Importer> m_modelImporter;
+    const RenderMesh* LoadModelInternal(const std::wstring &name);
+    bool ReadModelFromFBX(const std::wstring &name, uint32_t id, RenderMesh* outMesh, uint32_t *outMeshNum);    std::unique_ptr<Assimp::Importer> m_modelImporter;
+    std::array<RenderMesh, 256> m_load_meshes;
     std::filesystem::path m_model_dir;
+
+    uint32_t m_model_count;
 };

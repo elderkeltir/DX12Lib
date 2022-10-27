@@ -1,6 +1,7 @@
 #include "DXAppImplementation.h"
 #include "Application.h"
 #include "DXHelper.h"
+#include "Level.h"
 
 DXAppImplementation *gD3DApp = nullptr;
 
@@ -11,13 +12,17 @@ DXAppImplementation::DXAppImplementation(UINT width, UINT height, std::wstring n
 {
 }
 
+DXAppImplementation::~DXAppImplementation() = default;
+
 void DXAppImplementation::OnInit()
 {
     gD3DApp = this;
     ResourceManager::OnInit();
     LoadPipeline();
     LoadAssets();
-    
+    //
+    m_level = std::make_unique<Level>();
+    m_level->Load(L"test_level.json");
 }
 
 // Load the rendering pipeline dependencies.
@@ -180,6 +185,10 @@ void DXAppImplementation::OnDestroy()
     WaitForPreviousFrame();
 
     CloseHandle(m_fenceEvent);
+}
+
+Level* DXAppImplementation::GetLevel(){
+    return m_level.get();
 }
 
 void DXAppImplementation::PopulateCommandList()

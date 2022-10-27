@@ -4,3 +4,6 @@
 [submodule "thirdParty/DirectXTK12"]
 	path = thirdParty/DirectXTK12
 	url = https://github.com/microsoft/DirectXTK12
+[submodule "thirdParty/rapidjson"]
+	path = thirdParty/rapidjson
+	url = https://github.com/Tencent/rapidjson/

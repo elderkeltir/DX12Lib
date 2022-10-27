@@ -8,7 +8,7 @@
 
 class Transformations;
 
-class RenderModel {
+class RenderMesh {
 public:
     struct Vertex
 	{
@@ -24,7 +24,13 @@ public:
 public:
     enum TextureType { DiffuseTexture = 0, NormalTexture, SpecularTexture };
 public:
-    RenderModel();
+    RenderMesh();
+    ~RenderMesh();
+
+    void Load(const std::wstring &name);
+    void SetName(const std::wstring &name);
+    const std::wstring& GetName() const;
+
     void Move(const DirectX::XMFLOAT3 &pos);
     void Rotate(const DirectX::XMFLOAT3 &angles);
     void Scale(const DirectX::XMFLOAT3 &scale);
@@ -51,6 +57,8 @@ private:
     std::array<std::string, 3> m_textures;
 
     std::unique_ptr<Transformations> m_transformations;
+
+    std::wstring m_name;
 
     int m_vertexCnt;
     int m_indexCnt;
