@@ -63,7 +63,7 @@ int Application::Run(DXApp* pSample, HINSTANCE hInstance, int nCmdShow)
 }
 
 // Main message handler for the sample.
-LRESULT CALLBACK Application::WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
+LRESULT CALLBACK Application::WindowProc(HWND hWnd, uint32_t message, WPARAM wParam, LPARAM lParam)
 {
     DXApp* pSample = reinterpret_cast<DXApp*>(GetWindowLongPtr(hWnd, GWLP_USERDATA));
 

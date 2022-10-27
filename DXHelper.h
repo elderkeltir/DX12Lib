@@ -5,7 +5,7 @@
 inline std::string HrToString(HRESULT hr)
 {
     char s_str[64] = {};
-    sprintf_s(s_str, "HRESULT of 0x%08X", static_cast<UINT>(hr));
+    sprintf_s(s_str, "HRESULT of 0x%08X", static_cast<uint32_t>(hr));
     return std::string(s_str);
 }
 
@@ -34,7 +34,7 @@ inline void SetName(ID3D12Object* pObject, LPCWSTR name)
 {
     pObject->SetName(name);
 }
-inline void SetNameIndexed(ID3D12Object* pObject, LPCWSTR name, UINT index)
+inline void SetNameIndexed(ID3D12Object* pObject, LPCWSTR name, uint32_t index)
 {
     WCHAR fullName[50];
     if (swprintf_s(fullName, L"%s[%u]", name, index) > 0)
@@ -46,7 +46,7 @@ inline void SetNameIndexed(ID3D12Object* pObject, LPCWSTR name, UINT index)
 inline void SetName(ID3D12Object*, LPCWSTR)
 {
 }
-inline void SetNameIndexed(ID3D12Object*, LPCWSTR, UINT)
+inline void SetNameIndexed(ID3D12Object*, LPCWSTR, uint32_t)
 {
 }
 #endif
@@ -57,7 +57,7 @@ inline void SetNameIndexed(ID3D12Object*, LPCWSTR, UINT)
 #define NAME_D3D12_OBJECT(x) SetName((x).Get(), L#x)
 #define NAME_D3D12_OBJECT_INDEXED(x, n) SetNameIndexed((x)[n].Get(), L#x, n)
 
-inline UINT CalculateConstantBufferByteSize(UINT byteSize)
+inline uint32_t CalculateConstantBufferByteSize(uint32_t byteSize)
 {
     // Constant buffer size is required to be aligned.
     return (byteSize + (D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT - 1)) & ~(D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT - 1);

@@ -4,7 +4,7 @@
 
 using namespace Microsoft::WRL;
 
-DXApp::DXApp(UINT width, UINT height, std::wstring name) : m_width(width),
+DXApp::DXApp(uint32_t width, uint32_t height, std::wstring name) : m_width(width),
                                                            m_height(height),
                                                            m_title(name),
                                                            m_useWarpDevice(false)
@@ -31,7 +31,7 @@ _Use_decl_annotations_ void DXApp::GetHardwareAdapter(
     if (SUCCEEDED(pFactory->QueryInterface(IID_PPV_ARGS(&factory6))))
     {
         for (
-            UINT adapterIndex = 0;
+            uint32_t adapterIndex = 0;
             SUCCEEDED(factory6->EnumAdapterByGpuPreference(
                 adapterIndex,
                 requestHighPerformanceAdapter == true ? DXGI_GPU_PREFERENCE_HIGH_PERFORMANCE : DXGI_GPU_PREFERENCE_UNSPECIFIED,
@@ -59,7 +59,7 @@ _Use_decl_annotations_ void DXApp::GetHardwareAdapter(
 
     if (adapter.Get() == nullptr)
     {
-        for (UINT adapterIndex = 0; SUCCEEDED(pFactory->EnumAdapters1(adapterIndex, &adapter)); ++adapterIndex)
+        for (uint32_t adapterIndex = 0; SUCCEEDED(pFactory->EnumAdapters1(adapterIndex, &adapter)); ++adapterIndex)
         {
             DXGI_ADAPTER_DESC1 desc;
             adapter->GetDesc1(&desc);

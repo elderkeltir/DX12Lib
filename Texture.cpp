@@ -1,6 +1,5 @@
 #include "Texture.h"
 
-#include <d3dx12.h>
 #include <DDSTextureLoader.h>
 #include <ResourceUploadBatch.h>
 
