@@ -8,6 +8,8 @@ struct ID3D12Device2;
 struct ID3D12GraphicsCommandList;
 struct ID3D12CommandQueue;
 
+using Microsoft::WRL::ComPtr;
+
 class Texture
 {
 public:
@@ -22,6 +24,6 @@ public:
 private:
 	std::wstring m_name;
 	bool m_isLoaded;
-	Microsoft::WRL::ComPtr<ID3D12Resource> m_textureRes;
-	Microsoft::WRL::ComPtr<ID3D12Resource> m_textureResUpload;
+	ComPtr<ID3D12Resource> m_textureRes;
+	ComPtr<ID3D12Resource> m_textureResUpload;
 };

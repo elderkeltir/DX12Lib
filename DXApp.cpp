@@ -9,21 +9,11 @@ DXApp::DXApp(UINT width, UINT height, std::wstring name) : m_width(width),
                                                            m_title(name),
                                                            m_useWarpDevice(false)
 {
-    WCHAR assetsPath[512];
-    GetAssetsPath(assetsPath, _countof(assetsPath));
-    m_assetsPath = assetsPath;
-
     m_aspectRatio = static_cast<float>(width) / static_cast<float>(height);
 }
 
 DXApp::~DXApp()
 {
-}
-
-// Helper function for resolving the full path of assets.
-std::wstring DXApp::GetAssetFullPath(LPCWSTR assetName)
-{
-    return m_assetsPath + assetName;
 }
 
 // Helper function for acquiring the first available hardware adapter that supports Direct3D 12.
