@@ -268,9 +268,8 @@ void DXAppImplementation::WaitForPreviousFrame()
     // maximize GPU utilization.
 
     // Signal and increment the fence value.
-    const uint64_t fence = m_fenceValue;
+    const uint64_t fence = ++m_fenceValue;
     ThrowIfFailed(m_commandQueue->Signal(m_fence.Get(), fence));
-    m_fenceValue++;
 
     // Wait until the previous frame is finished.
     if (m_fence->GetCompletedValue() < fence)
