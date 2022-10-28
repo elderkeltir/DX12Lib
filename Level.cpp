@@ -8,6 +8,7 @@
 #include "DXAppImplementation.h"
 #include "RenderMesh.h"
 #include "FileManager.h"
+#include "ShaderManager.h"
 
 extern DXAppImplementation *gD3DApp;
 using namespace rapidjson;
@@ -43,6 +44,9 @@ void Level::LevelEntity::Load(const std::wstring &name){
     const std::wstring vertex_name(&vertex_name_8[0], &vertex_name_8[strlen(vertex_name_8)]);
     const char * pixel_name_8 = shaders["pixel"].GetString();
     const std::wstring pixel_name(&pixel_name_8[0], &pixel_name_8[strlen(pixel_name_8)]);
+
+    gD3DApp->GetShaderManager()->Load(vertex_name, L"main", ShaderManager::ShaderType::st_vertex);
+    gD3DApp->GetShaderManager()->Load(pixel_name, L"main", ShaderManager::ShaderType::st_pixel);
 
 }
 

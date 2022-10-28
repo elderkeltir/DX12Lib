@@ -6,7 +6,7 @@
         "specular": "box_spec.dds"
     },
     "shaders": {
-        "vertex": "basic_vertex.hlsl",
-        "pixel": "basic_pixel.hlsl"
+        "vertex": "vertex_shader.hlsl",
+        "pixel": "pixel_shader.hlsl"
     }
 }

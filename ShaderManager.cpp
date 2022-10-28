@@ -2,6 +2,7 @@
 #include <assert.h>
 
 #include "DXAppImplementation.h"
+#include "DXHelper.h"
 
 extern DXAppImplementation *gD3DApp;
 
@@ -23,7 +24,7 @@ ShaderManager::ShaderManager()
 
 void ShaderManager::Load(const std::wstring &name, const std::wstring &entry_point, ShaderType target){
     std::wstring pdb_name = name;
-    pdb_name.erase(pdb_name.end() -3, pdb_name.end());
+    pdb_name.erase(pdb_name.end() -5, pdb_name.end());
     std::wstring bin_name = pdb_name;
     pdb_name += L".pdb";
     bin_name += L".bin";
@@ -37,7 +38,7 @@ void ShaderManager::Load(const std::wstring &name, const std::wstring &entry_poi
         name.c_str(),                   // Optional shader source file name for error reporting
                                         // and for PIX shader source view.  
         L"-E", entry_point.c_str(),     // Entry point.
-        L"-T", targets[0],              // Target.
+        L"-T", targets[target],              // Target.
         L"-Zs",                         // Enable debug information (slim format)
         L"-D", L"MYDEFINE=1",           // A single define.
         L"-Fo", bin_name.c_str(),       // Optional. Stored in the pdb. 
@@ -49,8 +50,10 @@ void ShaderManager::Load(const std::wstring &name, const std::wstring &entry_poi
     //
     // Open source file.  
     //
+
     ComPtr<IDxcBlobEncoding> pSource = nullptr;
-    m_utils->LoadFile(name.c_str(), nullptr, &pSource);
+    std::filesystem::path fullPath = m_shader_source_dir / name;
+    ThrowIfFailed(m_utils->LoadFile(fullPath.wstring().c_str(), nullptr, &pSource));
     DxcBuffer Source;
     Source.Ptr = pSource->GetBufferPointer();
     Source.Size = pSource->GetBufferSize();
@@ -60,31 +63,33 @@ void ShaderManager::Load(const std::wstring &name, const std::wstring &entry_poi
     // Compile it with specified arguments.
     //
     ComPtr<IDxcResult> pResults;
-    m_compiler->Compile(
+    ThrowIfFailed(m_compiler->Compile(
         &Source,                // Source buffer.
         pszArgs,                // Array of pointers to arguments.
         _countof(pszArgs),      // Number of arguments.
         m_includeHandler.Get(),        // User-provided interface to handle #include directives (optional).
         IID_PPV_ARGS(&pResults) // Compiler output status, buffer, and errors.
-    );
+    ));
 
     //
     // Print errors if present.
     //
     ComPtr<IDxcBlobUtf8> pErrors = nullptr;
-    pResults->GetOutput(DXC_OUT_ERRORS, IID_PPV_ARGS(&pErrors), nullptr);
+    ThrowIfFailed(pResults->GetOutput(DXC_OUT_ERRORS, IID_PPV_ARGS(&pErrors), nullptr));
     // Note that d3dcompiler would return null if no errors or warnings are present.
     // IDxcCompiler3::Compile will always return an error buffer, but its length
     // will be zero if there are no warnings or errors.
     if (pErrors != nullptr && pErrors->GetStringLength() != 0){
-        wprintf(L"Warnings and Errors:\n%S\n", pErrors->GetStringPointer());
+        auto errors = pErrors->GetStringPointer();
+        wprintf(L"Warnings and Errors:\n%S\n", errors);
+        assert(false);
     }
 
     //
     // Quit if the compilation failed.
     //
     HRESULT hrStatus;
-    pResults->GetStatus(&hrStatus);
+    ThrowIfFailed(pResults->GetStatus(&hrStatus));
     if (FAILED(hrStatus))
     {
         wprintf(L"Compilation Failed\n");
@@ -97,7 +102,7 @@ void ShaderManager::Load(const std::wstring &name, const std::wstring &entry_poi
     //
     ComPtr<IDxcBlob> pShader = nullptr;
     ComPtr<IDxcBlobUtf16> pShaderName = nullptr;
-    pResults->GetOutput(DXC_OUT_OBJECT, IID_PPV_ARGS(&pShader), &pShaderName);
+    ThrowIfFailed(pResults->GetOutput(DXC_OUT_OBJECT, IID_PPV_ARGS(&pShader), &pShaderName));
     if (pShader != nullptr)
     {
         FILE* fp = NULL;
@@ -112,7 +117,7 @@ void ShaderManager::Load(const std::wstring &name, const std::wstring &entry_poi
     //
     ComPtr<IDxcBlob> pPDB = nullptr;
     ComPtr<IDxcBlobUtf16> pPDBName = nullptr;
-    pResults->GetOutput(DXC_OUT_PDB, IID_PPV_ARGS(&pPDB), &pPDBName);
+    ThrowIfFailed(pResults->GetOutput(DXC_OUT_PDB, IID_PPV_ARGS(&pPDB), &pPDBName));
     {
         FILE* fp = NULL;
 
@@ -127,7 +132,7 @@ void ShaderManager::Load(const std::wstring &name, const std::wstring &entry_poi
     // Print hash.
     //
     ComPtr<IDxcBlob> pHash = nullptr;
-    pResults->GetOutput(DXC_OUT_SHADER_HASH, IID_PPV_ARGS(&pHash), nullptr);
+    ThrowIfFailed(pResults->GetOutput(DXC_OUT_SHADER_HASH, IID_PPV_ARGS(&pHash), nullptr));
     if (pHash != nullptr)
     {
         wprintf(L"Hash: ");
@@ -168,7 +173,7 @@ void ShaderManager::Load(const std::wstring &name, const std::wstring &entry_poi
     // Get separate reflection.
     //
     ComPtr<IDxcBlob> pReflectionData;
-    pResults->GetOutput(DXC_OUT_REFLECTION, IID_PPV_ARGS(&pReflectionData), nullptr);
+    ThrowIfFailed(pResults->GetOutput(DXC_OUT_REFLECTION, IID_PPV_ARGS(&pReflectionData), nullptr));
     if (pReflectionData != nullptr)
     {
         // Optionally, save reflection blob for later here.
