@@ -22,6 +22,13 @@ ShaderManager::ShaderManager()
     m_shader_bin_dir = gD3DApp->GetRootDir() / L"build" / L"Debug";
 }
 
+const IDxcBlob* ShaderManager::GetShaderBLOB(const std::wstring &name){
+    if (m_loaded_shaders.find(name) != m_loaded_shaders.end())
+        return m_loaded_shaders[name].Get();
+    else
+        return nullptr;
+}
+
 void ShaderManager::Load(const std::wstring &name, const std::wstring &entry_point, ShaderType target){
     std::wstring pdb_name = name;
     pdb_name.erase(pdb_name.end() -5, pdb_name.end());
@@ -110,6 +117,8 @@ void ShaderManager::Load(const std::wstring &name, const std::wstring &entry_poi
         _wfopen_s(&fp, pShaderName->GetStringPointer(), L"wb");
         fwrite(pShader->GetBufferPointer(), pShader->GetBufferSize(), 1, fp);
         fclose(fp);
+
+        m_loaded_shaders.insert({name, pShader});
     }
 
     //

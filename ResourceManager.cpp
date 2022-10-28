@@ -19,21 +19,9 @@ ResourceManager::ResourceManager()
 ResourceManager::~ResourceManager() = default;
 
 void ResourceManager::OnInit(){
-    m_textureMgr = std::make_unique<TextureManager>();
-    m_fileMgr = std::make_unique<FileManager>();
-    m_shaderMgr = std::make_unique<ShaderManager>();
-}
-
-TextureManager* ResourceManager::GetTextureManager() const{
-    return m_textureMgr.get();
-}
-
-FileManager* ResourceManager::GetFileManager() const {
-    return m_fileMgr.get();
-}
-
-ShaderManager* ResourceManager::GetShaderManager() const {
-    return m_shaderMgr.get();
+    m_textureMgr = std::make_shared<TextureManager>();
+    m_fileMgr = std::make_shared<FileManager>();
+    m_shaderMgr = std::make_shared<ShaderManager>();
 }
 
 const std::filesystem::path& ResourceManager::GetRootDir() const{

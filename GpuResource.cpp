@@ -1,0 +1,37 @@
+#include "GpuResource.h"
+#include "ResourceDescriptor.h"
+
+void GpuResource::CreateBuffer(HeapBuffer::BufferType type, uint32_t bufferSize, HeapBuffer::UseFlag flag, D3D12_RESOURCE_STATES initial_state){
+    m_buffer = std::make_shared<HeapBuffer>();
+    m_buffer->Create(type, bufferSize, flag, initial_state);
+}
+
+void GpuResource::CreateTexture(HeapBuffer::BufferType type, const CD3DX12_RESOURCE_DESC &res_desc, D3D12_RESOURCE_STATES initial_state, const D3D12_CLEAR_VALUE &clear_val){
+    m_buffer = std::make_shared<HeapBuffer>();
+    m_buffer->CreateTexture(type, res_desc, initial_state, clear_val);
+}
+
+void GpuResource::SetBuffer(ComPtr<ID3D12Resource> res){
+    m_buffer = std::make_shared<HeapBuffer>();
+    m_buffer->Set(res);
+}
+
+void GpuResource::CreateRTV(){
+    m_rtv = std::make_shared<ResourceDescriptor>();
+    m_rtv->Create_RTV(m_buffer);
+}
+
+void GpuResource::Create_DSV(const D3D12_DEPTH_STENCIL_VIEW_DESC &desc){
+    m_dsv = std::make_shared<ResourceDescriptor>();
+    m_dsv->Create_DSV(m_buffer, desc);
+}
+
+void GpuResource::Create_SRV(const D3D12_SHADER_RESOURCE_VIEW_DESC &desc, bool gpu_visible){
+    m_srv = std::make_shared<ResourceDescriptor>();
+    m_srv->Create_SRV(m_buffer, desc, gpu_visible);
+}
+
+void GpuResource::Create_UAV(const D3D12_UNORDERED_ACCESS_VIEW_DESC &desc, bool gpu_visible){
+    m_uav = std::make_shared<ResourceDescriptor>();
+    m_uav->Create_UAV(m_buffer, desc, gpu_visible);
+}

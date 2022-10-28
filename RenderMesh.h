@@ -35,20 +35,20 @@ public:
     void Rotate(const DirectX::XMFLOAT3 &angles);
     void Scale(const DirectX::XMFLOAT3 &scale);
 
-    void SetVertices(std::unique_ptr<DirectX::XMFLOAT3[]> vertices, uint32_t size);
-    void SetIndices(std::unique_ptr<uint32_t[]> indices, uint32_t size);
-    void SetNormals(std::unique_ptr<DirectX::XMFLOAT3[]> normals);
-    void SetTangents(std::unique_ptr<DirectX::XMFLOAT3[]> tangents, std::unique_ptr<DirectX::XMFLOAT3[]> bitangents);
+    void SetVertices(std::vector<DirectX::XMFLOAT3> vertices);
+    void SetIndices(std::vector<uint32_t> indices);
+    void SetNormals(std::vector<DirectX::XMFLOAT3> normals);
+    void SetTangents(std::vector<DirectX::XMFLOAT3> tangents, std::vector<DirectX::XMFLOAT3> bitangents);
 
-    void SetTextureCoords(std::unique_ptr<DirectX::XMFLOAT2[]> textCoords);
+    void SetTextureCoords(std::vector<DirectX::XMFLOAT2> textCoords);
     void SetTexturePath(const char* path, TextureType type);
 private:
-    std::unique_ptr<DirectX::XMFLOAT3[]> m_vertices;
-    std::unique_ptr<uint32_t[]> m_indices;
-    std::unique_ptr<DirectX::XMFLOAT3[]> m_normals;
-    std::unique_ptr<DirectX::XMFLOAT3[]> m_tangents;
-    std::unique_ptr<DirectX::XMFLOAT3[]> m_bitangents;
-    std::unique_ptr<DirectX::XMFLOAT2[]> m_textCoords;
+    std::vector<DirectX::XMFLOAT3> m_vertices;
+    std::vector<uint32_t> m_indices;
+    std::vector<DirectX::XMFLOAT3> m_normals;
+    std::vector<DirectX::XMFLOAT3> m_tangents;
+    std::vector<DirectX::XMFLOAT3> m_bitangents;
+    std::vector<DirectX::XMFLOAT2> m_textCoords;
 
     std::vector<Vertex> m_vertexDataBuffer;
 
@@ -59,7 +59,4 @@ private:
     std::unique_ptr<Transformations> m_transformations;
 
     std::wstring m_name;
-
-    int m_vertexCnt;
-    int m_indexCnt;
 };

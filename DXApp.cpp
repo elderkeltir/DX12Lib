@@ -2,7 +2,7 @@
 #include "DXHelper.h"
 #include "DXApp.h"
 
-using namespace Microsoft::WRL;
+using Microsoft::WRL::ComPtr;
 
 DXApp::DXApp(uint32_t width, uint32_t height, std::wstring name) : m_width(width),
                                                            m_height(height),

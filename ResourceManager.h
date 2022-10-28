@@ -13,16 +13,16 @@ public:
     virtual ~ResourceManager();
     virtual void OnInit();
 
-    virtual TextureManager* GetTextureManager() const;
-    virtual FileManager* GetFileManager() const;
-    virtual ShaderManager* GetShaderManager() const;
+    virtual std::weak_ptr<TextureManager> GetTextureManager() const { return m_textureMgr; }
+    virtual std::weak_ptr<FileManager> GetFileManager() const { return m_fileMgr; }
+    virtual std::weak_ptr<ShaderManager> GetShaderManager() const { return m_shaderMgr; }
 
     virtual const std::filesystem::path& GetRootDir() const;
 
 protected:
-    std::unique_ptr<FileManager> m_fileMgr;
-    std::unique_ptr<TextureManager> m_textureMgr;
-    std::unique_ptr<ShaderManager> m_shaderMgr;
+    std::shared_ptr<FileManager> m_fileMgr;
+    std::shared_ptr<TextureManager> m_textureMgr;
+    std::shared_ptr<ShaderManager> m_shaderMgr;
 
     std::filesystem::path m_root_dir;
 };

@@ -45,7 +45,11 @@ add_executable(DX12Lib WIN32 main.cpp
     ShaderManager.cpp
     Transformations.cpp
     Level.cpp
-    FreeCamera.cpp)
+    FreeCamera.cpp
+    HeapBuffer.cpp
+    ResourceDescriptor.cpp
+    GpuResource.cpp
+    DescriptorHeapCollection.cpp)
 
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})

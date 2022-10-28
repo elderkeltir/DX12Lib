@@ -2,13 +2,21 @@
 #include "Application.h"
 #include "DXHelper.h"
 #include "Level.h"
+#include "DescriptorHeapCollection.h"
+#include "GpuResource.h"
+#include "HeapBuffer.h"
+#include "ResourceDescriptor.h"
 
 DXAppImplementation *gD3DApp = nullptr;
 
 DXAppImplementation::DXAppImplementation(uint32_t width, uint32_t height, std::wstring name) :
     DXApp(width, height, name),
     m_frameIndex(0),
-    m_rtvDescriptorSize(0)
+    m_viewport(0.0f, 0.0f, static_cast<float>(width), static_cast<float>(height)),
+    m_scissorRect(0, 0, static_cast<LONG>(width), static_cast<LONG>(height)),
+    m_descriptor_heap_collection(std::make_shared<DescriptorHeapCollection>()),
+    m_renderTargets(std::make_unique<GpuResource[]>(FrameCount)),
+    m_depthStencil(std::make_unique<GpuResource>())
 {
 }
 
@@ -18,10 +26,11 @@ void DXAppImplementation::OnInit()
 {
     gD3DApp = this;
     ResourceManager::OnInit();
+    
     LoadPipeline();
     LoadAssets();
     //
-    m_level = std::make_unique<Level>();
+    m_level = std::make_shared<Level>();
     m_level->Load(L"test_level.json");
 }
 
@@ -139,29 +148,19 @@ void DXAppImplementation::LoadPipeline()
 
     ThrowIfFailed(swapChain.As(&m_swapChain));
     m_frameIndex = m_swapChain->GetCurrentBackBufferIndex();
-
+    
     // Create descriptor heaps.
-    {
-        // Describe and create a render target view (RTV) descriptor heap.
-        D3D12_DESCRIPTOR_HEAP_DESC rtvHeapDesc = {};
-        rtvHeapDesc.NumDescriptors = FrameCount;
-        rtvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
-        rtvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
-        ThrowIfFailed(m_device->CreateDescriptorHeap(&rtvHeapDesc, IID_PPV_ARGS(&m_rtvHeap)));
-
-        m_rtvDescriptorSize = m_device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
-    }
+    m_descriptor_heap_collection->Initialize();
 
     // Create frame resources.
     {
-        CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle(m_rtvHeap->GetCPUDescriptorHandleForHeapStart());
-
         // Create a RTV for each frame.
         for (uint32_t n = 0; n < FrameCount; n++)
         {
-            ThrowIfFailed(m_swapChain->GetBuffer(n, IID_PPV_ARGS(&m_renderTargets[n])));
-            m_device->CreateRenderTargetView(m_renderTargets[n].Get(), nullptr, rtvHandle);
-            rtvHandle.Offset(1, m_rtvDescriptorSize);
+            ComPtr<ID3D12Resource> renderTarget;
+            ThrowIfFailed(m_swapChain->GetBuffer(n, IID_PPV_ARGS(&renderTarget)));
+            m_renderTargets[n].SetBuffer(renderTarget);
+            m_renderTargets[n].CreateRTV();
 
             ThrowIfFailed(m_device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&m_commandAllocator[n])));
         }
@@ -171,6 +170,17 @@ void DXAppImplementation::LoadPipeline()
 // Load the sample assets.
 void DXAppImplementation::LoadAssets()
 {
+    // Create an empty root signature.
+    {
+        CD3DX12_ROOT_SIGNATURE_DESC rootSignatureDesc;
+        rootSignatureDesc.Init(0, nullptr, 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
+
+        ComPtr<ID3DBlob> signature;
+        ComPtr<ID3DBlob> error;
+        ThrowIfFailed(D3D12SerializeRootSignature(&rootSignatureDesc, D3D_ROOT_SIGNATURE_VERSION_1, &signature, &error));
+        ThrowIfFailed(m_device->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&m_rootSignature)));
+    }
+
     // Create the command list.
     ThrowIfFailed(m_device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, m_commandAllocator[m_frameIndex].Get(), nullptr, IID_PPV_ARGS(&m_commandList)));
 
@@ -188,6 +198,24 @@ void DXAppImplementation::LoadAssets()
         {
             ThrowIfFailed(HRESULT_FROM_WIN32(GetLastError()));
         }
+    }
+
+    // Create the depth stencil view.
+    {
+        D3D12_CLEAR_VALUE depthOptimizedClearValue = {};
+        depthOptimizedClearValue.Format = DXGI_FORMAT_D32_FLOAT;
+        depthOptimizedClearValue.DepthStencil.Depth = 1.0f;
+        depthOptimizedClearValue.DepthStencil.Stencil = 0;
+        CD3DX12_RESOURCE_DESC res_desc = CD3DX12_RESOURCE_DESC::Tex2D(DXGI_FORMAT_D32_FLOAT, m_width, m_height, 1, 0, 1, 0, D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL);
+        
+        m_depthStencil->CreateTexture(HeapBuffer::BufferType::bt_deafult, res_desc, D3D12_RESOURCE_STATE_DEPTH_WRITE, depthOptimizedClearValue);
+
+        D3D12_DEPTH_STENCIL_VIEW_DESC depthStencilDesc = {};
+        depthStencilDesc.Format = DXGI_FORMAT_D32_FLOAT;
+        depthStencilDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D;
+        depthStencilDesc.Flags = D3D12_DSV_FLAG_NONE;
+
+        m_depthStencil->Create_DSV(depthStencilDesc);
     }
 }
 
@@ -229,10 +257,6 @@ void DXAppImplementation::OnDestroy()
     CloseHandle(m_fenceEvent);
 }
 
-Level* DXAppImplementation::GetLevel(){
-    return m_level.get();
-}
-
 void DXAppImplementation::PopulateCommandList()
 {
     // Command list allocators can only be reset when the associated 
@@ -245,17 +269,46 @@ void DXAppImplementation::PopulateCommandList()
     // re-recording.
     ThrowIfFailed(m_commandList->Reset(m_commandAllocator[m_frameIndex].Get(), m_pipelineState.Get()));
 
-    // Indicate that the back buffer will be used as a render target.
-    m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(m_renderTargets[m_frameIndex].Get(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET));
+    // Set necessary state.
+    m_commandList->SetGraphicsRootSignature(m_rootSignature.Get());
+    m_commandList->RSSetViewports(1, &m_viewport);
+    m_commandList->RSSetScissorRects(1, &m_scissorRect);
 
-    CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle(m_rtvHeap->GetCPUDescriptorHandleForHeapStart(), m_frameIndex, m_rtvDescriptorSize);
+    // Indicate that the back buffer will be used as a render target.
+    ComPtr<ID3D12Resource> render_target;
+    if (std::shared_ptr<HeapBuffer> render_target_buff = m_renderTargets[m_frameIndex].GetBuffer().lock()){
+        render_target = render_target_buff->GetResource();
+    }
+    else {
+        assert(false);
+    }
+
+    m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(render_target.Get(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET));
+
+    CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle;
+    CD3DX12_CPU_DESCRIPTOR_HANDLE dsvHandle;
+    if (std::shared_ptr<ResourceDescriptor> render_target_view = m_renderTargets[m_frameIndex].GetRTV().lock()){
+        rtvHandle = render_target_view->GetCPUhandle();
+    }
+    else {
+        assert(false);
+    }
+    if (std::shared_ptr<ResourceDescriptor> depth_view = m_depthStencil->GetDSV().lock()){
+        dsvHandle = depth_view->GetCPUhandle();
+    }
+    else {
+        assert(false);
+    }
+
+    m_commandList->OMSetRenderTargets(1, &rtvHandle, FALSE, &dsvHandle);
+    m_commandList->ClearDepthStencilView(dsvHandle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
 
     // Record commands.
     const float clearColor[] = { 0.2f, 0.2f, 0.4f, 1.0f };
     m_commandList->ClearRenderTargetView(rtvHandle, clearColor, 0, nullptr);
 
     // Indicate that the back buffer will now be used to present.
-    m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(m_renderTargets[m_frameIndex].Get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT));
+    m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(render_target.Get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT));
 
     ThrowIfFailed(m_commandList->Close());
 }

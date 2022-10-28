@@ -17,9 +17,11 @@ void Level::LevelEntity::Load(const std::wstring &name){
     // read file
     std::string content;
     {
-        const std::filesystem::path fullPath = (gD3DApp->GetLevel()->GetEntitiesDir() / name);
-        std::ifstream ifs(fullPath.wstring());
-        content.assign((std::istreambuf_iterator<char>(ifs)), (std::istreambuf_iterator<char>()));
+        if (std::shared_ptr<Level> level =  gD3DApp->GetLevel().lock()){
+            const std::filesystem::path fullPath = (level->GetEntitiesDir() / name);
+            std::ifstream ifs(fullPath.wstring());
+            content.assign((std::istreambuf_iterator<char>(ifs)), (std::istreambuf_iterator<char>()));
+        }
     }
 
     // parse file
@@ -29,7 +31,9 @@ void Level::LevelEntity::Load(const std::wstring &name){
     const char * model_name_8 = d["model"].GetString();
     const std::wstring model_name(&model_name_8[0], &model_name_8[strlen(model_name_8)]);
 
-    mesh = gD3DApp->GetFileManager()->LoadModel(model_name);
+    if (std::shared_ptr<FileManager> fileMgr = gD3DApp->GetFileManager().lock()){
+        fileMgr->LoadModel(model_name);
+    }
 
     const Value &textures = d["textures"];
     const char * difuse_name_8 = textures["difuse"].GetString();
@@ -45,13 +49,14 @@ void Level::LevelEntity::Load(const std::wstring &name){
     const char * pixel_name_8 = shaders["pixel"].GetString();
     const std::wstring pixel_name(&pixel_name_8[0], &pixel_name_8[strlen(pixel_name_8)]);
 
-    gD3DApp->GetShaderManager()->Load(vertex_name, L"main", ShaderManager::ShaderType::st_vertex);
-    gD3DApp->GetShaderManager()->Load(pixel_name, L"main", ShaderManager::ShaderType::st_pixel);
-
+    if (std::shared_ptr<ShaderManager> shaderMgr = gD3DApp->GetShaderManager().lock()){
+        shaderMgr->Load(vertex_name, L"main", ShaderManager::ShaderType::st_vertex);
+        shaderMgr->Load(pixel_name, L"main", ShaderManager::ShaderType::st_pixel);
+    }
 }
 
 Level::Level() :
-    m_camera(std::make_unique<FreeCamera>())
+    m_camera(std::make_shared<FreeCamera>())
 {
     m_levels_dir = gD3DApp->GetRootDir() / L"content" / L"levels";
     m_entities_dir = gD3DApp->GetRootDir() / L"content" / L"entities";

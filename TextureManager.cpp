@@ -19,17 +19,17 @@ void TextureManager::AddTexture(const std::wstring &name)
 {
 	if (m_textures.find(name) == m_textures.end())
 	{
-		m_textures.insert({ name , std::unique_ptr<Texture>(std::make_unique<Texture>(name)) });
+		m_textures.insert({ name , std::make_shared<Texture>(name) });
 	}
 }
 
-Texture* TextureManager::FindTexture(const std::wstring &name)
+std::weak_ptr<Texture> TextureManager::FindTexture(const std::wstring &name)
 {
-	Texture* text(nullptr);
+	std::weak_ptr<Texture> text;
 
 	auto it = m_textures.find(name);
 	if (it != m_textures.end())
-		text = it->second.get();
+		text = it->second;
 
 	return text;
 }

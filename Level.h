@@ -32,6 +32,7 @@ public:
     Level();
     ~Level();
     void Load(const std::wstring &name);
+    std::weak_ptr<FreeCamera> GetCamera() { return m_camera; }
 
     const std::filesystem::path& GetLevelsDir() const;
     const std::filesystem::path& GetEntitiesDir() const;
@@ -40,7 +41,7 @@ private:
     std::wstring m_name;
     std::vector<LevelEntity> m_entites;
     std::vector<LevelLight> m_lights;
-    std::unique_ptr<FreeCamera> m_camera;
+    std::shared_ptr<FreeCamera> m_camera;
     std::filesystem::path m_levels_dir;
     std::filesystem::path m_entities_dir;
 };

@@ -111,19 +111,19 @@ bool FileManager::ReadModelFromFBX(const std::wstring &name, uint32_t id, Render
 		aiMesh* mesh = scene->mMeshes[id];
 		uint32_t verticesNum = mesh->mNumVertices;
 		uint32_t indicesNum = mesh->mNumFaces * 3;
-		std::unique_ptr<DirectX::XMFLOAT3[]> vertices = std::make_unique<DirectX::XMFLOAT3[]>(verticesNum);
-		std::unique_ptr<DirectX::XMFLOAT3[]> normals = std::make_unique<DirectX::XMFLOAT3[]>(verticesNum);
-		std::unique_ptr<DirectX::XMFLOAT3[]> tangents = std::make_unique<DirectX::XMFLOAT3[]>(verticesNum);
-		std::unique_ptr<DirectX::XMFLOAT3[]> bitangents = std::make_unique<DirectX::XMFLOAT3[]>(verticesNum);
-		std::unique_ptr<uint32_t[]> indices = std::make_unique<uint32_t[]>(indicesNum);
+		std::vector<DirectX::XMFLOAT3> vertices(verticesNum);
+		std::vector<DirectX::XMFLOAT3> normals(verticesNum);
+		std::vector<DirectX::XMFLOAT3> tangents(verticesNum);
+		std::vector<DirectX::XMFLOAT3> bitangents(verticesNum);
+		std::vector<uint32_t> indices(indicesNum);
 		
-		for (; i < verticesNum; i++)
+		for (i = 0; i < verticesNum; i++)
 		{
 			vertices[i].x = mesh->mVertices[i].x;
 			vertices[i].y = mesh->mVertices[i].y;
 			vertices[i].z = mesh->mVertices[i].z;
 		}
-		outModel->SetVertices(std::move(vertices), verticesNum);
+		outModel->SetVertices(std::move(vertices));
 
 		for (i = 0; i < mesh->mNumFaces; i++)
 		{
@@ -131,7 +131,7 @@ bool FileManager::ReadModelFromFBX(const std::wstring &name, uint32_t id, Render
 			indices[j++] = mesh->mFaces[i].mIndices[1];
 			indices[j++] = mesh->mFaces[i].mIndices[2];
 		}
-		outModel->SetIndices(std::move(indices), indicesNum);
+		outModel->SetIndices(std::move(indices));
 
 		if (mesh->HasNormals())
 		{
@@ -189,7 +189,9 @@ bool FileManager::ReadModelFromFBX(const std::wstring &name, uint32_t id, Render
 					}
 					else
 					{
-                        gD3DApp->GetTextureManager()->AddTexture(std::wstring(&texturePath.C_Str()[0], &texturePath.C_Str()[strlen(texturePath.C_Str())]));
+						if (std::shared_ptr<TextureManager> textureMgr = gD3DApp->GetTextureManager().lock()){	
+							textureMgr->AddTexture(std::wstring(&texturePath.C_Str()[0], &texturePath.C_Str()[strlen(texturePath.C_Str())]));
+						}
 						outModel->SetTexturePath(texturePath.C_Str(), RenderMesh::TextureType::DiffuseTexture);
 					}
 				}
@@ -206,7 +208,9 @@ bool FileManager::ReadModelFromFBX(const std::wstring &name, uint32_t id, Render
 					}
 					else
 					{
-						gD3DApp->GetTextureManager()->AddTexture(std::wstring(&texturePath.C_Str()[0], &texturePath.C_Str()[strlen(texturePath.C_Str())]));
+						if (std::shared_ptr<TextureManager> textureMgr = gD3DApp->GetTextureManager().lock()){
+							textureMgr->AddTexture(std::wstring(&texturePath.C_Str()[0], &texturePath.C_Str()[strlen(texturePath.C_Str())]));
+						}
 						outModel->SetTexturePath(texturePath.C_Str(), RenderMesh::TextureType::NormalTexture);
 						// outModel->SetFlag(Mesh::MeshFlags::UseNormalMap);
 					}
@@ -224,7 +228,9 @@ bool FileManager::ReadModelFromFBX(const std::wstring &name, uint32_t id, Render
 					}
 					else
 					{
-						gD3DApp->GetTextureManager()->AddTexture(std::wstring(&texturePath.C_Str()[0], &texturePath.C_Str()[strlen(texturePath.C_Str())]));
+						if (std::shared_ptr<TextureManager> textureMgr = gD3DApp->GetTextureManager().lock()){
+							textureMgr->AddTexture(std::wstring(&texturePath.C_Str()[0], &texturePath.C_Str()[strlen(texturePath.C_Str())]));
+						}
 						outModel->SetTexturePath(texturePath.C_Str(), RenderMesh::TextureType::SpecularTexture);
 						// outModel->SetFlag(Mesh::MeshFlags::UseSpecularMap);
 					}
@@ -234,7 +240,7 @@ bool FileManager::ReadModelFromFBX(const std::wstring &name, uint32_t id, Render
 			// texture coords
 			if (mesh->mTextureCoords)
 			{
-				std::unique_ptr<DirectX::XMFLOAT2[]> textCoords_ = std::make_unique<DirectX::XMFLOAT2[]>(mesh->mNumVertices);
+				std::vector<DirectX::XMFLOAT2> textCoords_(mesh->mNumVertices);
 
 				for (uint32_t k = 0; k < mesh->mNumVertices; k++)
 				{

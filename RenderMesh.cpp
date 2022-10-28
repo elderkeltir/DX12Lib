@@ -33,28 +33,26 @@ void RenderMesh::Scale(const DirectX::XMFLOAT3 &scale){
     m_transformations->Scale(scale);
 }
 
-void RenderMesh::SetVertices(std::unique_ptr<DirectX::XMFLOAT3[]> vertices, uint32_t size){
+void RenderMesh::SetVertices(std::vector<DirectX::XMFLOAT3> vertices){
 	m_vertices.swap(vertices);
-	m_vertexCnt = size;
 
-	m_vertexDataBuffer.resize(m_vertexCnt);
+	m_vertexDataBuffer.resize(m_vertices.size());
 }
 
-void RenderMesh::SetIndices(std::unique_ptr<uint32_t[]> indices, uint32_t size){
+void RenderMesh::SetIndices(std::vector<uint32_t> indices){
 	m_indices.swap(indices);
-	m_indexCnt = size;
 }
 
-void RenderMesh::SetNormals(std::unique_ptr<DirectX::XMFLOAT3[]> normals){
+void RenderMesh::SetNormals(std::vector<DirectX::XMFLOAT3> normals){
     m_normals.swap(normals);
 }
 
-void RenderMesh::SetTangents(std::unique_ptr<DirectX::XMFLOAT3[]> tangents, std::unique_ptr<DirectX::XMFLOAT3[]> bitangents){
+void RenderMesh::SetTangents(std::vector<DirectX::XMFLOAT3> tangents, std::vector<DirectX::XMFLOAT3> bitangents){
     m_tangents.swap(tangents);
 	m_bitangents.swap(bitangents);
 }
 
-void RenderMesh::SetTextureCoords(std::unique_ptr<DirectX::XMFLOAT2[]> textCoords){
+void RenderMesh::SetTextureCoords(std::vector<DirectX::XMFLOAT2> textCoords){
     m_textCoords.swap(textCoords);
 }
 
