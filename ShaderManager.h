@@ -15,7 +15,7 @@ public:
 public:
     ShaderManager();
 
-    const IDxcBlob* GetShaderBLOB(const std::wstring &name);
+    IDxcBlob* GetShaderBLOB(const std::wstring &name);
     void Load(const std::wstring &name, const std::wstring &entry_point, ShaderType target);
 
     const std::filesystem::path& GetShaderSourceDir() const;

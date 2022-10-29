@@ -22,7 +22,7 @@ ShaderManager::ShaderManager()
     m_shader_bin_dir = gD3DApp->GetRootDir() / L"build" / L"Debug";
 }
 
-const IDxcBlob* ShaderManager::GetShaderBLOB(const std::wstring &name){
+IDxcBlob* ShaderManager::GetShaderBLOB(const std::wstring &name){
     if (m_loaded_shaders.find(name) != m_loaded_shaders.end())
         return m_loaded_shaders[name].Get();
     else

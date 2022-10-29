@@ -2,6 +2,8 @@
 #include "DXApp.h"
 #include "ResourceManager.h"
 
+#include <chrono>
+
 using Microsoft::WRL::ComPtr;
 class Level;
 class DescriptorHeapCollection;
@@ -38,8 +40,16 @@ private:
     //ComPtr<ID3D12DescriptorHeap> m_rtvHeap;
     //ComPtr<ID3D12DescriptorHeap> m_dsvHeap;
     ComPtr<ID3D12PipelineState> m_pipelineState;
-    ComPtr<ID3D12GraphicsCommandList> m_commandList;
+    ComPtr<ID3D12GraphicsCommandList6> m_commandList;
     //uint32_t m_rtvDescriptorSize;
+    // Pipeline state object.
+    Microsoft::WRL::ComPtr<ID3D12PipelineState> m_PipelineState;
+    // Vertex buffer for the cube.
+    Microsoft::WRL::ComPtr<ID3D12Resource> m_VertexBuffer;
+    D3D12_VERTEX_BUFFER_VIEW m_VertexBufferView;
+    // Index buffer for the cube.
+    Microsoft::WRL::ComPtr<ID3D12Resource> m_IndexBuffer;
+    D3D12_INDEX_BUFFER_VIEW m_IndexBufferView;
 
     std::unique_ptr<GpuResource[]> m_renderTargets;
     std::unique_ptr<GpuResource> m_depthStencil;
@@ -57,6 +67,14 @@ private:
     void WaitForPreviousFrame();
     uint64_t Signal(uint64_t &fenceValue);
     void Wait(uint64_t fenceValue);
+    
+    //
+    void LoadTechnique();
+    void RenderCube();
+    std::chrono::time_point<std::chrono::system_clock> m_time;
+    std::chrono::time_point<std::chrono::system_clock> m_start_time;
+    std::chrono::duration<double> m_total_time;
+    std::chrono::duration<double> m_dt;
 
     //
     std::shared_ptr<Level> m_level;
