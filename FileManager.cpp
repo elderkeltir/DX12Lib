@@ -115,7 +115,7 @@ bool FileManager::ReadModelFromFBX(const std::wstring &name, uint32_t id, Render
 		std::vector<DirectX::XMFLOAT3> normals(verticesNum);
 		std::vector<DirectX::XMFLOAT3> tangents(verticesNum);
 		std::vector<DirectX::XMFLOAT3> bitangents(verticesNum);
-		std::vector<uint32_t> indices(indicesNum);
+		std::vector<uint16_t> indices(indicesNum);
 		
 		for (i = 0; i < verticesNum; i++)
 		{

@@ -3,32 +3,10 @@
 #include "GpuResource.h"
 #include "DXHelper.h"
 
-struct VertexPosColor
-{
+struct VertexPos{
     DirectX::XMFLOAT3 Position;
-    DirectX::XMFLOAT3 Color;
 };
 
-static VertexPosColor g_Vertices[8] = {
-    { DirectX::XMFLOAT3(-1.0f, -1.0f, -1.0f), DirectX::XMFLOAT3(0.0f, 0.0f, 0.0f) }, // 0
-    { DirectX::XMFLOAT3(-1.0f,  1.0f, -1.0f), DirectX::XMFLOAT3(0.0f, 1.0f, 0.0f) }, // 1
-    { DirectX::XMFLOAT3(1.0f,  1.0f, -1.0f), DirectX::XMFLOAT3(1.0f, 1.0f, 0.0f) }, // 2
-    { DirectX::XMFLOAT3(1.0f, -1.0f, -1.0f), DirectX::XMFLOAT3(1.0f, 0.0f, 0.0f) }, // 3
-    { DirectX::XMFLOAT3(-1.0f, -1.0f,  1.0f), DirectX::XMFLOAT3(0.0f, 0.0f, 1.0f) }, // 4
-    { DirectX::XMFLOAT3(-1.0f,  1.0f,  1.0f), DirectX::XMFLOAT3(0.0f, 1.0f, 1.0f) }, // 5
-    { DirectX::XMFLOAT3(1.0f,  1.0f,  1.0f), DirectX::XMFLOAT3(1.0f, 1.0f, 1.0f) }, // 6
-    { DirectX::XMFLOAT3(1.0f, -1.0f,  1.0f), DirectX::XMFLOAT3(1.0f, 0.0f, 1.0f) }  // 7
-};
-
-static WORD g_Indicies[36] =
-{
-    0, 1, 2, 0, 2, 3,
-    4, 6, 5, 4, 7, 6,
-    4, 5, 1, 4, 1, 0,
-    3, 2, 6, 3, 6, 7,
-    1, 5, 6, 1, 6, 2,
-    4, 0, 3, 4, 3, 7
-};
 
 RenderModel::RenderModel() :
     m_transformations(std::make_unique<Transformations>())
@@ -68,7 +46,7 @@ void RenderModel::SetVertices(std::vector<DirectX::XMFLOAT3> vertices){
 	//m_vertexDataBuffer.resize(m_vertices.size());
 }
 
-void RenderModel::SetIndices(std::vector<uint32_t> indices){
+void RenderModel::SetIndices(std::vector<uint16_t> indices){
 	m_indices.swap(indices);
 }
 
@@ -92,12 +70,12 @@ void RenderModel::SetTexturePath(const char* path, TextureType type){
 void RenderModel::LoadVertexDataOnGpu(ComPtr<ID3D12GraphicsCommandList6> &commandList){
     if (m_dirty & db_vertex){
         m_VertexBuffer = std::make_unique<GpuResource>();
-        m_VertexBuffer->CreateBuffer(HeapBuffer::BufferType::bt_deafult, (_countof(g_Vertices) * sizeof(VertexPosColor)), HeapBuffer::UseFlag::uf_none, D3D12_RESOURCE_STATE_COPY_DEST);
-        m_VertexBuffer->LoadBuffer(commandList, _countof(g_Vertices), sizeof(VertexPosColor), g_Vertices);
+        m_VertexBuffer->CreateBuffer(HeapBuffer::BufferType::bt_deafult, ((uint32_t)m_vertices.size() * sizeof(VertexPos)), HeapBuffer::UseFlag::uf_none, D3D12_RESOURCE_STATE_COPY_DEST);
+        m_VertexBuffer->LoadBuffer(commandList, (uint32_t)m_vertices.size(), sizeof(VertexPos), m_vertices.data());
         if (std::shared_ptr<HeapBuffer> buff = m_VertexBuffer->GetBuffer().lock()){
             commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(buff->GetResource().Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER));
         }
-        m_VertexBuffer->Create_Vertex_View(sizeof(g_Vertices), sizeof(VertexPosColor));
+        m_VertexBuffer->Create_Vertex_View(((uint32_t)m_vertices.size() * sizeof(VertexPos)), sizeof(VertexPos));
         m_dirty &= (~db_vertex);
     }
 }
@@ -105,12 +83,12 @@ void RenderModel::LoadVertexDataOnGpu(ComPtr<ID3D12GraphicsCommandList6> &comman
 void RenderModel::LoadIndexDataOnGpu(ComPtr<ID3D12GraphicsCommandList6> &commandList){
     if (m_dirty & db_index){
         m_IndexBuffer = std::make_unique<GpuResource>();
-        m_IndexBuffer->CreateBuffer(HeapBuffer::BufferType::bt_deafult, (_countof(g_Indicies) * sizeof(WORD)), HeapBuffer::UseFlag::uf_none, D3D12_RESOURCE_STATE_COPY_DEST);
-        m_IndexBuffer->LoadBuffer(commandList, _countof(g_Indicies), sizeof(WORD), g_Indicies);
+        m_IndexBuffer->CreateBuffer(HeapBuffer::BufferType::bt_deafult, ((uint32_t)m_indices.size() * sizeof(uint16_t)), HeapBuffer::UseFlag::uf_none, D3D12_RESOURCE_STATE_COPY_DEST);
+        m_IndexBuffer->LoadBuffer(commandList, (uint32_t)m_indices.size(), sizeof(uint16_t), m_indices.data());
         if (std::shared_ptr<HeapBuffer> buff = m_IndexBuffer->GetBuffer().lock()){
             commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(buff->GetResource().Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_INDEX_BUFFER));
         }
-        m_IndexBuffer->Create_Index_View(DXGI_FORMAT_R16_UINT, sizeof(g_Indicies));
+        m_IndexBuffer->Create_Index_View(DXGI_FORMAT_R16_UINT, ((uint32_t)m_indices.size() * sizeof(uint16_t)));
         m_dirty &= (~db_index);
     }
 }
@@ -136,5 +114,5 @@ TODO("Minor: avoid every frame call to function")
     commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
     
     TODO("DrawIndexed should be at upper level where you know there are few such meshes to render")
-    commandList->DrawIndexedInstanced(_countof(g_Indicies), 1, 0, 0, 0);
+    commandList->DrawIndexedInstanced((UINT)m_indices.size(), 1, 0, 0, 0);
 }

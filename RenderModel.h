@@ -46,7 +46,7 @@ public:
     void Scale(const DirectX::XMFLOAT3 &scale);
 
     void SetVertices(std::vector<DirectX::XMFLOAT3> vertices);
-    void SetIndices(std::vector<uint32_t> indices);
+    void SetIndices(std::vector<uint16_t> indices);
     void SetNormals(std::vector<DirectX::XMFLOAT3> normals);
     void SetTangents(std::vector<DirectX::XMFLOAT3> tangents, std::vector<DirectX::XMFLOAT3> bitangents);
 
@@ -58,7 +58,7 @@ private:
         db_index        = 1 << 1
     };
     std::vector<DirectX::XMFLOAT3> m_vertices;
-    std::vector<uint32_t> m_indices;
+    std::vector<uint16_t> m_indices;
     std::vector<DirectX::XMFLOAT3> m_normals;
     std::vector<DirectX::XMFLOAT3> m_tangents;
     std::vector<DirectX::XMFLOAT3> m_bitangents;
