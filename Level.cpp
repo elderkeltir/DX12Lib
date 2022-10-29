@@ -1,4 +1,13 @@
 #include "Level.h"
+
+#if defined(min)
+#undef min
+#endif
+ 
+#if defined(max)
+#undef max
+#endif
+
 #include <rapidjson/document.h>
 #include <rapidjson/writer.h>
 #include <rapidjson/stringbuffer.h>
@@ -6,57 +15,13 @@
 
 #include "FreeCamera.h"
 #include "DXAppImplementation.h"
-#include "RenderMesh.h"
 #include "FileManager.h"
-#include "ShaderManager.h"
 
 extern DXAppImplementation *gD3DApp;
-using namespace rapidjson;
+using rapidjson::Document;
+using rapidjson::Value;
 
-void Level::LevelEntity::Load(const std::wstring &name){
-    // read file
-    std::string content;
-    {
-        if (std::shared_ptr<Level> level =  gD3DApp->GetLevel().lock()){
-            const std::filesystem::path fullPath = (level->GetEntitiesDir() / name);
-            std::ifstream ifs(fullPath.wstring());
-            content.assign((std::istreambuf_iterator<char>(ifs)), (std::istreambuf_iterator<char>()));
-        }
-    }
-
-    // parse file
-    Document d;
-    d.Parse(content.c_str());
-
-    const char * model_name_8 = d["model"].GetString();
-    const std::wstring model_name(&model_name_8[0], &model_name_8[strlen(model_name_8)]);
-
-    if (std::shared_ptr<FileManager> fileMgr = gD3DApp->GetFileManager().lock()){
-        fileMgr->LoadModel(model_name);
-    }
-
-    const Value &textures = d["textures"];
-    const char * difuse_name_8 = textures["difuse"].GetString();
-    const std::wstring difuse_name(&difuse_name_8[0], &difuse_name_8[strlen(difuse_name_8)]);
-    const char * normal_name_8 = textures["normal"].GetString();
-    const std::wstring normal_name(&normal_name_8[0], &normal_name_8[strlen(normal_name_8)]);
-    const char * specular_name_8 = textures["specular"].GetString();
-    const std::wstring specular_name(&specular_name_8[0], &specular_name_8[strlen(specular_name_8)]);
-
-    const Value &shaders = d["shaders"];
-    const char * vertex_name_8 = shaders["vertex"].GetString();
-    const std::wstring vertex_name(&vertex_name_8[0], &vertex_name_8[strlen(vertex_name_8)]);
-    const char * pixel_name_8 = shaders["pixel"].GetString();
-    const std::wstring pixel_name(&pixel_name_8[0], &pixel_name_8[strlen(pixel_name_8)]);
-
-    if (std::shared_ptr<ShaderManager> shaderMgr = gD3DApp->GetShaderManager().lock()){
-        shaderMgr->Load(vertex_name, L"main", ShaderManager::ShaderType::st_vertex);
-        shaderMgr->Load(pixel_name, L"main", ShaderManager::ShaderType::st_pixel);
-    }
-}
-
-Level::Level() :
-    m_camera(std::make_shared<FreeCamera>())
+Level::Level()
 {
     m_levels_dir = gD3DApp->GetRootDir() / L"content" / L"levels";
     m_entities_dir = gD3DApp->GetRootDir() / L"content" / L"entities";
@@ -83,9 +48,14 @@ void Level::Load(const std::wstring &name){
         const Value &camera = d["camera"];
         const Value &camera_pos = camera["pos"];
         const Value &camera_dir = camera["dir"];
-        const DirectX::XMFLOAT3 pos(camera_pos[0].GetFloat(), camera_pos[1].GetFloat(), camera_pos[2].GetFloat());
-        const DirectX::XMFLOAT3 dir(camera_dir[0].GetFloat(), camera_dir[1].GetFloat(), camera_dir[2].GetFloat());
-
+        const DirectX::XMFLOAT4 pos(camera_pos[0].GetFloat(), camera_pos[1].GetFloat(), camera_pos[2].GetFloat(), 1.f);
+        const DirectX::XMFLOAT4 dir(camera_dir[0].GetFloat(), camera_dir[1].GetFloat(), camera_dir[2].GetFloat(), 0.f);
+        
+        const Value &camera_fov = camera["fov"];
+        const Value &camera_near = camera["near"];
+        const Value &camera_far = camera["far"];
+        
+        m_camera.swap(std::make_shared<FreeCamera>(camera_fov.GetFloat(), camera_near.GetFloat(), camera_far.GetFloat(), gD3DApp->GetAspectRatio()));
         m_camera->Move(pos);
         m_camera->Rotate(dir);
     }
@@ -104,9 +74,10 @@ void Level::Load(const std::wstring &name){
         const DirectX::XMFLOAT3 rot(model_rot[0].GetFloat(), model_rot[1].GetFloat(), model_rot[2].GetFloat());
         const DirectX::XMFLOAT3 scale(model_scale[0].GetFloat(), model_scale[1].GetFloat(), model_scale[2].GetFloat());
 
-        LevelEntity lev_ent{ L"", nullptr, pos, rot, scale, i };
+        LevelEntity lev_ent{ L"", pos, rot, scale };
         lev_ent.Load(model_name);
-        m_entites.push_back(lev_ent);
+        uint32_t id = m_entites.push_back(lev_ent);
+        m_entites[id].SetId(id);
     }
 
     // Lights
@@ -123,10 +94,25 @@ void Level::Load(const std::wstring &name){
             const DirectX::XMFLOAT3 dir(light_dir[0].GetFloat(), light_dir[1].GetFloat(), light_dir[2].GetFloat());
             const DirectX::XMFLOAT3 power(light_power[0].GetFloat(), light_power[1].GetFloat(), light_power[2].GetFloat());
 
-            const LevelLight level_light{ DirectX::XMFLOAT3(), dir, power, ltype };
-            m_lights.push_back(level_light);
+            const LevelLight level_light{ DirectX::XMFLOAT3(), dir, power, 0, ltype };
+            uint32_t id = m_lights.push_back(level_light);
+            m_lights[id].id = id;
         }
     }
+}
+
+void Level::Update(float dt){
+    // update camera
+    m_camera->Update(dt);
+
+    //update entites
+    for (auto &entity : m_entites){
+        entity.Update(dt);
+    }
+}
+
+void Level::Render(){
+
 }
 
 const std::filesystem::path& Level::GetLevelsDir() const{

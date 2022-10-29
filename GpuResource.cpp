@@ -16,6 +16,10 @@ void GpuResource::SetBuffer(ComPtr<ID3D12Resource> res){
     m_buffer->Set(res);
 }
 
+void GpuResource::LoadBuffer(ComPtr<ID3D12GraphicsCommandList6> &commandList, uint32_t numElements, uint32_t elementSize, const void* bufferData){
+    m_buffer->Load(commandList, numElements, elementSize, bufferData);
+}
+
 void GpuResource::CreateRTV(){
     m_rtv = std::make_shared<ResourceDescriptor>();
     m_rtv->Create_RTV(m_buffer);
@@ -34,4 +38,18 @@ void GpuResource::Create_SRV(const D3D12_SHADER_RESOURCE_VIEW_DESC &desc, bool g
 void GpuResource::Create_UAV(const D3D12_UNORDERED_ACCESS_VIEW_DESC &desc, bool gpu_visible){
     m_uav = std::make_shared<ResourceDescriptor>();
     m_uav->Create_UAV(m_buffer, desc, gpu_visible);
+}
+
+void GpuResource::Create_Vertex_View(uint32_t sizSizeInBytese, uint32_t StrideInBytes){
+    m_vertex_view = std::make_shared<D3D12_VERTEX_BUFFER_VIEW>();
+    m_vertex_view->BufferLocation = m_buffer->GetResource()->GetGPUVirtualAddress();
+    m_vertex_view->SizeInBytes = sizSizeInBytese;
+    m_vertex_view->StrideInBytes = StrideInBytes;
+}
+
+void GpuResource::Create_Index_View(DXGI_FORMAT format, uint32_t SizeInBytes){
+    m_index_view = std::make_shared<D3D12_INDEX_BUFFER_VIEW>();
+    m_index_view->BufferLocation = m_buffer->GetResource()->GetGPUVirtualAddress();
+    m_index_view->Format = format;
+    m_index_view->SizeInBytes = SizeInBytes;
 }

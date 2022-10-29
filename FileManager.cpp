@@ -9,17 +9,17 @@
 #include <assimp/scene.h>           // Output data structure
 #include <assimp/postprocess.h>     // Post processing flags
 
-#include "RenderMesh.h"
+#include "RenderModel.h"
 #include "DXAppImplementation.h"
 #include "TextureManager.h"
 
 extern DXAppImplementation *gD3DApp;
 
 
-const RenderMesh* FileManager::LoadModel(const std::wstring &name){
-	const auto cit = std::find_if(m_load_meshes.cbegin(), m_load_meshes.cend(), [&name](const RenderMesh &mesh){ return (mesh.GetName() == name); });
-	if (cit != m_load_meshes.cend()){
-		return &(*cit);
+RenderModel* FileManager::LoadModel(const std::wstring &name){
+	const auto it = std::find_if(m_load_meshes.begin(), m_load_meshes.end(), [&name](RenderModel &mesh){ return (mesh.GetName() == name); });
+	if (it != m_load_meshes.cend()){
+		return &(*it);
 	}
 	else {
 		
@@ -65,7 +65,7 @@ FileManager::~FileManager()
 {
 }
 
-bool FileManager::ReadModelFromFBX(const std::wstring &name, uint32_t id, RenderMesh* outModel, uint32_t *outModelNum)
+bool FileManager::ReadModelFromFBX(const std::wstring &name, uint32_t id, RenderModel* outModel, uint32_t *outModelNum)
 {
 	std::filesystem::path file_path = m_model_dir / name;
 	// fetch data
@@ -192,7 +192,7 @@ bool FileManager::ReadModelFromFBX(const std::wstring &name, uint32_t id, Render
 						if (std::shared_ptr<TextureManager> textureMgr = gD3DApp->GetTextureManager().lock()){	
 							textureMgr->AddTexture(std::wstring(&texturePath.C_Str()[0], &texturePath.C_Str()[strlen(texturePath.C_Str())]));
 						}
-						outModel->SetTexturePath(texturePath.C_Str(), RenderMesh::TextureType::DiffuseTexture);
+						outModel->SetTexturePath(texturePath.C_Str(), RenderModel::TextureType::DiffuseTexture);
 					}
 				}
 			}
@@ -211,7 +211,7 @@ bool FileManager::ReadModelFromFBX(const std::wstring &name, uint32_t id, Render
 						if (std::shared_ptr<TextureManager> textureMgr = gD3DApp->GetTextureManager().lock()){
 							textureMgr->AddTexture(std::wstring(&texturePath.C_Str()[0], &texturePath.C_Str()[strlen(texturePath.C_Str())]));
 						}
-						outModel->SetTexturePath(texturePath.C_Str(), RenderMesh::TextureType::NormalTexture);
+						outModel->SetTexturePath(texturePath.C_Str(), RenderModel::TextureType::NormalTexture);
 						// outModel->SetFlag(Mesh::MeshFlags::UseNormalMap);
 					}
 				}
@@ -231,7 +231,7 @@ bool FileManager::ReadModelFromFBX(const std::wstring &name, uint32_t id, Render
 						if (std::shared_ptr<TextureManager> textureMgr = gD3DApp->GetTextureManager().lock()){
 							textureMgr->AddTexture(std::wstring(&texturePath.C_Str()[0], &texturePath.C_Str()[strlen(texturePath.C_Str())]));
 						}
-						outModel->SetTexturePath(texturePath.C_Str(), RenderMesh::TextureType::SpecularTexture);
+						outModel->SetTexturePath(texturePath.C_Str(), RenderModel::TextureType::SpecularTexture);
 						// outModel->SetFlag(Mesh::MeshFlags::UseSpecularMap);
 					}
 				}
@@ -262,8 +262,8 @@ const std::filesystem::path& FileManager::GetModelDir() const{
 	return m_model_dir;
 }
 
-const RenderMesh* FileManager::LoadModelInternal(const std::wstring &name){
-	RenderMesh* new_mesh = &(m_load_meshes[m_model_count++]);
+RenderModel* FileManager::LoadModelInternal(const std::wstring &name){
+	RenderModel* new_mesh = &(m_load_meshes[m_model_count++]);
 	uint32_t cnt = 0;
 	ReadModelFromFBX(name, 0, new_mesh, &cnt);
 	assert(cnt ==1);

@@ -1,46 +1,42 @@
 #pragma once
 
 #include <string>
-#include <vector>
 #include <memory>
 #include <filesystem>
-
 #include <DirectXMath.h>
+#include <vector>
+#include "simple_object_pool.h"
+#include "LevelEntity.h"
 
 class FreeCamera;
-class RenderMesh;
+class RenderModel;
 
 class Level {
 public:
-    struct LevelEntity {
-        std::wstring model_name;
-        const RenderMesh* mesh; // TODO: make pool of meshes and assign one from there?
-        DirectX::XMFLOAT3 pos;
-        DirectX::XMFLOAT3 rot;
-        DirectX::XMFLOAT3 scale;
-        uint32_t id;
-
-        void Load(const std::wstring &name);
-    };
     struct LevelLight {
         DirectX::XMFLOAT3 pos;
         DirectX::XMFLOAT3 dir;
         DirectX::XMFLOAT3 power;
+        uint32_t id;
         enum class LightType { lt_ambient, lt_direct, lt_point, lt_spot } type;
     };
 public:
     Level();
     ~Level();
     void Load(const std::wstring &name);
-    std::weak_ptr<FreeCamera> GetCamera() { return m_camera; }
+    void Update(float dt);
+    void Render();
 
+    std::weak_ptr<FreeCamera> GetCamera() { return m_camera; }
     const std::filesystem::path& GetLevelsDir() const;
     const std::filesystem::path& GetEntitiesDir() const;
+    LevelEntity& GetEntityById(uint32_t id) { return m_entites[id]; }
+    uint32_t GetEntityCount() const { return m_entites.size(); }
 
 private:
     std::wstring m_name;
-    std::vector<LevelEntity> m_entites;
-    std::vector<LevelLight> m_lights;
+    pro_game_containers::simple_object_pool<LevelEntity, 256> m_entites;
+    pro_game_containers::simple_object_pool<LevelLight, 16> m_lights;
     std::shared_ptr<FreeCamera> m_camera;
     std::filesystem::path m_levels_dir;
     std::filesystem::path m_entities_dir;

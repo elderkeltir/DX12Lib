@@ -62,3 +62,15 @@ inline uint32_t CalculateConstantBufferByteSize(uint32_t byteSize)
     // Constant buffer size is required to be aligned.
     return (byteSize + (D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT - 1)) & ~(D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT - 1);
 }
+
+#define _STR(x) #x
+#define STR(x) _STR(x)
+#define TODO(x) __pragma(message("TODO: "_STR(x) " :: " __FILE__ ":" STR(__LINE__)))
+
+// PIXSetMarker(m_commandList.Get(), PIX_COLOR(120, 120, 120), L"UpdateBufferResource for index buffer");
+// PIXBeginEvent(m_commandList.Get(), PIX_COLOR(55, 120, 55), L"LoadTechnique");
+// PIXEndEvent(m_commandList.Get());
+// PIXCaptureParameters cap_params{};
+// cap_params.GpuCaptureParameters.FileName = L"capture.wpix";
+// PIXBeginCapture(PIX_CAPTURE_GPU , &cap_params);
+// PIXEndCapture(FALSE);

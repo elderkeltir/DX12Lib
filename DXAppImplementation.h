@@ -22,8 +22,14 @@ public:
 
     std::weak_ptr<Level> GetLevel() { return m_level; }
     std::weak_ptr<DescriptorHeapCollection> GetDescriptorHeapCollection() {return m_descriptor_heap_collection; }
-
     ComPtr<ID3D12Device2>& GetDevice() { return m_device; }
+
+    const std::chrono::duration<float>& TotalTime() const { return m_total_time; }
+    const std::chrono::duration<float>& FrameTime() const { return m_dt; }
+    uint64_t FrameNumber() const { return m_frame_id; }
+
+    float GetAspectRatio() const { return m_width/(float)m_height; }
+
 private:
     static constexpr uint32_t FrameCount = 2;
 
@@ -32,24 +38,14 @@ private:
     CD3DX12_RECT m_scissorRect;
     ComPtr<IDXGISwapChain4> m_swapChain;
     ComPtr<ID3D12Device2> m_device;
-    //ComPtr<ID3D12Resource> m_renderTargets[FrameCount];
-    //ComPtr<ID3D12Resource> m_depthStencil;
     ComPtr<ID3D12CommandAllocator> m_commandAllocator[FrameCount];
     ComPtr<ID3D12CommandQueue> m_commandQueue;
     ComPtr<ID3D12RootSignature> m_rootSignature;
-    //ComPtr<ID3D12DescriptorHeap> m_rtvHeap;
-    //ComPtr<ID3D12DescriptorHeap> m_dsvHeap;
     ComPtr<ID3D12PipelineState> m_pipelineState;
     ComPtr<ID3D12GraphicsCommandList6> m_commandList;
-    //uint32_t m_rtvDescriptorSize;
+
     // Pipeline state object.
     Microsoft::WRL::ComPtr<ID3D12PipelineState> m_PipelineState;
-    // Vertex buffer for the cube.
-    Microsoft::WRL::ComPtr<ID3D12Resource> m_VertexBuffer;
-    D3D12_VERTEX_BUFFER_VIEW m_VertexBufferView;
-    // Index buffer for the cube.
-    Microsoft::WRL::ComPtr<ID3D12Resource> m_IndexBuffer;
-    D3D12_INDEX_BUFFER_VIEW m_IndexBufferView;
 
     std::unique_ptr<GpuResource[]> m_renderTargets;
     std::unique_ptr<GpuResource> m_depthStencil;
@@ -73,8 +69,9 @@ private:
     void RenderCube();
     std::chrono::time_point<std::chrono::system_clock> m_time;
     std::chrono::time_point<std::chrono::system_clock> m_start_time;
-    std::chrono::duration<double> m_total_time;
-    std::chrono::duration<double> m_dt;
+    std::chrono::duration<float> m_total_time;
+    std::chrono::duration<float> m_dt;
+    uint64_t m_frame_id{0};
 
     //
     std::shared_ptr<Level> m_level;

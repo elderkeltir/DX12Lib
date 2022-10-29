@@ -7,6 +7,8 @@
 #include "HeapBuffer.h"
 #include "ResourceDescriptor.h"
 #include "ShaderManager.h"
+#include "FreeCamera.h"
+#include "LevelEntity.h"
 
 #include "WinPixEventRuntime/pix3.h"
 
@@ -37,9 +39,6 @@ void DXAppImplementation::OnInit()
     ResourceManager::OnInit();
     
     LoadPipeline();
-    // PIXCaptureParameters cap_params{};
-    // cap_params.GpuCaptureParameters.FileName = L"capture.wpix";
-    // PIXBeginCapture(PIX_CAPTURE_GPU , &cap_params);
     LoadAssets();
     m_level = std::make_shared<Level>();
     m_level->Load(L"test_level.json");
@@ -52,7 +51,6 @@ void DXAppImplementation::LoadPipeline()
 {
 #if defined(USE_PIX) && defined(USE_PIX_DEBUG)
     {
-
         // Check to see if a copy of WinPixGpuCapturer.dll has already been injected into the application.
         // This may happen if the application is launched through the PIX UI. 
         if (GetModuleHandle(L"WinPixGpuCapturer.dll") == 0)
@@ -235,10 +233,14 @@ void DXAppImplementation::LoadAssets()
 // Update frame-based values.
 void DXAppImplementation::OnUpdate()
 {
+    // Time logic
+    m_frame_id++;
     std::chrono::time_point t = std::chrono::system_clock::now();
     m_dt = t-m_time;
     m_time = t;
     m_total_time = t - m_start_time;
+
+    m_level->Update(m_dt.count());
 }
 
 // Render the scene.
@@ -266,7 +268,6 @@ void DXAppImplementation::OnRender()
 
 void DXAppImplementation::OnDestroy()
 {
-    //PIXEndCapture(FALSE);
     gD3DApp = nullptr;
     // Ensure that the GPU is no longer referencing resources that are about to be
     // cleaned up by the destructor.
@@ -367,124 +368,12 @@ void DXAppImplementation::Wait(uint64_t fenceValue){
     }
 }
 
-// Vertex data for a colored cube.
-struct VertexPosColor
-{
-    DirectX::XMFLOAT3 Position;
-    DirectX::XMFLOAT3 Color;
-};
-
-static VertexPosColor g_Vertices[8] = {
-    { DirectX::XMFLOAT3(-1.0f, -1.0f, -1.0f), DirectX::XMFLOAT3(0.0f, 0.0f, 0.0f) }, // 0
-    { DirectX::XMFLOAT3(-1.0f,  1.0f, -1.0f), DirectX::XMFLOAT3(0.0f, 1.0f, 0.0f) }, // 1
-    { DirectX::XMFLOAT3(1.0f,  1.0f, -1.0f), DirectX::XMFLOAT3(1.0f, 1.0f, 0.0f) }, // 2
-    { DirectX::XMFLOAT3(1.0f, -1.0f, -1.0f), DirectX::XMFLOAT3(1.0f, 0.0f, 0.0f) }, // 3
-    { DirectX::XMFLOAT3(-1.0f, -1.0f,  1.0f), DirectX::XMFLOAT3(0.0f, 0.0f, 1.0f) }, // 4
-    { DirectX::XMFLOAT3(-1.0f,  1.0f,  1.0f), DirectX::XMFLOAT3(0.0f, 1.0f, 1.0f) }, // 5
-    { DirectX::XMFLOAT3(1.0f,  1.0f,  1.0f), DirectX::XMFLOAT3(1.0f, 1.0f, 1.0f) }, // 6
-    { DirectX::XMFLOAT3(1.0f, -1.0f,  1.0f), DirectX::XMFLOAT3(1.0f, 0.0f, 1.0f) }  // 7
-};
-
-static WORD g_Indicies[36] =
-{
-    0, 1, 2, 0, 2, 3,
-    4, 6, 5, 4, 7, 6,
-    4, 5, 1, 4, 1, 0,
-    3, 2, 6, 3, 6, 7,
-    1, 5, 6, 1, 6, 2,
-    4, 0, 3, 4, 3, 7
-};
-
-void UpdateBufferResource(
-    ComPtr<ID3D12GraphicsCommandList2> commandList,
-    ID3D12Resource** pDestinationResource,
-    ID3D12Resource** pIntermediateResource,
-    size_t numElements, size_t elementSize, const void* bufferData,
-    D3D12_RESOURCE_FLAGS flags = D3D12_RESOURCE_FLAG_NONE )
-{
-    auto device = gD3DApp->GetDevice();
-
-    size_t bufferSize = numElements * elementSize;
-
-    // Create a committed resource for the GPU resource in a default heap.
-    ThrowIfFailed(device->CreateCommittedResource(
-        &CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT),
-        D3D12_HEAP_FLAG_NONE,
-        &CD3DX12_RESOURCE_DESC::Buffer(bufferSize, flags),
-        D3D12_RESOURCE_STATE_COPY_DEST,
-        nullptr,
-        IID_PPV_ARGS(pDestinationResource)));
-
-    // Create an committed resource for the upload.
-    if (bufferData)
-    {
-        ThrowIfFailed(device->CreateCommittedResource(
-            &CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD),
-            D3D12_HEAP_FLAG_NONE,
-            &CD3DX12_RESOURCE_DESC::Buffer(bufferSize),
-            D3D12_RESOURCE_STATE_GENERIC_READ,
-            nullptr,
-            IID_PPV_ARGS(pIntermediateResource)));
-
-        D3D12_SUBRESOURCE_DATA subresourceData = {};
-        subresourceData.pData = bufferData;
-        subresourceData.RowPitch = bufferSize;
-        subresourceData.SlicePitch = subresourceData.RowPitch;
-
-        UpdateSubresources(commandList.Get(),
-            *pDestinationResource, *pIntermediateResource,
-            0, 0, 1, &subresourceData);
-    }
-}
-
 void DXAppImplementation::LoadTechnique(){
-    // cmd list
-    // Command list allocators can only be reset when the associated 
-    // command lists have finished execution on the GPU; apps should use 
-    // fences to determine GPU execution progress.
     ThrowIfFailed(m_commandAllocator[m_frameIndex]->Reset());
-
-    // However, when ExecuteCommandList() is called on a particular command 
-    // list, that command list can then be reset at any time and must be before 
-    // re-recording.
     ThrowIfFailed(m_commandList->Reset(m_commandAllocator[m_frameIndex].Get(), m_pipelineState.Get()));
-
-    
-    PIXBeginEvent(m_commandList.Get(), PIX_COLOR(55, 120, 55), L"LoadTechnique");
-
-    // Upload vertex buffer data.
-    ComPtr<ID3D12Resource> intermediateVertexBuffer;
-    UpdateBufferResource(m_commandList,
-        &m_VertexBuffer, &intermediateVertexBuffer,
-        _countof(g_Vertices), sizeof(VertexPosColor), g_Vertices);
-    SetName(m_VertexBuffer.Get(), L"m_VertexBuffer");
-    m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(m_VertexBuffer.Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER));
-    
-    // Create the vertex buffer view.
-    m_VertexBufferView.BufferLocation = m_VertexBuffer->GetGPUVirtualAddress();
-    m_VertexBufferView.SizeInBytes = sizeof(g_Vertices);
-    m_VertexBufferView.StrideInBytes = sizeof(VertexPosColor);
-
-    // Upload index buffer data.
-    ComPtr<ID3D12Resource> intermediateIndexBuffer;
-    UpdateBufferResource(m_commandList,
-        &m_IndexBuffer, &intermediateIndexBuffer,
-        _countof(g_Indicies), sizeof(WORD), g_Indicies);
-    SetName(m_IndexBuffer.Get(), L"m_IndexBuffer");
-    PIXSetMarker(m_commandList.Get(), PIX_COLOR(120, 120, 120), L"UpdateBufferResource for index buffer");
-    m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(m_IndexBuffer.Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_INDEX_BUFFER));
-
-    // Create index buffer view.
-    m_IndexBufferView.BufferLocation = m_IndexBuffer->GetGPUVirtualAddress();
-    m_IndexBufferView.Format = DXGI_FORMAT_R16_UINT;
-    m_IndexBufferView.SizeInBytes = sizeof(g_Indicies);
-    // // Load the vertex shader.
-    // ComPtr<ID3DBlob> vertexShaderBlob;
-    // ThrowIfFailed(D3DReadFileToBlob(L"VertexShader.cso", &vertexShaderBlob));
-
-    // // Load the pixel shader.
-    // ComPtr<ID3DBlob> pixelShaderBlob;
-    // ThrowIfFailed(D3DReadFileToBlob(L"PixelShader.cso", &pixelShaderBlob));
+    /*
+    prepare/load technique(inputLayout + rootSignature + vs + ps + pipeline)
+    */
 
     // Create the vertex input layout
     D3D12_INPUT_ELEMENT_DESC inputLayout[] = {
@@ -557,43 +446,37 @@ void DXAppImplementation::LoadTechnique(){
     };
     ThrowIfFailed(m_device->CreatePipelineState(&pipelineStateStreamDesc, IID_PPV_ARGS(&m_PipelineState)));
 
-    PIXEndEvent(m_commandList.Get());
-
     ThrowIfFailed(m_commandList->Close());
-
-    // Execute the command list.
     ID3D12CommandList* ppCommandLists[] = { m_commandList.Get() };
     m_commandQueue->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
-
     WaitForPreviousFrame();
 }
 
 void DXAppImplementation::RenderCube(){
-    // Update the MVP matrix
-    // Update the model matrix.
-    float angle = static_cast<float>(m_total_time.count() * 90.0);
-    const DirectX::XMVECTOR rotationAxis = DirectX::XMVectorSet(0, 1, 1, 0);
-    DirectX::XMMATRIX m_ModelMatrix = DirectX::XMMatrixRotationAxis(rotationAxis, DirectX::XMConvertToRadians(angle));
+    /*
+    renderer who gather meshes in correct order (based on technique(to avoid swapping PSO etc.) AND able to draw instances
+    */
+    if (m_level->GetEntityCount() == 1){
+        constexpr uint32_t id = 0;
+        LevelEntity ent = m_level->GetEntityById(id);
 
-    // Update the view matrix.
-    const DirectX::XMVECTOR eyePosition = DirectX::XMVectorSet(0, 0, -10, 1);
-    const DirectX::XMVECTOR focusPoint = DirectX::XMVectorSet(0, 0, 0, 1);
-    const DirectX::XMVECTOR upDirection = DirectX::XMVectorSet(0, 1, 0, 0);
-    DirectX::XMMATRIX m_ViewMatrix = DirectX::XMMatrixLookAtLH(eyePosition, focusPoint, upDirection);
+        DirectX::XMMATRIX m_ModelMatrix = DirectX::XMLoadFloat4x4(&ent.GetXform());
+        DirectX::XMMATRIX m_ViewMatrix;
+        DirectX::XMMATRIX m_ProjectionMatrix;
+        if (std::shared_ptr<FreeCamera> camera = m_level->GetCamera().lock()){
+            m_ViewMatrix = DirectX::XMLoadFloat4x4(&camera->GetViewMx());
+            m_ProjectionMatrix = DirectX::XMLoadFloat4x4(&camera->GetProjMx());
+        }
+        DirectX::XMMATRIX mvpMatrix = DirectX::XMMatrixMultiply(m_ModelMatrix, m_ViewMatrix);
+        mvpMatrix = XMMatrixMultiply(mvpMatrix, m_ProjectionMatrix);
 
-    // Update the projection matrix.
-    float m_FoV = 45;;
-    DirectX::XMMATRIX m_ProjectionMatrix = DirectX::XMMatrixPerspectiveFovLH(DirectX::XMConvertToRadians(m_FoV), m_aspectRatio, 0.1f, 100.0f);
+        m_commandList->SetGraphicsRoot32BitConstants(0, sizeof(DirectX::XMMATRIX) / 4, &mvpMatrix, 0);
+        m_commandList->SetPipelineState(m_PipelineState.Get());
+        m_commandList->SetGraphicsRootSignature(m_rootSignature.Get());
 
-    DirectX::XMMATRIX mvpMatrix = DirectX::XMMatrixMultiply(m_ModelMatrix, m_ViewMatrix);
-    mvpMatrix = XMMatrixMultiply(mvpMatrix, m_ProjectionMatrix);
-    m_commandList->SetGraphicsRoot32BitConstants(0, sizeof(DirectX::XMMATRIX) / 4, &mvpMatrix, 0);
-
-    m_commandList->SetPipelineState(m_PipelineState.Get());
-    //m_commandList->SetGraphicsRootSignature(m_rootSignature.Get());
-    m_commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-    m_commandList->IASetVertexBuffers(0, 1, &m_VertexBufferView);
-    m_commandList->IASetIndexBuffer(&m_IndexBufferView);
-
-    m_commandList->DrawIndexedInstanced(_countof(g_Indicies), 1, 0, 0, 0);
+        ent.Render(m_commandList);
+    }
+    else {
+        assert(false);
+    }
 }

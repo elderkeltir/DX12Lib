@@ -41,7 +41,7 @@ add_executable(DX12Lib WIN32 main.cpp
     DXAppImplementation.cpp
     FileManager.cpp
     Texture.cpp
-    RenderMesh.cpp
+    RenderModel.cpp
     TextureManager.cpp
     ResourceManager.cpp
     ShaderManager.cpp
@@ -51,7 +51,8 @@ add_executable(DX12Lib WIN32 main.cpp
     HeapBuffer.cpp
     ResourceDescriptor.cpp
     GpuResource.cpp
-    DescriptorHeapCollection.cpp)
+    DescriptorHeapCollection.cpp
+    LevelEntity.cpp)
 
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
