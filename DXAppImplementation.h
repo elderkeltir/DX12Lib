@@ -38,10 +38,7 @@ private:
     void CreateDevice();
     void CreateSwapChain();
     void PrepareRenderTarget(ComPtr<ID3D12GraphicsCommandList6> &command_list);
-    
-    // === Pipeline state object.
-    void RenderCube(ComPtr<ID3D12GraphicsCommandList6>& command_list);
-    // ===
+    void RenderLevel(ComPtr<ID3D12GraphicsCommandList6>& command_list);
 
     CD3DX12_VIEWPORT m_viewport;
     CD3DX12_RECT m_scissorRect;

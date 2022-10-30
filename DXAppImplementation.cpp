@@ -237,7 +237,7 @@ void DXAppImplementation::OnRender()
     PrepareRenderTarget(command_list);
 
     // Render scene
-    RenderCube(command_list);
+    RenderLevel(command_list);
 
     // Indicate that the back buffer will now be used to present.
     m_commandQueueGfx->ResourceBarrier(render_target.Get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
@@ -287,16 +287,8 @@ void DXAppImplementation::PrepareRenderTarget(ComPtr<ID3D12GraphicsCommandList6>
     command_list->ClearRenderTargetView(rtvHandle, clearColor, 0, nullptr);
 }
 
-void DXAppImplementation::RenderCube(ComPtr<ID3D12GraphicsCommandList6>& command_list){
-    TODO("Critical! Create Gatherer or RenderScene to avoid this shity code")
-    /*
-    renderer who gather meshes in correct order (based on technique(to avoid swapping PSO etc.) AND able to draw instances
-    */
-   
-
-
-    // update scene constants
-
+void DXAppImplementation::RenderLevel(ComPtr<ID3D12GraphicsCommandList6>& command_list){
+    TODO("Normal! Create Gatherer or RenderScene to avoid this shity code")
     bool is_scene_constants_set = false;
     for (uint32_t id = 0; id < m_level->GetEntityCount(); id++){
         LevelEntity ent = m_level->GetEntityById(id);
@@ -314,6 +306,7 @@ void DXAppImplementation::RenderCube(ComPtr<ID3D12GraphicsCommandList6>& command
                 gD3DApp->SetMatrix4Constant(Constants::cV, m_ViewMatrix, command_list);
                 gD3DApp->SetMatrix4Constant(Constants::cP, m_ProjectionMatrix, command_list);
             }
+            is_scene_constants_set = !is_scene_constants_set;
         }
 
         ent.Render(command_list);

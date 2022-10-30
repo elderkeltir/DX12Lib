@@ -179,6 +179,7 @@ void FileManager::InitializeModel(const aiScene* scene, const aiNode* rootNode, 
 			}
 
 			// materials, textures
+			TODO("Critical! Load textures, probably in png to generate mips later?")
 			if (scene->mNumMaterials)
 			{
 				aiMaterial *material = scene->mMaterials[mesh->mMaterialIndex];
