@@ -2,6 +2,9 @@
 #include "Transformations.h"
 #include "GpuResource.h"
 #include "DXHelper.h"
+#include "DXAppImplementation.h"
+
+extern DXAppImplementation *gD3DApp;
 
 struct VertexPos{
     DirectX::XMFLOAT3 Position;
@@ -117,9 +120,8 @@ TODO("Minor: avoid every frame call to function")
         }
         commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
         
+        gD3DApp->SetMatrix4Constant(Constants::cM, parent_xform_mx, commandList);
         TODO("Major! DrawIndexed should be at upper level where you know there are few such meshes to render")
-        
-        commandList->SetGraphicsRoot32BitConstants(0, sizeof(DirectX::XMMATRIX) / 4, &parent_xform_mx, 0);
         commandList->DrawIndexedInstanced((UINT)m_indices.size(), 1, 0, 0, 0);
     }
     DirectX::XMFLOAT4X4 new_parent_xform;

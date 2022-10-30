@@ -9,6 +9,7 @@
 #include "ShaderManager.h"
 #include "FreeCamera.h"
 #include "LevelEntity.h"
+#include "GfxCommandQueue.h"
 
 #include "WinPixEventRuntime/pix3.h"
 
@@ -26,7 +27,8 @@ DXAppImplementation::DXAppImplementation(uint32_t width, uint32_t height, std::w
     m_scissorRect(0, 0, static_cast<LONG>(width), static_cast<LONG>(height)),
     m_descriptor_heap_collection(std::make_shared<DescriptorHeapCollection>()),
     m_renderTargets(std::make_unique<GpuResource[]>(FrameCount)),
-    m_depthStencil(std::make_unique<GpuResource>())
+    m_depthStencil(std::make_unique<GpuResource>()),
+    m_commandQueueGfx(std::make_shared<GfxCommandQueue>())
 {
 }
 
@@ -39,18 +41,17 @@ void DXAppImplementation::OnInit()
     m_start_time = std::chrono::system_clock::now();
     gD3DApp = this;
     ResourceManager::OnInit();
-    
-    LoadPipeline();
-    LoadAssets();
+    CreateDevice();
+    m_commandQueueGfx->OnInit(m_device, D3D12_COMMAND_LIST_TYPE_DIRECT);
+    CreateSwapChain();
+
     m_level = std::make_shared<Level>();
     m_level->Load(L"test_level.json");
 
     LoadTechnique();
 }
 
-// Load the rendering pipeline dependencies.
-void DXAppImplementation::LoadPipeline()
-{
+void DXAppImplementation::CreateDevice(){
 #if defined(USE_PIX) && defined(USE_PIX_DEBUG)
     {
         // Check to see if a copy of WinPixGpuCapturer.dll has already been injected into the application.
@@ -78,13 +79,12 @@ void DXAppImplementation::LoadPipeline()
     }
 #endif
 
-    ComPtr<IDXGIFactory4> factory;
-    ThrowIfFailed(CreateDXGIFactory2(dxgiFactoryFlags, IID_PPV_ARGS(&factory)));
+    ThrowIfFailed(CreateDXGIFactory2(dxgiFactoryFlags, IID_PPV_ARGS(&m_factory)));
 
     if (m_useWarpDevice)
     {
         ComPtr<IDXGIAdapter> warpAdapter;
-        ThrowIfFailed(factory->EnumWarpAdapter(IID_PPV_ARGS(&warpAdapter)));
+        ThrowIfFailed(m_factory->EnumWarpAdapter(IID_PPV_ARGS(&warpAdapter)));
 
         ThrowIfFailed(D3D12CreateDevice(
             warpAdapter.Get(),
@@ -95,7 +95,7 @@ void DXAppImplementation::LoadPipeline()
     else
     {
         ComPtr<IDXGIAdapter1> hardwareAdapter;
-        GetHardwareAdapter(factory.Get(), &hardwareAdapter);
+        GetHardwareAdapter(m_factory.Get(), &hardwareAdapter);
 
         ThrowIfFailed(D3D12CreateDevice(
             hardwareAdapter.Get(),
@@ -140,13 +140,9 @@ void DXAppImplementation::LoadPipeline()
         ThrowIfFailed(pInfoQueue->PushStorageFilter(&NewFilter));
     }
 #endif
-    // Describe and create the command queue.
-    D3D12_COMMAND_QUEUE_DESC queueDesc = {};
-    queueDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
-    queueDesc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
+}
 
-    ThrowIfFailed(m_device->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(&m_commandQueue)));
-
+void DXAppImplementation::CreateSwapChain(){
     // Describe and create the swap chain.
     DXGI_SWAP_CHAIN_DESC1 swapChainDesc = {};
     swapChainDesc.BufferCount = FrameCount;
@@ -158,8 +154,8 @@ void DXAppImplementation::LoadPipeline()
     swapChainDesc.SampleDesc.Count = 1;
 
     ComPtr<IDXGISwapChain1> swapChain;
-    ThrowIfFailed(factory->CreateSwapChainForHwnd(
-        m_commandQueue.Get(),        // Swap chain needs the queue so that it can force a flush on it.
+    ThrowIfFailed(m_factory->CreateSwapChainForHwnd(
+        m_commandQueueGfx->m_commandQueue.Get(),        // Swap chain needs the queue so that it can force a flush on it.
         Application::GetHwnd(),
         &swapChainDesc,
         nullptr,
@@ -168,7 +164,7 @@ void DXAppImplementation::LoadPipeline()
         ));
 
     // This sample does not support fullscreen transitions.
-    ThrowIfFailed(factory->MakeWindowAssociation(Application::GetHwnd(), DXGI_MWA_NO_ALT_ENTER));
+    ThrowIfFailed(m_factory->MakeWindowAssociation(Application::GetHwnd(), DXGI_MWA_NO_ALT_ENTER));
 
     ThrowIfFailed(swapChain.As(&m_swapChain));
     m_frameIndex = m_swapChain->GetCurrentBackBufferIndex();
@@ -185,31 +181,6 @@ void DXAppImplementation::LoadPipeline()
             ThrowIfFailed(m_swapChain->GetBuffer(n, IID_PPV_ARGS(&renderTarget)));
             m_renderTargets[n].SetBuffer(renderTarget);
             m_renderTargets[n].CreateRTV();
-
-            ThrowIfFailed(m_device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&m_commandAllocator[n])));
-        }
-    }
-}
-
-// Load the sample assets.
-void DXAppImplementation::LoadAssets()
-{
-    // Create the command list.
-    ThrowIfFailed(m_device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, m_commandAllocator[m_frameIndex].Get(), nullptr, IID_PPV_ARGS(&m_commandList)));
-
-    // Command lists are created in the recording state, but there is nothing
-    // to record yet. The main loop expects it to be closed, so close it now.
-    ThrowIfFailed(m_commandList->Close());
-
-    // Create synchronization objects.
-    {
-        ThrowIfFailed(m_device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&m_fence)));
-
-        // Create an event handle to use for frame synchronization.
-        m_fenceEvent = CreateEvent(nullptr, FALSE, FALSE, nullptr);
-        if (m_fenceEvent == nullptr)
-        {
-            ThrowIfFailed(HRESULT_FROM_WIN32(GetLastError()));
         }
     }
 
@@ -249,53 +220,13 @@ void DXAppImplementation::OnUpdate()
 void DXAppImplementation::OnRender()
 {
     // Record all the commands we need to render the scene into the command list.
-    PopulateCommandList();
+    ComPtr<ID3D12GraphicsCommandList6>& command_list = m_commandQueueGfx->ResetActiveCL(m_pipelineState);
 
-    // Execute the command list.
-    ID3D12CommandList* ppCommandLists[] = { m_commandList.Get() };
-    m_commandQueue->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
+    // Set default settings
+    command_list->RSSetViewports(1, &m_viewport);
+    command_list->RSSetScissorRects(1, &m_scissorRect);
 
-    // Present the frame.
-    ThrowIfFailed(m_swapChain->Present(1, 0));
-
-    // Signal for this frame
-    m_fenceValues[m_frameIndex] = Signal(m_fenceValue);
-
-    // get next frame
-    m_frameIndex = m_swapChain->GetCurrentBackBufferIndex();
-
-    // Wait for signal from new frame
-    Wait(m_fenceValues[m_frameIndex]);
-}
-
-void DXAppImplementation::OnDestroy()
-{
-    gD3DApp = nullptr;
-    // Ensure that the GPU is no longer referencing resources that are about to be
-    // cleaned up by the destructor.
-    WaitForPreviousFrame();
-
-    CloseHandle(m_fenceEvent);
-}
-
-void DXAppImplementation::PopulateCommandList()
-{
-    // Command list allocators can only be reset when the associated 
-    // command lists have finished execution on the GPU; apps should use 
-    // fences to determine GPU execution progress.
-    ThrowIfFailed(m_commandAllocator[m_frameIndex]->Reset());
-
-    // However, when ExecuteCommandList() is called on a particular command 
-    // list, that command list can then be reset at any time and must be before 
-    // re-recording.
-    ThrowIfFailed(m_commandList->Reset(m_commandAllocator[m_frameIndex].Get(), m_pipelineState.Get()));
-
-    // Set necessary state.
-    m_commandList->SetGraphicsRootSignature(m_rootSignature.Get());
-    m_commandList->RSSetViewports(1, &m_viewport);
-    m_commandList->RSSetScissorRects(1, &m_scissorRect);
-
-    // Indicate that the back buffer will be used as a render target.
+    // Clear rt and set proper state
     ComPtr<ID3D12Resource> render_target;
     if (std::shared_ptr<HeapBuffer> render_target_buff = m_renderTargets[m_frameIndex].GetBuffer().lock()){
         render_target = render_target_buff->GetResource();
@@ -303,9 +234,37 @@ void DXAppImplementation::PopulateCommandList()
     else {
         assert(false);
     }
+    m_commandQueueGfx->ResourceBarrier(render_target.Get(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
+    PrepareRenderTarget(command_list);
 
-    m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(render_target.Get(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET));
+    // Render scene
+    RenderCube(command_list);
 
+    // Indicate that the back buffer will now be used to present.
+    m_commandQueueGfx->ResourceBarrier(render_target.Get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
+
+    m_commandQueueGfx->ExecuteActiveCL();
+
+    // Present the frame.
+    ThrowIfFailed(m_swapChain->Present(1, 0));
+
+    // Signal for this frame
+    m_fenceValues[m_frameIndex] = m_commandQueueGfx->Signal();
+
+    // get next frame
+    m_frameIndex = m_swapChain->GetCurrentBackBufferIndex();
+
+    // Wait for signal from new frame
+    m_commandQueueGfx->Wait(m_fenceValues[m_frameIndex]);
+}
+
+void DXAppImplementation::OnDestroy()
+{
+    m_commandQueueGfx->OnDestroy();
+    gD3DApp = nullptr;
+}
+
+void DXAppImplementation::PrepareRenderTarget(ComPtr<ID3D12GraphicsCommandList6> &command_list){
     CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle;
     CD3DX12_CPU_DESCRIPTOR_HANDLE dsvHandle;
     if (std::shared_ptr<ResourceDescriptor> render_target_view = m_renderTargets[m_frameIndex].GetRTV().lock()){
@@ -321,58 +280,15 @@ void DXAppImplementation::PopulateCommandList()
         assert(false);
     }
 
-    m_commandList->OMSetRenderTargets(1, &rtvHandle, FALSE, &dsvHandle);
-    m_commandList->ClearDepthStencilView(dsvHandle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
+    command_list->OMSetRenderTargets(1, &rtvHandle, FALSE, &dsvHandle);
+    command_list->ClearDepthStencilView(dsvHandle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
 
     // Record commands.
     const float clearColor[] = { 0.2f, 0.2f, 0.4f, 1.0f };
-    m_commandList->ClearRenderTargetView(rtvHandle, clearColor, 0, nullptr);
-
-    RenderCube();
-
-    // Indicate that the back buffer will now be used to present.
-    m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(render_target.Get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT));
-
-    ThrowIfFailed(m_commandList->Close());
-}
-
-void DXAppImplementation::WaitForPreviousFrame()
-{
-    // WAITING FOR THE FRAME TO COMPLETE BEFORE CONTINUING IS NOT BEST PRACTICE.
-    // This is code implemented as such for simplicity. The D3D12HelloFrameBuffering
-    // sample illustrates how to use fences for efficient resource usage and to
-    // maximize GPU utilization.
-
-    // Signal and increment the fence value.
-    const uint64_t fence = ++m_fenceValue;
-    ThrowIfFailed(m_commandQueue->Signal(m_fence.Get(), fence));
-
-    // Wait until the previous frame is finished.
-    if (m_fence->GetCompletedValue() < fence)
-    {
-        ThrowIfFailed(m_fence->SetEventOnCompletion(fence, m_fenceEvent));
-        WaitForSingleObject(m_fenceEvent, INFINITE);
-    }
-}
-
-uint64_t DXAppImplementation::Signal(uint64_t &fenceValue){
-    uint64_t fenceValueForSignal = ++fenceValue;
-    ThrowIfFailed(m_commandQueue->Signal(m_fence.Get(), fenceValueForSignal));
-
-    return fenceValueForSignal;
-}
-
-void DXAppImplementation::Wait(uint64_t fenceValue){
-    if (m_fence->GetCompletedValue() < fenceValue)
-    {
-        ThrowIfFailed(m_fence->SetEventOnCompletion(fenceValue, m_fenceEvent));
-        WaitForSingleObject(m_fenceEvent, INFINITE);
-    }
+    command_list->ClearRenderTargetView(rtvHandle, clearColor, 0, nullptr);
 }
 
 void DXAppImplementation::LoadTechnique(){
-    ThrowIfFailed(m_commandAllocator[m_frameIndex]->Reset());
-    ThrowIfFailed(m_commandList->Reset(m_commandAllocator[m_frameIndex].Get(), m_pipelineState.Get()));
     /*
     prepare/load technique(inputLayout + rootSignature + vs + ps + pipeline)
     */
@@ -453,25 +369,24 @@ TODO("Critical! Create Technique to avoid this shity code")
         sizeof(PipelineStateStream), &pipelineStateStream
     };
     ThrowIfFailed(m_device->CreatePipelineState(&pipelineStateStreamDesc, IID_PPV_ARGS(&m_PipelineState)));
-
-    ThrowIfFailed(m_commandList->Close());
-    ID3D12CommandList* ppCommandLists[] = { m_commandList.Get() };
-    m_commandQueue->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
-    WaitForPreviousFrame();
 }
 
-void DXAppImplementation::RenderCube(){
+void DXAppImplementation::RenderCube(ComPtr<ID3D12GraphicsCommandList6>& command_list){
     TODO("Critical! Create Gatherer or RenderScene to avoid this shity code")
     /*
     renderer who gather meshes in correct order (based on technique(to avoid swapping PSO etc.) AND able to draw instances
     */
+   
+   // set technique
+    command_list->SetPipelineState(m_PipelineState.Get());
+    command_list->SetGraphicsRootSignature(m_rootSignature.Get());
 
     // update scene constants
     if (std::shared_ptr<FreeCamera> camera = m_level->GetCamera().lock()){
         DirectX::XMMATRIX m_ViewMatrix = DirectX::XMLoadFloat4x4(&camera->GetViewMx());
         DirectX::XMMATRIX m_ProjectionMatrix = DirectX::XMLoadFloat4x4(&camera->GetProjMx());
-        m_commandList->SetGraphicsRoot32BitConstants(1, sizeof(DirectX::XMMATRIX) / 4, &m_ViewMatrix, 0);
-        m_commandList->SetGraphicsRoot32BitConstants(2, sizeof(DirectX::XMMATRIX) / 4, &m_ProjectionMatrix, 0);
+        gD3DApp->SetMatrix4Constant(Constants::cV, m_ViewMatrix, command_list);
+        gD3DApp->SetMatrix4Constant(Constants::cP, m_ProjectionMatrix, command_list);
     }
 
     for (uint32_t id = 0; id < m_level->GetEntityCount(); id++){
@@ -481,9 +396,8 @@ void DXAppImplementation::RenderCube(){
         should be aply technique params here
         */
         
-        m_commandList->SetPipelineState(m_PipelineState.Get());
-        m_commandList->SetGraphicsRootSignature(m_rootSignature.Get());
 
-        ent.Render(m_commandList);
+
+        ent.Render(command_list);
     }
 }

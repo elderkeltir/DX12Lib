@@ -52,7 +52,10 @@ add_executable(DX12Lib WIN32 main.cpp
     ResourceDescriptor.cpp
     GpuResource.cpp
     DescriptorHeapCollection.cpp
-    LevelEntity.cpp)
+    LevelEntity.cpp
+    ConstantBufferManager.cpp
+    CommandQueue.cpp
+    GfxCommandQueue.cpp)
 
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
