@@ -34,6 +34,8 @@ DXAppImplementation::~DXAppImplementation() = default;
 
 void DXAppImplementation::OnInit()
 {
+    TODO("Minor! SetName should be used to make debugging easier")
+    
     m_start_time = std::chrono::system_clock::now();
     gD3DApp = this;
     ResourceManager::OnInit();
@@ -374,7 +376,7 @@ void DXAppImplementation::LoadTechnique(){
     /*
     prepare/load technique(inputLayout + rootSignature + vs + ps + pipeline)
     */
-
+TODO("Critical! Create Technique to avoid this shity code")
     // Create the vertex input layout
     D3D12_INPUT_ELEMENT_DESC inputLayout[] = {
         { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
@@ -453,6 +455,7 @@ void DXAppImplementation::LoadTechnique(){
 }
 
 void DXAppImplementation::RenderCube(){
+    TODO("Critical! Create Gatherer or RenderScene to avoid this shity code")
     /*
     renderer who gather meshes in correct order (based on technique(to avoid swapping PSO etc.) AND able to draw instances
     */

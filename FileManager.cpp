@@ -12,6 +12,7 @@
 #include "RenderModel.h"
 #include "DXAppImplementation.h"
 #include "TextureManager.h"
+#include "DXHelper.h"
 
 extern DXAppImplementation *gD3DApp;
 
@@ -266,6 +267,7 @@ RenderModel* FileManager::LoadModelInternal(const std::wstring &name){
 	RenderModel* new_mesh = &(m_load_meshes[m_model_count++]);
 	uint32_t cnt = 0;
 	ReadModelFromFBX(name, 0, new_mesh, &cnt);
+TODO("Critical! Let create composite models without. Need models hierarchy and Entity-Model releation refactored")
 	assert(cnt ==1);
 
 	return new_mesh;
