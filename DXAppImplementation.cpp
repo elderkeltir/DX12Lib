@@ -400,8 +400,10 @@ TODO("Critical! Create Technique to avoid this shity code")
         D3D12_ROOT_SIGNATURE_FLAG_DENY_PIXEL_SHADER_ROOT_ACCESS;
 
     // A single 32-bit constant root parameter that is used by the vertex shader.
-    CD3DX12_ROOT_PARAMETER1 rootParameters[1];
-    rootParameters[0].InitAsConstants(sizeof(DirectX::XMMATRIX) / 4, 0, 0, D3D12_SHADER_VISIBILITY_VERTEX);
+    CD3DX12_ROOT_PARAMETER1 rootParameters[3];
+    rootParameters[0].InitAsConstants(sizeof(DirectX::XMMATRIX) / 4, 0, 0, D3D12_SHADER_VISIBILITY_VERTEX); // M
+    rootParameters[1].InitAsConstants(sizeof(DirectX::XMMATRIX) / 4, 1, 0, D3D12_SHADER_VISIBILITY_VERTEX); // V
+    rootParameters[2].InitAsConstants(sizeof(DirectX::XMMATRIX) / 4, 2, 0, D3D12_SHADER_VISIBILITY_VERTEX); // P
 
     CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC rootSignatureDescription;
     rootSignatureDescription.Init_1_1(_countof(rootParameters), rootParameters, 0, nullptr, rootSignatureFlags);
@@ -411,6 +413,10 @@ TODO("Critical! Create Technique to avoid this shity code")
     ComPtr<ID3DBlob> errorBlob;
     ThrowIfFailed(D3DX12SerializeVersionedRootSignature(&rootSignatureDescription,
         featureData.HighestVersion, &rootSignatureBlob, &errorBlob));
+        if (errorBlob.Get()){
+            //std::wstring er(errorBlob->GetBufferPointer(), errorBlob->GetBufferPointer() + errorBlob->GetBufferSize());
+            int ii = 10; ii;
+        }
     // Create the root signature.
     ThrowIfFailed(m_device->CreateRootSignature(0, rootSignatureBlob->GetBufferPointer(),
         rootSignatureBlob->GetBufferSize(), IID_PPV_ARGS(&m_rootSignature)));
@@ -459,30 +465,25 @@ void DXAppImplementation::RenderCube(){
     /*
     renderer who gather meshes in correct order (based on technique(to avoid swapping PSO etc.) AND able to draw instances
     */
-    if (m_level->GetEntityCount() == 1){
-        constexpr uint32_t id = 0;
-        LevelEntity ent = m_level->GetEntityById(id);
 
-        DirectX::XMMATRIX m_ModelMatrix = DirectX::XMLoadFloat4x4(&ent.GetXform());
-        DirectX::XMMATRIX m_ViewMatrix;
-        DirectX::XMMATRIX m_ProjectionMatrix;
-        if (std::shared_ptr<FreeCamera> camera = m_level->GetCamera().lock()){
-            m_ViewMatrix = DirectX::XMLoadFloat4x4(&camera->GetViewMx());
-            m_ProjectionMatrix = DirectX::XMLoadFloat4x4(&camera->GetProjMx());
-        }
-        DirectX::XMMATRIX mvpMatrix = DirectX::XMMatrixMultiply(m_ModelMatrix, m_ViewMatrix);
-        mvpMatrix = XMMatrixMultiply(mvpMatrix, m_ProjectionMatrix);
+    // update scene constants
+    if (std::shared_ptr<FreeCamera> camera = m_level->GetCamera().lock()){
+        DirectX::XMMATRIX m_ViewMatrix = DirectX::XMLoadFloat4x4(&camera->GetViewMx());
+        DirectX::XMMATRIX m_ProjectionMatrix = DirectX::XMLoadFloat4x4(&camera->GetProjMx());
+        m_commandList->SetGraphicsRoot32BitConstants(1, sizeof(DirectX::XMMATRIX) / 4, &m_ViewMatrix, 0);
+        m_commandList->SetGraphicsRoot32BitConstants(2, sizeof(DirectX::XMMATRIX) / 4, &m_ProjectionMatrix, 0);
+    }
+
+    for (uint32_t id = 0; id < m_level->GetEntityCount(); id++){
+        LevelEntity ent = m_level->GetEntityById(id);
         
         /*
         should be aply technique params here
         */
-        m_commandList->SetGraphicsRoot32BitConstants(0, sizeof(DirectX::XMMATRIX) / 4, &mvpMatrix, 0);
+        
         m_commandList->SetPipelineState(m_PipelineState.Get());
         m_commandList->SetGraphicsRootSignature(m_rootSignature.Get());
 
         ent.Render(m_commandList);
-    }
-    else {
-        assert(false);
     }
 }

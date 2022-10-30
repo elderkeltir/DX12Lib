@@ -36,10 +36,17 @@ public:
     inline void LoadVertexDataOnGpu(ComPtr<ID3D12GraphicsCommandList6> &commandList);
     inline void LoadIndexDataOnGpu(ComPtr<ID3D12GraphicsCommandList6> &commandList);
 
-    void Render(ComPtr<ID3D12GraphicsCommandList6> &commandList);
+    void Render(ComPtr<ID3D12GraphicsCommandList6> &commandList, const DirectX::XMFLOAT4X4 &parent_xform);
 
+    void SetId(uint32_t id) { m_id = id; }
+    uint32_t GetId() const { return m_id; }
     void SetName(const std::wstring &name);
     const std::wstring& GetName() const;
+
+    void Initialized() { m_is_initialized = true; }
+    bool IsInitialized() const { return m_is_initialized; }
+    void AddChild(RenderModel * child) { m_children.push_back(child); }
+    const std::vector<RenderModel*>& GetChildren() const { return m_children; }
 
     void Move(const DirectX::XMFLOAT3 &pos);
     void Rotate(const DirectX::XMFLOAT3 &angles);
@@ -76,5 +83,8 @@ private:
 
     std::unique_ptr<Transformations> m_transformations;
 
+    std::vector<RenderModel*> m_children;
     std::wstring m_name;
+    bool m_is_initialized{false};
+    uint32_t m_id{(uint32_t)-1};
 };

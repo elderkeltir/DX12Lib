@@ -93,26 +93,39 @@ void RenderModel::LoadIndexDataOnGpu(ComPtr<ID3D12GraphicsCommandList6> &command
     }
 }
 
-void RenderModel::Render(ComPtr<ID3D12GraphicsCommandList6> &commandList){
+void RenderModel::Render(ComPtr<ID3D12GraphicsCommandList6> &commandList, const DirectX::XMFLOAT4X4 &parent_xform){
 TODO("Minor: avoid every frame call to function")
-    LoadVertexDataOnGpu(commandList);
-    LoadIndexDataOnGpu(commandList);
+    DirectX::XMMATRIX parent_xform_mx = DirectX::XMLoadFloat4x4(&parent_xform);
+    parent_xform_mx = DirectX::XMMatrixMultiply(m_transformations->GetModel(), parent_xform_mx);
 
-    if (std::shared_ptr<D3D12_VERTEX_BUFFER_VIEW> vert_view = m_VertexBuffer->Get_Vertex_View().lock()){
-        commandList->IASetVertexBuffers(0, 1, vert_view.get());
-    }
-    else{
-        assert(false);
-    }
+    if (!m_indices.empty()){
+        LoadVertexDataOnGpu(commandList);
+        LoadIndexDataOnGpu(commandList);
 
-    if (std::shared_ptr<D3D12_INDEX_BUFFER_VIEW> ind_view = m_IndexBuffer->Get_Index_View().lock()){
-        commandList->IASetIndexBuffer(ind_view.get());
+        if (std::shared_ptr<D3D12_VERTEX_BUFFER_VIEW> vert_view = m_VertexBuffer->Get_Vertex_View().lock()){
+            commandList->IASetVertexBuffers(0, 1, vert_view.get());
+        }
+        else{
+            assert(false);
+        }
+
+        if (std::shared_ptr<D3D12_INDEX_BUFFER_VIEW> ind_view = m_IndexBuffer->Get_Index_View().lock()){
+            commandList->IASetIndexBuffer(ind_view.get());
+        }
+        else {
+            assert(false);
+        }
+        commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+        
+        TODO("Major! DrawIndexed should be at upper level where you know there are few such meshes to render")
+        
+        commandList->SetGraphicsRoot32BitConstants(0, sizeof(DirectX::XMMATRIX) / 4, &parent_xform_mx, 0);
+        commandList->DrawIndexedInstanced((UINT)m_indices.size(), 1, 0, 0, 0);
     }
-    else {
-        assert(false);
+    DirectX::XMFLOAT4X4 new_parent_xform;
+    DirectX::XMStoreFloat4x4(&new_parent_xform, parent_xform_mx);
+
+    for (auto child : m_children){
+        child->Render(commandList, new_parent_xform);
     }
-    commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-    
-    TODO("DrawIndexed should be at upper level where you know there are few such meshes to render")
-    commandList->DrawIndexedInstanced((UINT)m_indices.size(), 1, 0, 0, 0);
 }
