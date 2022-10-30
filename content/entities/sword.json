@@ -1,12 +1,4 @@
 {
     "model": "Sting_Sword_lowpoly.fbx",
-    "textures" :{
-        "difuse": "box_dif.dds",
-        "normal": "box_norm.dds",
-        "specular": "box_spec.dds"
-    },
-    "shaders": {
-        "vertex": "vertex_shader.hlsl",
-        "pixel": "pixel_shader.hlsl"
-    }
+    "technique": 0
 }

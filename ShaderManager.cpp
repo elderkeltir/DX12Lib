@@ -1,6 +1,5 @@
 #include "ShaderManager.h"
 #include <assert.h>
-
 #include "DXAppImplementation.h"
 #include "DXHelper.h"
 
@@ -22,14 +21,9 @@ ShaderManager::ShaderManager()
     m_shader_bin_dir = gD3DApp->GetRootDir() / L"build" / L"Debug";
 }
 
-IDxcBlob* ShaderManager::GetShaderBLOB(const std::wstring &name){
-    if (m_loaded_shaders.find(name) != m_loaded_shaders.end())
-        return m_loaded_shaders[name].Get();
-    else
-        return nullptr;
-}
+ComPtr<IDxcBlob> ShaderManager::Load(const std::wstring &name, const std::wstring &entry_point, ShaderType target){
+    ComPtr<IDxcBlob> pShader = nullptr;
 
-void ShaderManager::Load(const std::wstring &name, const std::wstring &entry_point, ShaderType target){
     std::wstring pdb_name = name;
     pdb_name.erase(pdb_name.end() -5, pdb_name.end());
     std::wstring bin_name = pdb_name;
@@ -101,13 +95,12 @@ void ShaderManager::Load(const std::wstring &name, const std::wstring &entry_poi
     {
         wprintf(L"Compilation Failed\n");
         assert(false);
-        return;
+        return pShader;
     }
 
     //
     // Save shader binary.
     //
-    ComPtr<IDxcBlob> pShader = nullptr;
     ComPtr<IDxcBlobUtf16> pShaderName = nullptr;
     ThrowIfFailed(pResults->GetOutput(DXC_OUT_OBJECT, IID_PPV_ARGS(&pShader), &pShaderName));
     if (pShader != nullptr)
@@ -199,6 +192,8 @@ void ShaderManager::Load(const std::wstring &name, const std::wstring &entry_poi
         // Use reflection interface here.
         
     }
+
+    return pShader;
 }
 
 const std::filesystem::path& ShaderManager::GetShaderSourceDir() const{

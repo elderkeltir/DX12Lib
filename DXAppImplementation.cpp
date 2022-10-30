@@ -28,7 +28,7 @@ DXAppImplementation::DXAppImplementation(uint32_t width, uint32_t height, std::w
     m_descriptor_heap_collection(std::make_shared<DescriptorHeapCollection>()),
     m_renderTargets(std::make_unique<GpuResource[]>(FrameCount)),
     m_depthStencil(std::make_unique<GpuResource>()),
-    m_commandQueueGfx(std::make_shared<GfxCommandQueue>())
+    m_commandQueueGfx(std::make_unique<GfxCommandQueue>())
 {
 }
 
@@ -44,11 +44,10 @@ void DXAppImplementation::OnInit()
     CreateDevice();
     m_commandQueueGfx->OnInit(m_device, D3D12_COMMAND_LIST_TYPE_DIRECT);
     CreateSwapChain();
+    Techniques::OnInit(m_device);
 
     m_level = std::make_shared<Level>();
     m_level->Load(L"test_level.json");
-
-    LoadTechnique();
 }
 
 void DXAppImplementation::CreateDevice(){
@@ -220,7 +219,7 @@ void DXAppImplementation::OnUpdate()
 void DXAppImplementation::OnRender()
 {
     // Record all the commands we need to render the scene into the command list.
-    ComPtr<ID3D12GraphicsCommandList6>& command_list = m_commandQueueGfx->ResetActiveCL(m_pipelineState);
+    ComPtr<ID3D12GraphicsCommandList6>& command_list = m_commandQueueGfx->ResetActiveCL();
 
     // Set default settings
     command_list->RSSetViewports(1, &m_viewport);
@@ -288,115 +287,34 @@ void DXAppImplementation::PrepareRenderTarget(ComPtr<ID3D12GraphicsCommandList6>
     command_list->ClearRenderTargetView(rtvHandle, clearColor, 0, nullptr);
 }
 
-void DXAppImplementation::LoadTechnique(){
-    /*
-    prepare/load technique(inputLayout + rootSignature + vs + ps + pipeline)
-    */
-TODO("Critical! Create Technique to avoid this shity code")
-    // Create the vertex input layout
-    D3D12_INPUT_ELEMENT_DESC inputLayout[] = {
-        { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
-        //{ "COLOR", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
-    };
-
-    // Create a root signature.
-    D3D12_FEATURE_DATA_ROOT_SIGNATURE featureData = {};
-    featureData.HighestVersion = D3D_ROOT_SIGNATURE_VERSION_1_1;
-    if (FAILED(m_device->CheckFeatureSupport(D3D12_FEATURE_ROOT_SIGNATURE, &featureData, sizeof(featureData))))
-    {
-        featureData.HighestVersion = D3D_ROOT_SIGNATURE_VERSION_1_0;
-    }
-
-    // Allow input layout and deny unnecessary access to certain pipeline stages.
-    D3D12_ROOT_SIGNATURE_FLAGS rootSignatureFlags =
-        D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT |
-        D3D12_ROOT_SIGNATURE_FLAG_DENY_HULL_SHADER_ROOT_ACCESS |
-        D3D12_ROOT_SIGNATURE_FLAG_DENY_DOMAIN_SHADER_ROOT_ACCESS |
-        D3D12_ROOT_SIGNATURE_FLAG_DENY_GEOMETRY_SHADER_ROOT_ACCESS |
-        D3D12_ROOT_SIGNATURE_FLAG_DENY_PIXEL_SHADER_ROOT_ACCESS;
-
-    // A single 32-bit constant root parameter that is used by the vertex shader.
-    CD3DX12_ROOT_PARAMETER1 rootParameters[3];
-    rootParameters[0].InitAsConstants(sizeof(DirectX::XMMATRIX) / 4, 0, 0, D3D12_SHADER_VISIBILITY_VERTEX); // M
-    rootParameters[1].InitAsConstants(sizeof(DirectX::XMMATRIX) / 4, 1, 0, D3D12_SHADER_VISIBILITY_VERTEX); // V
-    rootParameters[2].InitAsConstants(sizeof(DirectX::XMMATRIX) / 4, 2, 0, D3D12_SHADER_VISIBILITY_VERTEX); // P
-
-    CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC rootSignatureDescription;
-    rootSignatureDescription.Init_1_1(_countof(rootParameters), rootParameters, 0, nullptr, rootSignatureFlags);
-
-    // Serialize the root signature.
-    ComPtr<ID3DBlob> rootSignatureBlob;
-    ComPtr<ID3DBlob> errorBlob;
-    ThrowIfFailed(D3DX12SerializeVersionedRootSignature(&rootSignatureDescription,
-        featureData.HighestVersion, &rootSignatureBlob, &errorBlob));
-        if (errorBlob.Get()){
-            //std::wstring er(errorBlob->GetBufferPointer(), errorBlob->GetBufferPointer() + errorBlob->GetBufferSize());
-            int ii = 10; ii;
-        }
-    // Create the root signature.
-    ThrowIfFailed(m_device->CreateRootSignature(0, rootSignatureBlob->GetBufferPointer(),
-        rootSignatureBlob->GetBufferSize(), IID_PPV_ARGS(&m_rootSignature)));
-
-    struct PipelineStateStream
-    {
-        CD3DX12_PIPELINE_STATE_STREAM_ROOT_SIGNATURE pRootSignature;
-        CD3DX12_PIPELINE_STATE_STREAM_INPUT_LAYOUT InputLayout;
-        CD3DX12_PIPELINE_STATE_STREAM_PRIMITIVE_TOPOLOGY PrimitiveTopologyType;
-        CD3DX12_PIPELINE_STATE_STREAM_VS VS;
-        CD3DX12_PIPELINE_STATE_STREAM_PS PS;
-        CD3DX12_PIPELINE_STATE_STREAM_DEPTH_STENCIL_FORMAT DSVFormat;
-        CD3DX12_PIPELINE_STATE_STREAM_RENDER_TARGET_FORMATS RTVFormats;
-    } pipelineStateStream;
-
-    D3D12_RT_FORMAT_ARRAY rtvFormats = {};
-    rtvFormats.NumRenderTargets = 1;
-    rtvFormats.RTFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
-
-    IDxcBlob* vs_blob = m_shaderMgr->GetShaderBLOB(L"vertex_shader.hlsl");
-    auto vs = CD3DX12_SHADER_BYTECODE(vs_blob->GetBufferPointer(), vs_blob->GetBufferSize());
-    IDxcBlob* ps_blob = m_shaderMgr->GetShaderBLOB(L"pixel_shader.hlsl");
-    auto ps = CD3DX12_SHADER_BYTECODE(ps_blob->GetBufferPointer(), ps_blob->GetBufferSize());
-
-    pipelineStateStream.pRootSignature = m_rootSignature.Get();
-    pipelineStateStream.InputLayout = { inputLayout, _countof(inputLayout) };
-    pipelineStateStream.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
-    pipelineStateStream.VS = vs;
-    pipelineStateStream.PS = ps;
-    pipelineStateStream.DSVFormat = DXGI_FORMAT_D32_FLOAT;
-    pipelineStateStream.RTVFormats = rtvFormats;
-
-    D3D12_PIPELINE_STATE_STREAM_DESC pipelineStateStreamDesc = {
-        sizeof(PipelineStateStream), &pipelineStateStream
-    };
-    ThrowIfFailed(m_device->CreatePipelineState(&pipelineStateStreamDesc, IID_PPV_ARGS(&m_PipelineState)));
-}
-
 void DXAppImplementation::RenderCube(ComPtr<ID3D12GraphicsCommandList6>& command_list){
     TODO("Critical! Create Gatherer or RenderScene to avoid this shity code")
     /*
     renderer who gather meshes in correct order (based on technique(to avoid swapping PSO etc.) AND able to draw instances
     */
    
-   // set technique
-    command_list->SetPipelineState(m_PipelineState.Get());
-    command_list->SetGraphicsRootSignature(m_rootSignature.Get());
+
 
     // update scene constants
-    if (std::shared_ptr<FreeCamera> camera = m_level->GetCamera().lock()){
-        DirectX::XMMATRIX m_ViewMatrix = DirectX::XMLoadFloat4x4(&camera->GetViewMx());
-        DirectX::XMMATRIX m_ProjectionMatrix = DirectX::XMLoadFloat4x4(&camera->GetProjMx());
-        gD3DApp->SetMatrix4Constant(Constants::cV, m_ViewMatrix, command_list);
-        gD3DApp->SetMatrix4Constant(Constants::cP, m_ProjectionMatrix, command_list);
-    }
 
+    bool is_scene_constants_set = false;
     for (uint32_t id = 0; id < m_level->GetEntityCount(); id++){
         LevelEntity ent = m_level->GetEntityById(id);
-        
-        /*
-        should be aply technique params here
-        */
-        
 
+        const Technique *tech = GetTechniqueById(ent.GetTechniqueId());
+
+        // set technique
+        command_list->SetPipelineState(tech->pipeline_state.Get());
+        command_list->SetGraphicsRootSignature(tech->root_signature.Get());
+
+        if (!is_scene_constants_set){
+            if (std::shared_ptr<FreeCamera> camera = m_level->GetCamera().lock()){
+                DirectX::XMMATRIX m_ViewMatrix = DirectX::XMLoadFloat4x4(&camera->GetViewMx());
+                DirectX::XMMATRIX m_ProjectionMatrix = DirectX::XMLoadFloat4x4(&camera->GetProjMx());
+                gD3DApp->SetMatrix4Constant(Constants::cV, m_ViewMatrix, command_list);
+                gD3DApp->SetMatrix4Constant(Constants::cP, m_ProjectionMatrix, command_list);
+            }
+        }
 
         ent.Render(command_list);
     }

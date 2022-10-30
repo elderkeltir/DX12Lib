@@ -25,10 +25,10 @@ void GfxCommandQueue::OnInit(ComPtr<ID3D12Device2> device, D3D12_COMMAND_LIST_TY
     }
 }
 
-ComPtr<ID3D12GraphicsCommandList6> & GfxCommandQueue::ResetActiveCL(ComPtr<ID3D12PipelineState> &pipeline_state) {
+ComPtr<ID3D12GraphicsCommandList6> & GfxCommandQueue::ResetActiveCL(ID3D12PipelineState *pipeline_state) {
     m_active_cl = ++m_active_cl % CommandListsCount;
     ThrowIfFailed(m_commandAllocator[m_active_cl]->Reset());
-    ThrowIfFailed(m_commandList->Reset(m_commandAllocator[m_active_cl].Get(), pipeline_state.Get()));
+    ThrowIfFailed(m_commandList->Reset(m_commandAllocator[m_active_cl].Get(), pipeline_state));
 
     return m_commandList;
 }

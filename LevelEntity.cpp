@@ -11,10 +11,10 @@
 #include <rapidjson/stringbuffer.h>
 #include <fstream>
 
+#include "DXHelper.h"
 #include "DXAppImplementation.h"
 #include "RenderModel.h"
 #include "FileManager.h"
-#include "ShaderManager.h"
 #include "Level.h"
 
 extern DXAppImplementation *gD3DApp;
@@ -48,32 +48,16 @@ void LevelEntity::Load(const std::wstring &name){
 
     const char * model_name_8 = d["model"].GetString();
     const std::wstring model_name(&model_name_8[0], &model_name_8[strlen(model_name_8)]);
-
     if (std::shared_ptr<FileManager> fileMgr = gD3DApp->GetFileManager().lock()){
         m_model = fileMgr->LoadModel(model_name);
     }
 
-    const Value &textures = d["textures"];
-    const char * difuse_name_8 = textures["difuse"].GetString();
-    const std::wstring difuse_name(&difuse_name_8[0], &difuse_name_8[strlen(difuse_name_8)]);
-    const char * normal_name_8 = textures["normal"].GetString();
-    const std::wstring normal_name(&normal_name_8[0], &normal_name_8[strlen(normal_name_8)]);
-    const char * specular_name_8 = textures["specular"].GetString();
-    const std::wstring specular_name(&specular_name_8[0], &specular_name_8[strlen(specular_name_8)]);
-
-    const Value &shaders = d["shaders"];
-    const char * vertex_name_8 = shaders["vertex"].GetString();
-    const std::wstring vertex_name(&vertex_name_8[0], &vertex_name_8[strlen(vertex_name_8)]);
-    const char * pixel_name_8 = shaders["pixel"].GetString();
-    const std::wstring pixel_name(&pixel_name_8[0], &pixel_name_8[strlen(pixel_name_8)]);
-
-    if (std::shared_ptr<ShaderManager> shaderMgr = gD3DApp->GetShaderManager().lock()){
-        shaderMgr->Load(vertex_name, L"main", ShaderManager::ShaderType::st_vertex);
-        shaderMgr->Load(pixel_name, L"main", ShaderManager::ShaderType::st_pixel);
-    }
+    const Value &shaders = d["technique"];
+    m_tech_id = shaders.GetInt();
 }
 
 void LevelEntity::Update(float dt){
+    TODO("Major! rewrite all this xforms + make entity external class")
     float angle = static_cast<float>(gD3DApp->TotalTime().count() * 90.0);
     const DirectX::XMVECTOR rot_axis  = DirectX::XMVectorSet(0, 1, 1, 0);
     DirectX::XMMATRIX rot = DirectX::XMMatrixRotationAxis(rot_axis, DirectX::XMConvertToRadians(angle));

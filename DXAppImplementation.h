@@ -2,6 +2,7 @@
 #include "DXApp.h"
 #include "ResourceManager.h"
 #include "ConstantBufferManager.h"
+#include "Techniques.h"
 
 #include <chrono>
 
@@ -11,7 +12,7 @@ class DescriptorHeapCollection;
 class GpuResource;
 class GfxCommandQueue;
 
-class DXAppImplementation : public DXApp, public ResourceManager, public ConstantBufferManager
+class DXAppImplementation : public DXApp, public ResourceManager, public ConstantBufferManager, public Techniques
 {
 public:
     DXAppImplementation(uint32_t width, uint32_t height, std::wstring name);
@@ -38,36 +39,30 @@ private:
     void CreateSwapChain();
     void PrepareRenderTarget(ComPtr<ID3D12GraphicsCommandList6> &command_list);
     
-    ComPtr<IDXGIFactory4> m_factory;
-    // Pipeline objects.
+    // === Pipeline state object.
+    void RenderCube(ComPtr<ID3D12GraphicsCommandList6>& command_list);
+    // ===
+
     CD3DX12_VIEWPORT m_viewport;
     CD3DX12_RECT m_scissorRect;
-    ComPtr<IDXGISwapChain4> m_swapChain;
+
+    ComPtr<IDXGIFactory4> m_factory;
     ComPtr<ID3D12Device2> m_device;
-    std::shared_ptr<GfxCommandQueue> m_commandQueueGfx;
-    ComPtr<ID3D12RootSignature> m_rootSignature;
-    ComPtr<ID3D12PipelineState> m_pipelineState; // empty? remove later
-
-
-    // Pipeline state object.
-    ComPtr<ID3D12PipelineState> m_PipelineState;
-
+    ComPtr<IDXGISwapChain4> m_swapChain;
+    
+    std::unique_ptr<GfxCommandQueue> m_commandQueueGfx;
     std::unique_ptr<GpuResource[]> m_renderTargets;
     std::unique_ptr<GpuResource> m_depthStencil;
 
     uint32_t m_frameIndex;
     uint64_t m_fenceValues[FrameCount]{0};
     
-    //
-    void LoadTechnique();
-    void RenderCube(ComPtr<ID3D12GraphicsCommandList6>& command_list);
     std::chrono::time_point<std::chrono::system_clock> m_time;
     std::chrono::time_point<std::chrono::system_clock> m_start_time;
     std::chrono::duration<float> m_total_time;
     std::chrono::duration<float> m_dt;
     uint64_t m_frame_id{0};
 
-    //
     std::shared_ptr<Level> m_level;
     std::shared_ptr<DescriptorHeapCollection> m_descriptor_heap_collection;
 };

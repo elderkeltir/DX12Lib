@@ -55,7 +55,8 @@ add_executable(DX12Lib WIN32 main.cpp
     LevelEntity.cpp
     ConstantBufferManager.cpp
     CommandQueue.cpp
-    GfxCommandQueue.cpp)
+    GfxCommandQueue.cpp
+    Techniques.cpp)
 
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})

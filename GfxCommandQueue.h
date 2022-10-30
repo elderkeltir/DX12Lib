@@ -5,7 +5,7 @@
 class GfxCommandQueue : public CommandQueue {
 public:
     virtual void OnInit(ComPtr<ID3D12Device2> device, D3D12_COMMAND_LIST_TYPE type) override;
-    ComPtr<ID3D12GraphicsCommandList6>& ResetActiveCL(ComPtr<ID3D12PipelineState> &pipeline_state);
+    ComPtr<ID3D12GraphicsCommandList6>& ResetActiveCL(ID3D12PipelineState *pipeline_state = nullptr);
     ComPtr<ID3D12GraphicsCommandList6>& GetActiveCL();
     void ExecuteActiveCL();
     void ResourceBarrier(ComPtr<ID3D12Resource> res, D3D12_RESOURCE_STATES from, D3D12_RESOURCE_STATES to);
