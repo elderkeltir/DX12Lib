@@ -7,3 +7,6 @@
 [submodule "thirdParty/DirectX-Headers"]
 	path = thirdParty/DirectX-Headers
 	url = https://github.com/microsoft/DirectX-Headers
+[submodule "thirdParty/DirectXTex"]
+	path = thirdParty/DirectXTex
+	url = https://github.com/microsoft/DirectXTex
