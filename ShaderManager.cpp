@@ -18,10 +18,11 @@ ShaderManager::ShaderManager()
     m_utils->CreateDefaultIncludeHandler(&m_includeHandler);
 
     m_shader_source_dir = gD3DApp->GetRootDir() / L"content" / L"shaders";
-    m_shader_bin_dir = gD3DApp->GetRootDir() / L"build" / L"Debug";
+    m_shader_bin_dir = gD3DApp->GetRootDir() / L"build" / L"shaders";
 }
 
 ComPtr<IDxcBlob> ShaderManager::Load(const std::wstring &name, const std::wstring &entry_point, ShaderType target){
+    TODO("Minor! Make it looking for already loaded shaders. later")
     ComPtr<IDxcBlob> pShader = nullptr;
 
     std::wstring pdb_name = name;
@@ -106,8 +107,9 @@ ComPtr<IDxcBlob> ShaderManager::Load(const std::wstring &name, const std::wstrin
     if (pShader != nullptr)
     {
         FILE* fp = NULL;
-
-        _wfopen_s(&fp, pShaderName->GetStringPointer(), L"wb");
+        std::filesystem::create_directory(m_shader_bin_dir);
+        const std::wstring path_to_shader_bin((m_shader_bin_dir / pShaderName->GetStringPointer()).wstring());
+        _wfopen_s(&fp, path_to_shader_bin.c_str(), L"wb");
         fwrite(pShader->GetBufferPointer(), pShader->GetBufferSize(), 1, fp);
         fclose(fp);
 
@@ -125,7 +127,8 @@ ComPtr<IDxcBlob> ShaderManager::Load(const std::wstring &name, const std::wstrin
 
         // Note that if you don't specify -Fd, a pdb name will be automatically generated.
         // Use this file name to save the pdb so that PIX can find it quickly.
-        _wfopen_s(&fp, pPDBName->GetStringPointer(), L"wb");
+        const std::wstring path_to_shader_pdb((m_shader_bin_dir / pPDBName->GetStringPointer()).wstring());
+        _wfopen_s(&fp, path_to_shader_pdb.c_str(), L"wb");
         fwrite(pPDB->GetBufferPointer(), pPDB->GetBufferSize(), 1, fp);
         fclose(fp);
     }

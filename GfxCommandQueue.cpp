@@ -1,6 +1,7 @@
 #include "GfxCommandQueue.h"
 #include "DXHelper.h"
-#include "d3dx12.h"
+#include <directx/d3dx12.h>
+
 
 void GfxCommandQueue::OnInit(ComPtr<ID3D12Device2> device, D3D12_COMMAND_LIST_TYPE type){
     D3D12_COMMAND_QUEUE_DESC queueDesc = {};
@@ -43,6 +44,7 @@ void GfxCommandQueue::ExecuteActiveCL(){
 }
 
 void GfxCommandQueue::ResourceBarrier(ComPtr<ID3D12Resource> res, D3D12_RESOURCE_STATES from, D3D12_RESOURCE_STATES to){
+    TODO("Normal! Implement feasible way to store/get curent state of resource. later")
     m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(res.Get(), from, to));
 
 }

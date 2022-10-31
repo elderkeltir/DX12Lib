@@ -2,16 +2,25 @@
 #include "ResourceDescriptor.h"
 
 void GpuResource::CreateBuffer(HeapBuffer::BufferType type, uint32_t bufferSize, HeapBuffer::UseFlag flag, D3D12_RESOURCE_STATES initial_state){
+    if (m_buffer){
+        ResetViews();
+    }
     m_buffer = std::make_shared<HeapBuffer>();
     m_buffer->Create(type, bufferSize, flag, initial_state);
 }
 
 void GpuResource::CreateTexture(HeapBuffer::BufferType type, const CD3DX12_RESOURCE_DESC &res_desc, D3D12_RESOURCE_STATES initial_state, const D3D12_CLEAR_VALUE &clear_val){
+    if (m_buffer){
+        ResetViews();
+    }
     m_buffer = std::make_shared<HeapBuffer>();
     m_buffer->CreateTexture(type, res_desc, initial_state, clear_val);
 }
 
 void GpuResource::SetBuffer(ComPtr<ID3D12Resource> res){
+    if (m_buffer){
+        ResetViews();
+    }
     m_buffer = std::make_shared<HeapBuffer>();
     m_buffer->Set(res);
 }
@@ -52,4 +61,12 @@ void GpuResource::Create_Index_View(DXGI_FORMAT format, uint32_t SizeInBytes){
     m_index_view->BufferLocation = m_buffer->GetResource()->GetGPUVirtualAddress();
     m_index_view->Format = format;
     m_index_view->SizeInBytes = SizeInBytes;
+}
+
+void GpuResource::ResetViews(){
+    m_rtv.reset();
+    m_dsv.reset();
+    m_srv.reset();
+    m_vertex_view.reset();
+    m_index_view.reset();
 }

@@ -25,6 +25,7 @@ public:
     std::weak_ptr<D3D12_VERTEX_BUFFER_VIEW> Get_Vertex_View() { return m_vertex_view; }
     std::weak_ptr<D3D12_INDEX_BUFFER_VIEW> Get_Index_View() { return m_index_view; }
 private:
+    void ResetViews();
     std::shared_ptr<HeapBuffer> m_buffer;
     std::shared_ptr<ResourceDescriptor> m_rtv;
     std::shared_ptr<ResourceDescriptor> m_dsv;

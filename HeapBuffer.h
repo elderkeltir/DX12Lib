@@ -1,7 +1,7 @@
 #pragma once
 
 #include <cstdint>
-#include <d3dx12.h>
+#include <directx/d3dx12.h>
 #include <wrl.h>
 using Microsoft::WRL::ComPtr;
 
@@ -24,4 +24,5 @@ public:
 private:
     ComPtr<ID3D12Resource> m_resourse;
     ComPtr<ID3D12Resource> pIntermediateResource;
+    bool m_recreate_intermediate_res{false};
 };

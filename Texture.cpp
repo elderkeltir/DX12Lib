@@ -1,7 +1,7 @@
 #include "Texture.h"
 
-#include <DDSTextureLoader.h>
-#include <ResourceUploadBatch.h>
+// #include <DDSTextureLoader.h>
+// #include <ResourceUploadBatch.h>
 
 Texture::Texture(std::wstring name) :
 	m_name(std::move(name)),
@@ -30,28 +30,29 @@ bool Texture::IsLoaded() const
 
 bool Texture::Load(ID3D12Device2* device, ID3D12GraphicsCommandList* cmdList, ID3D12CommandQueue* commandQueue)
 {
-    DirectX::ResourceUploadBatch upload(device);
+    // DirectX::ResourceUploadBatch upload(device);
 
-    upload.Begin();
-    HRESULT res = DirectX::CreateDDSTextureFromFile(device, upload, m_name.c_str(), m_textureRes.ReleaseAndGetAddressOf());
-	if (res == S_OK)
-	{
-        // Upload the resources to the GPU.
-        auto finish = upload.End(commandQueue);
+    // upload.Begin();
+    // HRESULT res = DirectX::CreateDDSTextureFromFile(device, upload, m_name.c_str(), m_textureRes.ReleaseAndGetAddressOf());
+	// if (res == S_OK)
+	// {
+    //     // Upload the resources to the GPU.
+    //     auto finish = upload.End(commandQueue);
 
-        // Wait for the upload thread to terminate
-        finish.wait();
+    //     // Wait for the upload thread to terminate
+    //     finish.wait();
 
-        m_isLoaded = true;
-		return true;
-	}
-	else
-	{
-		//std::string name(m_name.begin(), m_name.end());
-		// LogError("Failed to load texture from DDS: %s", name);
+    //     m_isLoaded = true;
+	// 	return true;
+	// }
+	// else
+	// {
+	// 	//std::string name(m_name.begin(), m_name.end());
+	// 	// LogError("Failed to load texture from DDS: %s", name);
 
-		return false;
-	}
+	// 	return false;
+	// }
+	return false;
 }
 
 void Texture::Clear()

@@ -1,7 +1,7 @@
 #include "HeapBuffer.h"
 
 #include "DXHelper.h"
-#include "d3dx12.h"
+#include <directx/d3d12.h>
 #include "DXAppImplementation.h"
 
 extern DXAppImplementation *gD3DApp;
@@ -47,6 +47,8 @@ void HeapBuffer::Create(BufferType type, uint32_t bufferSize, UseFlag flags, D3D
         initial_state,
         nullptr,
         IID_PPV_ARGS(&m_resourse)));
+   
+    m_recreate_intermediate_res = true;
 }
 
 void HeapBuffer::CreateTexture(BufferType type, const CD3DX12_RESOURCE_DESC &res_desc, D3D12_RESOURCE_STATES initial_state, const D3D12_CLEAR_VALUE &clear_val){
@@ -72,23 +74,29 @@ void HeapBuffer::CreateTexture(BufferType type, const CD3DX12_RESOURCE_DESC &res
         &clear_val,
         IID_PPV_ARGS(&m_resourse)
     ));
+    m_recreate_intermediate_res = true;
 }
 
 void HeapBuffer::Load(ComPtr<ID3D12GraphicsCommandList6> &commandList, uint32_t numElements, uint32_t elementSize, const void* bufferData){
-    ComPtr<ID3D12Device2>& device = gD3DApp->GetDevice();
+    auto& device = gD3DApp->GetDevice();
     size_t bufferSize = numElements * elementSize;
 
 // Create an committed resource for the upload.
     if (bufferData)
     {
-        pIntermediateResource.Reset();
-        ThrowIfFailed(device->CreateCommittedResource(
-            &CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD),
-            D3D12_HEAP_FLAG_NONE,
-            &CD3DX12_RESOURCE_DESC::Buffer(bufferSize),
-            D3D12_RESOURCE_STATE_GENERIC_READ,
-            nullptr,
-            IID_PPV_ARGS(pIntermediateResource.GetAddressOf())));
+        if (m_recreate_intermediate_res)
+        {
+            pIntermediateResource.Reset();
+            ThrowIfFailed(device->CreateCommittedResource(
+                &CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD),
+                D3D12_HEAP_FLAG_NONE,
+                &CD3DX12_RESOURCE_DESC::Buffer(bufferSize),
+                D3D12_RESOURCE_STATE_GENERIC_READ,
+                nullptr,
+                IID_PPV_ARGS(pIntermediateResource.GetAddressOf())));
+            
+            m_recreate_intermediate_res = !m_recreate_intermediate_res;
+        }
 
         D3D12_SUBRESOURCE_DATA subresourceData = {};
         subresourceData.pData = bufferData;

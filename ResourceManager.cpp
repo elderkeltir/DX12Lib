@@ -12,7 +12,7 @@ ResourceManager::ResourceManager()
     {
         GetModuleFileName(hModule, executablePath, sizeof(wchar_t) * MAX_PATH);
         std::filesystem::path p = std::filesystem::path(executablePath);
-	    m_root_dir = p.parent_path().parent_path().parent_path();
+	    m_root_dir = p.parent_path().parent_path();
     }
 }
 

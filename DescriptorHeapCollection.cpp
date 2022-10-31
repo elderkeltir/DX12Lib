@@ -6,6 +6,7 @@
 extern DXAppImplementation *gD3DApp;
 
 void DescriptorHeapCollection::Initialize(){
+    TODO("Normal! make some intelegent mechanism to take care of descriptors allocations. later.")
     // Describe and create a render target view (RTV) descriptor heap.
     D3D12_DESCRIPTOR_HEAP_DESC rtvHeapDesc = {};
     rtvHeapDesc.NumDescriptors = rtvHeap_size;
@@ -22,13 +23,13 @@ void DescriptorHeapCollection::Initialize(){
 
     // Describe and create a shader resource view (SRV) and unordered
     // access view (UAV) descriptor heap.
-    D3D12_DESCRIPTOR_HEAP_DESC srvUavHeapDesc = {};
-    srvUavHeapDesc.NumDescriptors = srvUavHeap_size;
-    srvUavHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
-    srvUavHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
-    ThrowIfFailed(gD3DApp->GetDevice()->CreateDescriptorHeap(&srvUavHeapDesc, IID_PPV_ARGS(&m_srvUavHeap)));
+    D3D12_DESCRIPTOR_HEAP_DESC srvUavCbvHeapDesc = {};
+    srvUavCbvHeapDesc.NumDescriptors = srvUavCbvHeap_size;
+    srvUavCbvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+    srvUavCbvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
+    ThrowIfFailed(gD3DApp->GetDevice()->CreateDescriptorHeap(&srvUavCbvHeapDesc, IID_PPV_ARGS(&m_srvUavCbvHeap)));
 
     m_rtvDescriptorSize = gD3DApp->GetDevice()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
     m_dsvDescriptorSize = gD3DApp->GetDevice()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
-    m_srvUavDescriptorSize = gD3DApp->GetDevice()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+    m_srvUavCbvDescriptorSize = gD3DApp->GetDevice()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 }

@@ -2,7 +2,8 @@
 #include "DXHelper.h"
 #include "ShaderManager.h"
 #include <DirectXMath.h>
-#include "d3dx12.h"
+
+#include <directx/d3dx12.h>
 #include "DXAppImplementation.h"
 
 extern DXAppImplementation *gD3DApp;
