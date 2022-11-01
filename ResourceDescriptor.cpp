@@ -34,7 +34,6 @@ bool ResourceDescriptor::Create_DSV(std::weak_ptr<HeapBuffer> buff, const D3D12_
 }
 
 bool ResourceDescriptor::Create_SRV(std::weak_ptr<HeapBuffer> buff, const D3D12_SHADER_RESOURCE_VIEW_DESC &desc, bool gpu_visible){
-    assert(gpu_visible);
     if (std::shared_ptr<DescriptorHeapCollection> descriptorHeapCollection = gD3DApp->GetDescriptorHeapCollection().lock()){
         descriptorHeapCollection->ReserveSRVUAVCBVhandle(m_cpu_handle, m_gpu_handle);
         if (std::shared_ptr<HeapBuffer> buffer = buff.lock()){

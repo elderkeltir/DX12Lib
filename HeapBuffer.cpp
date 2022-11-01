@@ -11,7 +11,7 @@ void HeapBuffer::Create(BufferType type, uint32_t bufferSize, UseFlag flags, D3D
     D3D12_RESOURCE_FLAGS internal_flags;
 
     switch(type){
-        case BufferType::bt_deafult:
+        case BufferType::bt_default:
             internal_type = D3D12_HEAP_TYPE_DEFAULT;
             break;
         case BufferType::bt_upload:
@@ -51,11 +51,11 @@ void HeapBuffer::Create(BufferType type, uint32_t bufferSize, UseFlag flags, D3D
     m_recreate_intermediate_res = true;
 }
 
-void HeapBuffer::CreateTexture(BufferType type, const CD3DX12_RESOURCE_DESC &res_desc, D3D12_RESOURCE_STATES initial_state, const D3D12_CLEAR_VALUE &clear_val){
+void HeapBuffer::CreateTexture(BufferType type, const CD3DX12_RESOURCE_DESC &res_desc, D3D12_RESOURCE_STATES initial_state, const D3D12_CLEAR_VALUE *clear_val){
     D3D12_HEAP_TYPE internal_type;
 
     switch(type){
-        case BufferType::bt_deafult:
+        case BufferType::bt_default:
             internal_type = D3D12_HEAP_TYPE_DEFAULT;
             break;
         case BufferType::bt_upload:
@@ -71,19 +71,17 @@ void HeapBuffer::CreateTexture(BufferType type, const CD3DX12_RESOURCE_DESC &res
         D3D12_HEAP_FLAG_NONE,
         &res_desc,
         initial_state,
-        &clear_val,
+        clear_val,
         IID_PPV_ARGS(&m_resourse)
     ));
     m_recreate_intermediate_res = true;
 }
 
 void HeapBuffer::Load(ComPtr<ID3D12GraphicsCommandList6> &commandList, uint32_t numElements, uint32_t elementSize, const void* bufferData){
-    auto& device = gD3DApp->GetDevice();
-    size_t bufferSize = numElements * elementSize;
-
-// Create an committed resource for the upload.
     if (bufferData)
     {
+        auto& device = gD3DApp->GetDevice();
+        const size_t bufferSize = numElements * elementSize;
         if (m_recreate_intermediate_res)
         {
             pIntermediateResource.Reset();
@@ -106,6 +104,31 @@ void HeapBuffer::Load(ComPtr<ID3D12GraphicsCommandList6> &commandList, uint32_t 
         UpdateSubresources(commandList.Get(),
             m_resourse.Get(), pIntermediateResource.Get(),
             0, 0, 1, &subresourceData);
+    }
+}
+
+void HeapBuffer::Load(ComPtr<ID3D12GraphicsCommandList6> &commandList, uint32_t firstSubresource, uint32_t numSubresources, D3D12_SUBRESOURCE_DATA* subresourceData){
+    if (subresourceData)
+    {
+        auto& device = gD3DApp->GetDevice();
+        const uint64_t required_size = GetRequiredIntermediateSize(m_resourse.Get(), firstSubresource, numSubresources);
+        if (m_recreate_intermediate_res)
+        {
+            pIntermediateResource.Reset();
+            ThrowIfFailed(device->CreateCommittedResource(
+                &CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD),
+                D3D12_HEAP_FLAG_NONE,
+                &CD3DX12_RESOURCE_DESC::Buffer(required_size),
+                D3D12_RESOURCE_STATE_GENERIC_READ,
+                nullptr,
+                IID_PPV_ARGS(pIntermediateResource.GetAddressOf())));
+            
+            m_recreate_intermediate_res = !m_recreate_intermediate_res;
+        }
+
+        UpdateSubresources(commandList.Get(),
+            m_resourse.Get(), pIntermediateResource.Get(),
+            0, firstSubresource, numSubresources, subresourceData);
     }
 }
 

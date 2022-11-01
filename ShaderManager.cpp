@@ -40,7 +40,12 @@ ComPtr<IDxcBlob> ShaderManager::Load(const std::wstring &name, const std::wstrin
         name.c_str(),                   // Optional shader source file name for error reporting
                                         // and for PIX shader source view.  
         L"-E", entry_point.c_str(),     // Entry point.
-        L"-T", targets[target],              // Target.
+        L"-T", targets[target],         // Target.
+#ifdef _DEBUG
+        L"-Od",                         // Disable optimization for better shader debugging
+#else
+        L"-O3",                         // Default optimization level in release
+#endif // _DEBUG
         L"-Zs",                         // Enable debug information (slim format)
         L"-D", L"MYDEFINE=1",           // A single define.
         L"-Fo", bin_name.c_str(),       // Optional. Stored in the pdb. 

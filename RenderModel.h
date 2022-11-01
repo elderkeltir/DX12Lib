@@ -7,6 +7,7 @@
 #include <array>
 #include <string>
 #include <wrl.h>
+#include "TextureData.h"
 
 using Microsoft::WRL::ComPtr;
 
@@ -18,25 +19,24 @@ public:
     struct Vertex
 	{
 		DirectX::XMFLOAT3 Position;
+        DirectX::XMFLOAT3 Normal;
 		DirectX::XMFLOAT2 TextCoord;
-		DirectX::XMFLOAT3 Normal;
-		DirectX::XMFLOAT3 Tangents;
-		DirectX::XMFLOAT3 Bitangents;
+		
+		//DirectX::XMFLOAT3 Tangents;
+		//DirectX::XMFLOAT3 Bitangents;
 
-		Vertex() {}
-		Vertex(DirectX::XMFLOAT3 pos, DirectX::XMFLOAT2 textCoord) : Position(pos), TextCoord(textCoord) {}
+		//Vertex() {}
+		//Vertex(DirectX::XMFLOAT3 pos, DirectX::XMFLOAT2 textCoord) : Position(pos), TextCoord(textCoord) {}
 	};
 public:
-    enum TextureType { DiffuseTexture = 0, NormalTexture, SpecularTexture };
+    enum TextureType { DiffuseTexture = 0, NormalTexture, SpecularTexture, TextureCount };
 public:
     RenderModel();
     ~RenderModel();
 
     void Load(const std::wstring &name);
-    inline void LoadVertexDataOnGpu(ComPtr<ID3D12GraphicsCommandList6> &commandList);
-    inline void LoadIndexDataOnGpu(ComPtr<ID3D12GraphicsCommandList6> &commandList);
-
     void Render(ComPtr<ID3D12GraphicsCommandList6> &commandList, const DirectX::XMFLOAT4X4 &parent_xform);
+    void LoadDataToGpu(ComPtr<ID3D12GraphicsCommandList6> &commandList);
 
     void SetId(uint32_t id) { m_id = id; }
     uint32_t GetId() const { return m_id; }
@@ -58,12 +58,21 @@ public:
     void SetTangents(std::vector<DirectX::XMFLOAT3> tangents, std::vector<DirectX::XMFLOAT3> bitangents);
 
     void SetTextureCoords(std::vector<DirectX::XMFLOAT2> textCoords);
-    void SetTexturePath(const char* path, TextureType type);
+    void SetTexture(TextureData * texture_data, TextureType type);
 private:
-    enum dirty_bits{
+    inline void FormVertexes();
+    inline void LoadVertexDataOnGpu(ComPtr<ID3D12GraphicsCommandList6> &commandList);
+    inline void LoadIndexDataOnGpu(ComPtr<ID3D12GraphicsCommandList6> &commandList);
+    inline void LoadTextures(ComPtr<ID3D12GraphicsCommandList6> & commandList);
+
+    enum dirty_bits {
         db_vertex       = 1 << 0,
-        db_index        = 1 << 1
+        db_index        = 1 << 1,
+        db_diffuse_tx   = 1 << 2,
+        db_normals_tx   = 1 << 3,
+        db_specular_tx  = 1 << 4
     };
+
     std::vector<DirectX::XMFLOAT3> m_vertices;
     std::vector<uint16_t> m_indices;
     std::vector<DirectX::XMFLOAT3> m_normals;
@@ -73,18 +82,19 @@ private:
 
     std::unique_ptr<GpuResource> m_VertexBuffer;
     std::unique_ptr<GpuResource> m_IndexBuffer;
-    //std::vector<Vertex> m_vertexDataBuffer;
+    std::vector<Vertex> m_vertexDataBuffer;
 
-    std::string m_vertexShaderName;
-    std::string m_pixelShaderName;
-    std::array<std::string, 3> m_textures;
+    std::unique_ptr<GpuResource> m_diffuse_tex;
+    std::unique_ptr<GpuResource> m_normals_tex;
+    std::unique_ptr<GpuResource> m_specular_tex;
+    std::array<TextureData*, TextureCount> m_textures_data;
 
-    uint8_t m_dirty{ db_vertex | db_index};
+    uint8_t m_dirty{0};
 
     std::unique_ptr<Transformations> m_transformations;
 
     std::vector<RenderModel*> m_children;
     std::wstring m_name;
     bool m_is_initialized{false};
-    uint32_t m_id{(uint32_t)-1};
+    uint32_t m_id{uint32_t(-1)};
 };

@@ -23,7 +23,7 @@ set(THIRD_PARTY_DIR ${ROOT_FOLDER}/thirdParty)
 # include directories
 include_directories(${PROJECT_SOURCE_DIR})
 include_directories(${THIRD_PARTY_DIR}/DirectX-Headers/include)
-include_directories(${THIRD_PARTY_DIR}/DirectXTex/include)
+include_directories(${THIRD_PARTY_DIR}/DirectXTex/DirectXTex)
 include_directories(${THIRD_PARTY_DIR}/assimp/include)
 include_directories(${CMAKE_BINARY_DIR}/thirdParty/assimp/include)
 include_directories(${THIRD_PARTY_DIR}/DirectXShaderCompiler/inc)
@@ -51,9 +51,7 @@ add_executable(DX12Lib WIN32 main.cpp
     DXApp.cpp
     DXAppImplementation.cpp
     FileManager.cpp
-    Texture.cpp
     RenderModel.cpp
-    TextureManager.cpp
     ResourceManager.cpp
     ShaderManager.cpp
     Transformations.cpp

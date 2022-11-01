@@ -1,7 +1,6 @@
 #include "ResourceManager.h"
 #include "ShaderManager.h"
 #include "FileManager.h"
-#include "TextureManager.h"
 
 ResourceManager::ResourceManager()
 {
@@ -19,7 +18,6 @@ ResourceManager::ResourceManager()
 ResourceManager::~ResourceManager() = default;
 
 void ResourceManager::OnInit(){
-    m_textureMgr = std::make_shared<TextureManager>();
     m_fileMgr = std::make_shared<FileManager>();
     m_shaderMgr = std::make_shared<ShaderManager>();
 }

@@ -89,6 +89,7 @@
         "xutility": "cpp",
         "filesystem": "cpp",
         "*.idl": "cpp",
-        "*.inc": "cpp"
+        "*.inc": "cpp",
+        "cwctype": "cpp"
     }
 }

@@ -191,7 +191,7 @@ void DXAppImplementation::CreateSwapChain(){
         depthOptimizedClearValue.DepthStencil.Stencil = 0;
         CD3DX12_RESOURCE_DESC res_desc = CD3DX12_RESOURCE_DESC::Tex2D(DXGI_FORMAT_D32_FLOAT, m_width, m_height, 1, 0, 1, 0, D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL);
         
-        m_depthStencil->CreateTexture(HeapBuffer::BufferType::bt_deafult, res_desc, D3D12_RESOURCE_STATE_DEPTH_WRITE, depthOptimizedClearValue);
+        m_depthStencil->CreateTexture(HeapBuffer::BufferType::bt_default, res_desc, D3D12_RESOURCE_STATE_DEPTH_WRITE, &depthOptimizedClearValue);
 
         D3D12_DEPTH_STENCIL_VIEW_DESC depthStencilDesc = {};
         depthStencilDesc.Format = DXGI_FORMAT_D32_FLOAT;
@@ -292,12 +292,19 @@ void DXAppImplementation::RenderLevel(ComPtr<ID3D12GraphicsCommandList6>& comman
     bool is_scene_constants_set = false;
     for (uint32_t id = 0; id < m_level->GetEntityCount(); id++){
         LevelEntity ent = m_level->GetEntityById(id);
+        ent.LoadDataToGpu(command_list);
 
         const Technique *tech = GetTechniqueById(ent.GetTechniqueId());
 
         // set technique
         command_list->SetPipelineState(tech->pipeline_state.Get());
         command_list->SetGraphicsRootSignature(tech->root_signature.Get());
+
+        // set root desc
+        if (ent.GetTechniqueId() == 1){
+            ID3D12DescriptorHeap* descriptorHeaps[] = { m_descriptor_heap_collection->GetShaderVisibleHeap().Get() };
+            command_list->SetDescriptorHeaps(_countof(descriptorHeaps), descriptorHeaps);
+        }
 
         if (!is_scene_constants_set){
             if (std::shared_ptr<FreeCamera> camera = m_level->GetCamera().lock()){

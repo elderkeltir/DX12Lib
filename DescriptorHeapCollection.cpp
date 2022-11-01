@@ -23,10 +23,11 @@ void DescriptorHeapCollection::Initialize(){
 
     // Describe and create a shader resource view (SRV) and unordered
     // access view (UAV) descriptor heap.
+    TODO("Critical! Create separate heap with shader visibility and copy there")
     D3D12_DESCRIPTOR_HEAP_DESC srvUavCbvHeapDesc = {};
     srvUavCbvHeapDesc.NumDescriptors = srvUavCbvHeap_size;
     srvUavCbvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
-    srvUavCbvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
+    srvUavCbvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
     ThrowIfFailed(gD3DApp->GetDevice()->CreateDescriptorHeap(&srvUavCbvHeapDesc, IID_PPV_ARGS(&m_srvUavCbvHeap)));
 
     m_rtvDescriptorSize = gD3DApp->GetDevice()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);

@@ -50,6 +50,7 @@ void LevelEntity::Load(const std::wstring &name){
     const std::wstring model_name(&model_name_8[0], &model_name_8[strlen(model_name_8)]);
     if (std::shared_ptr<FileManager> fileMgr = gD3DApp->GetFileManager().lock()){
         m_model = fileMgr->LoadModel(model_name);
+        m_model->SetName(model_name);
     }
 
     const Value &shaders = d["technique"];
@@ -73,4 +74,6 @@ void LevelEntity::Render(ComPtr<ID3D12GraphicsCommandList6> &commandList){
     m_model->Render(commandList, m_xform);
 }
 
-
+void LevelEntity::LoadDataToGpu(ComPtr<ID3D12GraphicsCommandList6> &commandList) {
+    m_model->LoadDataToGpu(commandList);
+}

@@ -8,9 +8,11 @@ class ResourceDescriptor;
 class GpuResource {
 public:
     void CreateBuffer(HeapBuffer::BufferType type, uint32_t bufferSize, HeapBuffer::UseFlag flag, D3D12_RESOURCE_STATES initial_state);
-    void CreateTexture(HeapBuffer::BufferType type, const CD3DX12_RESOURCE_DESC &res_desc, D3D12_RESOURCE_STATES initial_state, const D3D12_CLEAR_VALUE &clear_val);
+    void CreateTexture(HeapBuffer::BufferType type, const CD3DX12_RESOURCE_DESC &res_desc, D3D12_RESOURCE_STATES initial_state, const D3D12_CLEAR_VALUE *clear_val);
     void SetBuffer(ComPtr<ID3D12Resource> res);
     void LoadBuffer(ComPtr<ID3D12GraphicsCommandList6> &commandList, uint32_t numElements, uint32_t elementSize, const void* bufferData);
+    void LoadBuffer(ComPtr<ID3D12GraphicsCommandList6> &commandList, uint32_t firstSubresource, uint32_t numSubresources, D3D12_SUBRESOURCE_DATA* subresourceData);
+    
     void CreateRTV();
     void Create_DSV(const D3D12_DEPTH_STENCIL_VIEW_DESC &desc);
     void Create_SRV(const D3D12_SHADER_RESOURCE_VIEW_DESC &desc, bool gpu_visible = true);

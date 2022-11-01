@@ -9,7 +9,7 @@ void GpuResource::CreateBuffer(HeapBuffer::BufferType type, uint32_t bufferSize,
     m_buffer->Create(type, bufferSize, flag, initial_state);
 }
 
-void GpuResource::CreateTexture(HeapBuffer::BufferType type, const CD3DX12_RESOURCE_DESC &res_desc, D3D12_RESOURCE_STATES initial_state, const D3D12_CLEAR_VALUE &clear_val){
+void GpuResource::CreateTexture(HeapBuffer::BufferType type, const CD3DX12_RESOURCE_DESC &res_desc, D3D12_RESOURCE_STATES initial_state, const D3D12_CLEAR_VALUE *clear_val){
     if (m_buffer){
         ResetViews();
     }
@@ -27,6 +27,10 @@ void GpuResource::SetBuffer(ComPtr<ID3D12Resource> res){
 
 void GpuResource::LoadBuffer(ComPtr<ID3D12GraphicsCommandList6> &commandList, uint32_t numElements, uint32_t elementSize, const void* bufferData){
     m_buffer->Load(commandList, numElements, elementSize, bufferData);
+}
+
+void GpuResource::LoadBuffer(ComPtr<ID3D12GraphicsCommandList6> &commandList, uint32_t firstSubresource, uint32_t numSubresources, D3D12_SUBRESOURCE_DATA* subresourceData){
+    m_buffer->Load(commandList, firstSubresource, numSubresources, subresourceData);
 }
 
 void GpuResource::CreateRTV(){

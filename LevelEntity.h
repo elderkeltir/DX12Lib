@@ -20,6 +20,7 @@ public:
     uint32_t GetTechniqueId() const { return m_tech_id; }
     void SetId(uint32_t id) { m_id = id; }
     uint32_t GetId() const { return m_id; }
+    void LoadDataToGpu(ComPtr<ID3D12GraphicsCommandList6> &commandList);
    
 private:
     std::wstring m_model_name;
