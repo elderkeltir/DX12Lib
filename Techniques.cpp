@@ -185,7 +185,7 @@ static Techniques::Technique CreateTechnique_1(ComPtr<ID3D12Device2> &device){
 
     // A single 32-bit constant root parameter that is used by the vertex shader.
     CD3DX12_DESCRIPTOR_RANGE1 texTable;
-	texTable.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0);
+	texTable.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 2, 0);
 
     auto staticSamplers = GetStaticSamplers();
 

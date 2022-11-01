@@ -239,7 +239,7 @@ void RenderModel::SetTexture(TextureData * texture_data, TextureType type){
             m_dirty |= db_diffuse_tx;
             break;
         case TextureType::NormalTexture:
-            //m_dirty |= db_normals_tx;
+            m_dirty |= db_normals_tx;
             break;
         case TextureType::SpecularTexture:
             //m_dirty |= db_specular_tx;
