@@ -77,7 +77,7 @@ void DXAppImplementation::CreateDevice(std::optional<std::wstring> dbg_name){
 #endif
 
     ThrowIfFailed(CreateDXGIFactory2(dxgiFactoryFlags, IID_PPV_ARGS(&m_factory)));
-    SetName(m_factory, dbg_name.value_or(wstring_empty).append("_factory").c_str());
+    //SetName(m_factory, dbg_name.value_or(L"").append(L"_factory").c_str());
 
     if (m_useWarpDevice)
     {
@@ -100,7 +100,7 @@ void DXAppImplementation::CreateDevice(std::optional<std::wstring> dbg_name){
             D3D_FEATURE_LEVEL_12_0,
             IID_PPV_ARGS(&m_device)
             ));
-            SetName(m_device, dbg_name.value_or(wstring_empty).append("_device").c_str());
+            SetName(m_device, dbg_name.value_or(L"").append(L"_device").c_str());
     }
 
  // Enable debug messages in debug mode.
@@ -166,12 +166,12 @@ void DXAppImplementation::CreateSwapChain(std::optional<std::wstring> dbg_name){
     ThrowIfFailed(m_factory->MakeWindowAssociation(Application::GetHwnd(), DXGI_MWA_NO_ALT_ENTER));
 
     ThrowIfFailed(swapChain.As(&m_swapChain));
-    SetName(m_swapChain, dbg_name.value_or(wstring_empty).append("_swap_chain").c_str());
+    //SetName(m_swapChain, dbg_name.value_or(L"").append(L"_swap_chain").c_str());
 
     m_frameIndex = m_swapChain->GetCurrentBackBufferIndex();
     
     // Create descriptor heaps.
-    m_descriptor_heap_collection->Initialize("DxAppImplemenation");
+    m_descriptor_heap_collection->Initialize(L"DxAppImplemenation");
 
     // Create frame resources.
     {
@@ -180,7 +180,7 @@ void DXAppImplementation::CreateSwapChain(std::optional<std::wstring> dbg_name){
         {
             ComPtr<ID3D12Resource> renderTarget;
             ThrowIfFailed(m_swapChain->GetBuffer(n, IID_PPV_ARGS(&renderTarget)));
-            SetName(renderTarget, std::wstring(L"render_target_").append(to_string(n));
+            SetName(renderTarget, std::wstring(L"render_target_").append(std::to_wstring(n)).c_str());
             m_renderTargets[n].SetBuffer(renderTarget);
             m_renderTargets[n].CreateRTV();
         }
@@ -240,14 +240,14 @@ void DXAppImplementation::OnRender()
     else {
         assert(false);
     }
-    m_commandQueueGfx->ResourceBarrier(render_target.Get(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
+    m_commandQueueGfx->ResourceBarrier(render_target, D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
     PrepareRenderTarget(command_list);
 
     // Render scene
     RenderLevel(command_list);
 
     // Indicate that the back buffer will now be used to present.
-    m_commandQueueGfx->ResourceBarrier(render_target.Get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
+    m_commandQueueGfx->ResourceBarrier(render_target, D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
 
     m_commandQueueGfx->ExecuteActiveCL();
 

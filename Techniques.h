@@ -1,5 +1,5 @@
 #pragma once
-
+#include <optional>
 #include <cstdint>
 #include <array>
 #include <vector>

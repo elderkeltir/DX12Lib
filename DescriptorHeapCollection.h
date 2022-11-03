@@ -1,5 +1,6 @@
 #pragma once
 
+#include <optional>
 #include <cassert>
 #include <directx/d3dx12.h>
 #include <wrl.h>

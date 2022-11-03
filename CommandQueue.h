@@ -1,6 +1,8 @@
 #pragma once
 
 #include <directx/d3d12.h>
+#include <optional>
+#include <string>
 #include <cstdint>
 #include <wrl.h>
 
@@ -9,7 +11,7 @@ using Microsoft::WRL::ComPtr;
 class CommandQueue {
     friend class DXAppImplementation;
 public:
-    virtual void OnInit(ComPtr<ID3D12Device2> device, D3D12_COMMAND_LIST_TYPE type) = 0;
+    virtual void OnInit(ComPtr<ID3D12Device2> device, D3D12_COMMAND_LIST_TYPE type, std::optional<std::wstring> dbg_name = std::nullopt) = 0;
     virtual void OnDestroy() { Flush(); CloseHandle(m_fenceEvent); }
     uint64_t Signal();
     void Wait(uint64_t fence_value);

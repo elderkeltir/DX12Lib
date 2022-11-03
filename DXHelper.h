@@ -1,6 +1,8 @@
 #pragma once
 
 #include <stdexcept>
+#include <wrl.h>
+using Microsoft::WRL::ComPtr;
 
 #define _STR(x) #x
 #define STR(x) _STR(x)
@@ -34,7 +36,6 @@ inline void ThrowIfFailed(HRESULT hr)
 }
 
 // Assign a name to the object to aid with debugging.
-using wstring_empty = std::wstring();
 #if defined(_DEBUG) || defined(DBG)
 inline void SetName(ComPtr<ID3D12Object> pObject, LPCWSTR name)
 {

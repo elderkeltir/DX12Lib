@@ -1,6 +1,8 @@
 #pragma once
 
 #include <cstdint>
+#include <optional>
+#include <string>
 #include <directx/d3dx12.h>
 #include <wrl.h>
 using Microsoft::WRL::ComPtr;

@@ -21,8 +21,7 @@ extern DXAppImplementation *gD3DApp;
 using rapidjson::Document;
 using rapidjson::Value;
 
-LevelEntity::LevelEntity(const std::wstring &model_name, DirectX::XMFLOAT3 pos, DirectX::XMFLOAT3 rot, DirectX::XMFLOAT3 scale) :
-    m_model_name(model_name),
+LevelEntity::LevelEntity(const DirectX::XMFLOAT3 &pos, const DirectX::XMFLOAT3 &rot, const DirectX::XMFLOAT3 &scale) :
     m_model(nullptr),
     m_pos(pos),
     m_rot(rot),

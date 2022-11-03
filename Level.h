@@ -13,12 +13,18 @@ class RenderModel;
 
 class Level {
 public:
-    struct LevelLight : protected pro_game_containers::object {
+    struct LevelLight {
+        LevelLight() = default;
+        enum class LightType { lt_ambient, lt_direct, lt_point, lt_spot } type;
+        LevelLight(const DirectX::XMFLOAT3 &dir_, const DirectX::XMFLOAT3 &power_, LevelLight::LightType light_type) :
+        dir(dir_),
+        power(power_),
+        type(light_type)
+        {}
         DirectX::XMFLOAT3 pos;
         DirectX::XMFLOAT3 dir;
         DirectX::XMFLOAT3 power;
         uint32_t id;
-        enum class LightType { lt_ambient, lt_direct, lt_point, lt_spot } type;
     };
 public:
     Level();

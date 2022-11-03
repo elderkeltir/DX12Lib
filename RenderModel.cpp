@@ -7,30 +7,6 @@
 
 extern DXAppImplementation *gD3DApp;
 
-// separate header
-enum data_types {
-    dt_float = 0,
-    dt_float2,
-    dt_float3,
-    dt_float4,
-
-    dt_num
-};
-
-enum data_assignment {
-    da_position = 0,
-    da_normal,
-    da_tex_coords,
-    da_tangents,
-    da_bitangents
-}
-
-static uint32_t g_size_types[dt_num] = {
-    sizeof(float),                      // dt_float
-}
-
-
-
 RenderModel::RenderModel() :
     m_transformations(std::make_unique<Transformations>())
 {
@@ -178,7 +154,7 @@ void RenderModel::LoadTextures(ComPtr<ID3D12GraphicsCommandList6> & commandList)
             }
             
             D3D12_RESOURCE_STATES initial_state = D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_COPY_DEST;
-            res->CreateTexture(HeapBuffer::BufferType::bt_default, tex_desc, initial_state, nullptr, std::wstring(m_name).append(L"model_srv_").append(to_string(idx)));
+            res->CreateTexture(HeapBuffer::BufferType::bt_default, tex_desc, initial_state, nullptr, std::wstring(m_name).append(L"model_srv_").append(std::to_wstring(idx)).c_str());
 
             const uint32_t image_count = (uint32_t)m_textures_data[idx]->scratch_image.GetImageCount();
             std::vector<D3D12_SUBRESOURCE_DATA> subresources(image_count);

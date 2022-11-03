@@ -74,8 +74,12 @@ void Level::Load(const std::wstring &name){
         const DirectX::XMFLOAT3 rot(model_rot[0].GetFloat(), model_rot[1].GetFloat(), model_rot[2].GetFloat());
         const DirectX::XMFLOAT3 scale(model_scale[0].GetFloat(), model_scale[1].GetFloat(), model_scale[2].GetFloat());
 
-        LevelEntity lev_ent{ L"", pos, rot, scale };
+        LevelEntity lev_ent{ pos, rot, scale };
+        lev_ent.SetPos(pos);
+        lev_ent.SetRot(rot);
+        lev_ent.SetScale(scale);
         lev_ent.Load(model_name);
+        
         uint32_t id = m_entites.push_back(lev_ent);
         m_entites[id].SetId(id);
     }
@@ -94,7 +98,7 @@ void Level::Load(const std::wstring &name){
             const DirectX::XMFLOAT3 dir(light_dir[0].GetFloat(), light_dir[1].GetFloat(), light_dir[2].GetFloat());
             const DirectX::XMFLOAT3 power(light_power[0].GetFloat(), light_power[1].GetFloat(), light_power[2].GetFloat());
 
-            const LevelLight level_light{ DirectX::XMFLOAT3(), dir, power, 0, ltype };
+            const LevelLight level_light{ dir, power, ltype };
             uint32_t id = m_lights.push_back(level_light);
             m_lights[id].id = id;
         }

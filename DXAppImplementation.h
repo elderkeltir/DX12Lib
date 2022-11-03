@@ -4,6 +4,7 @@
 #include "ConstantBufferManager.h"
 #include "Techniques.h"
 
+#include <optional>
 #include <chrono>
 
 using Microsoft::WRL::ComPtr;

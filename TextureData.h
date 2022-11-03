@@ -1,8 +1,9 @@
 #pragma once
 
 #include "DirectXTex.h"
+#include "simple_object_pool.h"
 
-struct TextureData : protected pro_game_containers::object {
+struct TextureData  {
     DirectX::TexMetadata meta_data;
     DirectX::ScratchImage scratch_image;
     std::wstring name;

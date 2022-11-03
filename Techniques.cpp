@@ -68,10 +68,6 @@ static Techniques::Technique CreateTechnique_0(ComPtr<ID3D12Device2> &device, st
     tech.vs = L"vertex_shader_0.hlsl";
     tech.ps = L"pixel_shader_0.hlsl";
 
-    if (std::shared_ptr<ShaderManager> shaderMgr = gD3DApp->GetShaderManager().lock()){
-
-    }
-
     // Create the vertex input layout
     D3D12_INPUT_ELEMENT_DESC inputLayout[] = {
         { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
@@ -111,7 +107,7 @@ static Techniques::Technique CreateTechnique_0(ComPtr<ID3D12Device2> &device, st
     // Create the root signature.
     ThrowIfFailed(device->CreateRootSignature(0, rootSignatureBlob->GetBufferPointer(),
         rootSignatureBlob->GetBufferSize(), IID_PPV_ARGS(&tech.root_signature)));
-    SetName(m_commandAllocator, dbg_name.value_or(wstring_empty).append("_root_signature_0").c_str());
+    SetName(tech.root_signature, dbg_name.value_or(L"").append(L"_root_signature_0").c_str());
 
     struct PipelineStateStream
     {
@@ -131,10 +127,10 @@ static Techniques::Technique CreateTechnique_0(ComPtr<ID3D12Device2> &device, st
     CD3DX12_SHADER_BYTECODE vs;
     CD3DX12_SHADER_BYTECODE ps;
     if (std::shared_ptr<ShaderManager> shader_mgr = gD3DApp->GetShaderManager().lock()){
-        ComPtr<IDxcBlob> vs_blob = shader_mgr->Load(tech.vs, L"main", ShaderManager::ShaderType::st_vertex);
-        ComPtr<IDxcBlob> ps_blob = shader_mgr->Load(tech.ps, L"main", ShaderManager::ShaderType::st_pixel);
-        vs = CD3DX12_SHADER_BYTECODE(vs_blob->GetBufferPointer(), vs_blob->GetBufferSize());
-        ps = CD3DX12_SHADER_BYTECODE(ps_blob->GetBufferPointer(), ps_blob->GetBufferSize());
+        ShaderManager::ShaderBlob* vs_blob = shader_mgr->Load(tech.vs, L"main", ShaderManager::ShaderType::st_vertex);
+        ShaderManager::ShaderBlob* ps_blob = shader_mgr->Load(tech.ps, L"main", ShaderManager::ShaderType::st_pixel);
+        vs = CD3DX12_SHADER_BYTECODE((const void*)vs_blob->data.data(), vs_blob->data.size());
+        ps = CD3DX12_SHADER_BYTECODE((const void*)ps_blob->data.data(), ps_blob->data.size());
     }
     else{
         assert(false);
@@ -152,7 +148,7 @@ static Techniques::Technique CreateTechnique_0(ComPtr<ID3D12Device2> &device, st
         sizeof(PipelineStateStream), &pipelineStateStream
     };
     ThrowIfFailed(device->CreatePipelineState(&pipelineStateStreamDesc, IID_PPV_ARGS(&tech.pipeline_state)));
-    SetName(m_commandAllocator, dbg_name.value_or(wstring_empty).append("_pso_0").c_str());
+    SetName(tech.pipeline_state, dbg_name.value_or(L"").append(L"_pso_0").c_str());
             
     return tech;
 }
@@ -214,7 +210,7 @@ static Techniques::Technique CreateTechnique_1(ComPtr<ID3D12Device2> &device, st
     // Create the root signature.
     ThrowIfFailed(device->CreateRootSignature(0, rootSignatureBlob->GetBufferPointer(),
         rootSignatureBlob->GetBufferSize(), IID_PPV_ARGS(&tech.root_signature)));
-        SetName(m_commandAllocator, dbg_name.value_or(wstring_empty).append("_root_signature_1").c_str());
+        SetName(tech.root_signature, dbg_name.value_or(L"").append(L"_root_signature_1").c_str());
 
     struct PipelineStateStream
     {
@@ -234,10 +230,10 @@ static Techniques::Technique CreateTechnique_1(ComPtr<ID3D12Device2> &device, st
     CD3DX12_SHADER_BYTECODE vs;
     CD3DX12_SHADER_BYTECODE ps;
     if (std::shared_ptr<ShaderManager> shader_mgr = gD3DApp->GetShaderManager().lock()){
-        ComPtr<IDxcBlob> vs_blob = shader_mgr->Load(tech.vs, L"main", ShaderManager::ShaderType::st_vertex);
-        ComPtr<IDxcBlob> ps_blob = shader_mgr->Load(tech.ps, L"main", ShaderManager::ShaderType::st_pixel);
-        vs = CD3DX12_SHADER_BYTECODE(vs_blob->GetBufferPointer(), vs_blob->GetBufferSize());
-        ps = CD3DX12_SHADER_BYTECODE(ps_blob->GetBufferPointer(), ps_blob->GetBufferSize());
+        ShaderManager::ShaderBlob* vs_blob = shader_mgr->Load(tech.vs, L"main", ShaderManager::ShaderType::st_vertex);
+        ShaderManager::ShaderBlob* ps_blob = shader_mgr->Load(tech.ps, L"main", ShaderManager::ShaderType::st_pixel);
+        vs = CD3DX12_SHADER_BYTECODE(vs_blob->data.data(), vs_blob->data.size());
+        ps = CD3DX12_SHADER_BYTECODE(ps_blob->data.data(), ps_blob->data.size());
     }
     else{
         assert(false);
@@ -255,7 +251,7 @@ static Techniques::Technique CreateTechnique_1(ComPtr<ID3D12Device2> &device, st
         sizeof(PipelineStateStream), &pipelineStateStream
     };
     ThrowIfFailed(device->CreatePipelineState(&pipelineStateStreamDesc, IID_PPV_ARGS(&tech.pipeline_state)));
-    SetName(m_commandAllocator, dbg_name.value_or(wstring_empty).append("_pso_1").c_str());
+    SetName(tech.pipeline_state, dbg_name.value_or(L"").append(L"_pso_1").c_str());
     return tech;
 }
 

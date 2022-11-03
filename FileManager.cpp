@@ -79,9 +79,7 @@ void FileManager::TraverseMeshes(const aiScene* scene, aiNode* rootNode, const a
 }
 
 FileManager::FileManager() : 
-	m_modelImporter(std::make_unique<Assimp::Importer>()),
-	m_model_count(0),
-	m_texture_count(0)
+	m_modelImporter(std::make_unique<Assimp::Importer>())
 {
 	m_model_dir = gD3DApp->GetRootDir() / L"content" / L"models";
 	m_texture_dir = gD3DApp->GetRootDir() / L"content" / L"textures";
@@ -319,7 +317,7 @@ TextureData* FileManager::LoadTexture(const std::wstring &name, uint32_t type){
 		return &(*it);
 	}
 	else {
-		TextureData *texture = &m_load_textures[m_texture_count++];
+		TextureData *texture = &m_load_textures[m_load_textures.push_back()];
 		texture->name = filename;
 		std::filesystem::path full_path((m_texture_dir / filename));
 		assert(std::filesystem::exists(full_path));

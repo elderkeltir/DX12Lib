@@ -21,8 +21,8 @@ ShaderManager::ShaderManager()
     m_shader_bin_dir = gD3DApp->GetRootDir() / L"build" / L"shaders";
 }
 
-IDxcBlob* ShaderManager::Load(const std::wstring &name, const std::wstring &entry_point, ShaderType target){
-    ComPtr<IDxcBlob> pShader = nullptr;
+ShaderManager::ShaderBlob* ShaderManager::Load(const std::wstring &name, const std::wstring &entry_point, ShaderType target){
+    ShaderManager::ShaderBlob* pShader = nullptr;
 
     std::wstring pdb_name = name;
     pdb_name.erase(pdb_name.end() -5, pdb_name.end());
@@ -32,10 +32,10 @@ IDxcBlob* ShaderManager::Load(const std::wstring &name, const std::wstring &entr
     std::filesystem::path full_path_hlsl = m_shader_source_dir / name;
     std::filesystem::path full_path_bin = m_shader_bin_dir / bin_name;
 
-    assert(std::filesystem::exists(full_path_hlsl);
+    assert(std::filesystem::exists(full_path_hlsl));
 
     // check if shader already loaded in cache
-    if (IDxcBlob* cached_shader = GetShaderBLOB(name)){
+    if (ShaderManager::ShaderBlob* cached_shader = GetShaderBLOB(name)){
         return cached_shader;
     }
 
@@ -44,15 +44,22 @@ IDxcBlob* ShaderManager::Load(const std::wstring &name, const std::wstring &entr
         // check if modified of bin > moifided of hlsl
         if (std::filesystem::last_write_time(full_path_bin) > std::filesystem::last_write_time(full_path_hlsl)){
             FILE* fp = NULL;
-        _   wfopen_s(&fp, full_path_bin.wstring().c_str(), L"rb");
-            wfseek_s(f, 0, SEEK_END);
-            uint64_t fsize = ftell(f);
-            wfseek_s(f, 0, SEEK_SET);  /* same as rewind(f); */
+            _wfopen_s(&fp, full_path_bin.wstring().c_str(), L"rb");
+            fseek(fp, 0, SEEK_END);
+            uint32_t fsize = ftell(fp);
+            fseek(fp, 0, SEEK_SET);  /* same as rewind(f); */
             std::vector<uint8_t> raw_data(fsize);
-            fread(raw_data.data(), fsize, 1, f);
-            fclose(f);
+            fread(raw_data.data(), fsize, 1, fp);
+            fclose(fp);
 
-            ThrowIfFailed(CoCreateInstance(CLSID_IDxcBlob, NULL, CLSCTX_INPROC_SERVER, IID_IUnknown, reinterpret_cast<void**>(pShader.GetAddressOf())));
+            ShaderBlob blob;
+            blob.data = raw_data;
+            blob.name = name;
+
+            const uint32_t idx = m_loaded_shaders.push_back(blob);
+            pShader = &m_loaded_shaders[idx];
+
+            return pShader;
         }
     }
 
@@ -125,24 +132,27 @@ IDxcBlob* ShaderManager::Load(const std::wstring &name, const std::wstring &entr
     {
         wprintf(L"Compilation Failed\n");
         assert(false);
-        return pShader.Get();
+        return pShader;
     }
 
     //
     // Save shader binary.
     //
-    ComPtr<IDxcBlobUtf16> pShaderName = nullptr;
-    ThrowIfFailed(pResults->GetOutput(DXC_OUT_OBJECT, IID_PPV_ARGS(&pShader), &pShaderName));
-    if (pShader != nullptr)
     {
-        FILE* fp = NULL;
-        std::filesystem::create_directory(m_shader_bin_dir);
-        const std::wstring path_to_shader_bin((m_shader_bin_dir / pShaderName->GetStringPointer()).wstring());
-        _wfopen_s(&fp, path_to_shader_bin.c_str(), L"wb");
-        fwrite(pShader->GetBufferPointer(), pShader->GetBufferSize(), 1, fp);
-        fclose(fp);
+        ComPtr<IDxcBlob>pShaderDx = nullptr;
+        ComPtr<IDxcBlobUtf16> pShaderName = nullptr;
+        ThrowIfFailed(pResults->GetOutput(DXC_OUT_OBJECT, IID_PPV_ARGS(&pShaderDx), &pShaderName));
+        if (pShaderDx != nullptr)
+        {
+            FILE* fp = NULL;
+            std::filesystem::create_directory(m_shader_bin_dir);
+            const std::wstring path_to_shader_bin((m_shader_bin_dir / pShaderName->GetStringPointer()).wstring());
+            _wfopen_s(&fp, path_to_shader_bin.c_str(), L"wb");
+            fwrite(pShaderDx->GetBufferPointer(), pShaderDx->GetBufferSize(), 1, fp);
+            fclose(fp);
 
-        m_loaded_shaders.insert({name, pShader});
+            //m_loaded_shaders.insert({name, pShader});
+        }
     }
 
     //
@@ -225,7 +235,7 @@ IDxcBlob* ShaderManager::Load(const std::wstring &name, const std::wstring &entr
         
     }
 
-    return pShader.Get();
+    return pShader;
 }
 
 const std::filesystem::path& ShaderManager::GetShaderSourceDir() const{
