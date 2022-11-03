@@ -11,6 +11,7 @@ class Level;
 class DescriptorHeapCollection;
 class GpuResource;
 class GfxCommandQueue;
+class FreeCamera;
 
 class DXAppImplementation : public DXApp, public ResourceManager, public ConstantBufferManager, public Techniques
 {
@@ -32,6 +33,10 @@ public:
     uint64_t FrameNumber() const { return m_frame_id; }
     float GetAspectRatio() const { return m_width/(float)m_height; }
 
+    // Events
+    virtual void OnMouseMoved(WPARAM btnState, int x, int y) override;
+    virtual void OnKeyDown(UINT8 key) override;
+    virtual void OnKeyUp(UINT8 key) override;
 private:
     static constexpr uint32_t FrameCount = 2;
     
@@ -39,6 +44,8 @@ private:
     void CreateSwapChain();
     void PrepareRenderTarget(ComPtr<ID3D12GraphicsCommandList6> &command_list);
     void RenderLevel(ComPtr<ID3D12GraphicsCommandList6>& command_list);
+
+    void UpdateCamera(std::shared_ptr<FreeCamera> &camera, float dt);
 
     CD3DX12_VIEWPORT m_viewport;
     CD3DX12_RECT m_scissorRect;
@@ -62,4 +69,17 @@ private:
 
     std::shared_ptr<Level> m_level;
     std::shared_ptr<DescriptorHeapCollection> m_descriptor_heap_collection;
+    struct {
+        enum camera_movement_type {
+            cm_fwd      = 1 << 0,
+            cm_bcwd     = 1 << 1,
+            cm_right    = 1 << 2,
+            cm_left     = 1 << 3
+        };
+        uint8_t camera_movement_state{0};
+        uint32_t camera_x{0};
+        uint32_t camera_y{0};
+        int32_t camera_x_delta{0};
+        int32_t camera_y_delta{0};
+    } m_camera_movement;
 };

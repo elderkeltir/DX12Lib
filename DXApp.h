@@ -21,8 +21,10 @@ public:
     virtual void OnDestroy() = 0;
 
     // Samples override the event handlers to handle specific messages.
-    virtual void OnKeyDown(UINT8 /*key*/)   {}
-    virtual void OnKeyUp(UINT8 /*key*/)     {}
+    virtual void OnKeyDown(UINT8 key)   {}
+    virtual void OnKeyUp(UINT8 key)     {}
+    virtual void OnMouseButtonDown(int x, int y) {}
+    virtual void OnMouseMoved(WPARAM btnState, int x, int y) {}
 
     // Accessors.
     uint32_t GetWidth() const       { return m_width; }

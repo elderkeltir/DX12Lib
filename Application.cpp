@@ -2,14 +2,21 @@
 
 #include "Application.h"
 
+#ifndef GET_X_LPARAM
+#define GET_X_LPARAM(lp)                        ((int)(short)LOWORD(lp))
+#endif
+#ifndef GET_Y_LPARAM
+#define GET_Y_LPARAM(lp)                        ((int)(short)HIWORD(lp))
+#endif
+
 HWND Application::m_hwnd = nullptr;
 
-int Application::Run(DXApp* pSample, HINSTANCE hInstance, int nCmdShow)
+int Application::Run(DXApp* pApp, HINSTANCE hInstance, int nCmdShow)
 {
     // Parse the command line parameters
     int argc;
     LPWSTR* argv = CommandLineToArgvW(GetCommandLineW(), &argc);
-    pSample->ParseCommandLineArgs(argv, argc);
+    pApp->ParseCommandLineArgs(argv, argc);
     LocalFree(argv);
 
     // Initialize the window class.
@@ -22,13 +29,13 @@ int Application::Run(DXApp* pSample, HINSTANCE hInstance, int nCmdShow)
     windowClass.lpszClassName = L"DXSampleClass";
     RegisterClassEx(&windowClass);
 
-    RECT windowRect = { 0, 0, static_cast<LONG>(pSample->GetWidth()), static_cast<LONG>(pSample->GetHeight()) };
+    RECT windowRect = { 0, 0, static_cast<LONG>(pApp->GetWidth()), static_cast<LONG>(pApp->GetHeight()) };
     AdjustWindowRect(&windowRect, WS_OVERLAPPEDWINDOW, FALSE);
 
     // Create the window and store a handle to it.
     m_hwnd = CreateWindow(
         windowClass.lpszClassName,
-        pSample->GetTitle(),
+        pApp->GetTitle(),
         WS_OVERLAPPEDWINDOW,
         CW_USEDEFAULT,
         CW_USEDEFAULT,
@@ -37,10 +44,10 @@ int Application::Run(DXApp* pSample, HINSTANCE hInstance, int nCmdShow)
         nullptr,        // We have no parent window.
         nullptr,        // We aren't using menus.
         hInstance,
-        pSample);
+        pApp);
 
     // Initialize the sample. OnInit is defined in each child-implementation of DXApp.
-    pSample->OnInit();
+    pApp->OnInit();
 
     ShowWindow(m_hwnd, nCmdShow);
 
@@ -56,7 +63,7 @@ int Application::Run(DXApp* pSample, HINSTANCE hInstance, int nCmdShow)
         }
     }
 
-    pSample->OnDestroy();
+    pApp->OnDestroy();
 
     // Return this part of the WM_QUIT message to Windows.
     return static_cast<char>(msg.wParam);
@@ -65,7 +72,7 @@ int Application::Run(DXApp* pSample, HINSTANCE hInstance, int nCmdShow)
 // Main message handler for the sample.
 LRESULT CALLBACK Application::WindowProc(HWND hWnd, uint32_t message, WPARAM wParam, LPARAM lParam)
 {
-    DXApp* pSample = reinterpret_cast<DXApp*>(GetWindowLongPtr(hWnd, GWLP_USERDATA));
+    DXApp* pApp = reinterpret_cast<DXApp*>(GetWindowLongPtr(hWnd, GWLP_USERDATA));
 
     switch (message)
     {
@@ -76,26 +83,36 @@ LRESULT CALLBACK Application::WindowProc(HWND hWnd, uint32_t message, WPARAM wPa
             SetWindowLongPtr(hWnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(pCreateStruct->lpCreateParams));
         }
         return 0;
-
-    case WM_KEYDOWN:
-        if (pSample)
+    
+    case WM_RBUTTONDOWN:
         {
-            pSample->OnKeyDown(static_cast<UINT8>(wParam));
+		    pApp->OnMouseButtonDown(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
+        }
+		return 0;
+	case WM_MOUSEMOVE:
+        {
+		    pApp->OnMouseMoved(wParam, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
+	    return 0;
+        }
+    case WM_KEYDOWN:
+        if (pApp)
+        {
+            pApp->OnKeyDown(static_cast<UINT8>(wParam));
         }
         return 0;
 
     case WM_KEYUP:
-        if (pSample)
+        if (pApp)
         {
-            pSample->OnKeyUp(static_cast<UINT8>(wParam));
+            pApp->OnKeyUp(static_cast<UINT8>(wParam));
         }
         return 0;
 
     case WM_PAINT:
-        if (pSample)
+        if (pApp)
         {
-            pSample->OnUpdate();
-            pSample->OnRender();
+            pApp->OnUpdate();
+            pApp->OnRender();
         }
         return 0;
 

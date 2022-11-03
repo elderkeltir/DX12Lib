@@ -48,8 +48,8 @@ void Level::Load(const std::wstring &name){
         const Value &camera = d["camera"];
         const Value &camera_pos = camera["pos"];
         const Value &camera_dir = camera["dir"];
-        const DirectX::XMFLOAT4 pos(camera_pos[0].GetFloat(), camera_pos[1].GetFloat(), camera_pos[2].GetFloat(), 1.f);
-        const DirectX::XMFLOAT4 dir(camera_dir[0].GetFloat(), camera_dir[1].GetFloat(), camera_dir[2].GetFloat(), 0.f);
+        const DirectX::XMFLOAT3 pos(camera_pos[0].GetFloat(), camera_pos[1].GetFloat(), camera_pos[2].GetFloat());
+        const DirectX::XMFLOAT3 dir(camera_dir[0].GetFloat(), camera_dir[1].GetFloat(), camera_dir[2].GetFloat());
         
         const Value &camera_fov = camera["fov"];
         const Value &camera_near = camera["near"];

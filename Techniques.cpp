@@ -189,12 +189,13 @@ static Techniques::Technique CreateTechnique_1(ComPtr<ID3D12Device2> &device){
 
     auto staticSamplers = GetStaticSamplers();
 
-    const uint32_t rootParameters_cnt = 4;
+    const uint32_t rootParameters_cnt = 5;
     CD3DX12_ROOT_PARAMETER1 rootParameters[rootParameters_cnt];
     rootParameters[0].InitAsConstants(sizeof(DirectX::XMMATRIX) / 4, 0, 0, D3D12_SHADER_VISIBILITY_VERTEX); // M
     rootParameters[1].InitAsConstants(sizeof(DirectX::XMMATRIX) / 4, 1, 0, D3D12_SHADER_VISIBILITY_VERTEX); // V
     rootParameters[2].InitAsConstants(sizeof(DirectX::XMMATRIX) / 4, 2, 0, D3D12_SHADER_VISIBILITY_VERTEX); // P
-    rootParameters[3].InitAsDescriptorTable(1, &texTable, D3D12_SHADER_VISIBILITY_PIXEL); // Texture
+    rootParameters[3].InitAsConstants(sizeof(DirectX::XMFLOAT3) / 4, 3, 0, D3D12_SHADER_VISIBILITY_PIXEL); // CamPos
+    rootParameters[4].InitAsDescriptorTable(1, &texTable, D3D12_SHADER_VISIBILITY_PIXEL); // Texture
     assert(_countof(rootParameters) == rootParameters_cnt);
 
     CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC rootSignatureDescription;

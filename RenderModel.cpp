@@ -208,7 +208,7 @@ TODO("Minor: avoid every frame call to function")
         
         gD3DApp->SetMatrix4Constant(Constants::cM, parent_xform_mx, commandList);
         if (std::shared_ptr<ResourceDescriptor> srv = m_diffuse_tex->GetSRV().lock()){
-            commandList->SetGraphicsRootDescriptorTable(3, srv->GetGPUhandle());
+            commandList->SetGraphicsRootDescriptorTable(4, srv->GetGPUhandle());
         }
         TODO("Major! DrawIndexed should be at upper level where you know there are few such meshes to render")
         commandList->DrawIndexedInstanced((UINT)m_indices.size(), 1, 0, 0, 0);

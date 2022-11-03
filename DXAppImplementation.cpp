@@ -212,6 +212,10 @@ void DXAppImplementation::OnUpdate()
     m_time = t;
     m_total_time = t - m_start_time;
 
+    if (std::shared_ptr<FreeCamera> camera = m_level->GetCamera().lock()){
+        UpdateCamera(camera, m_dt.count());
+    }
+
     m_level->Update(m_dt.count());
 }
 
@@ -310,6 +314,12 @@ void DXAppImplementation::RenderLevel(ComPtr<ID3D12GraphicsCommandList6>& comman
             if (std::shared_ptr<FreeCamera> camera = m_level->GetCamera().lock()){
                 DirectX::XMMATRIX m_ViewMatrix = DirectX::XMLoadFloat4x4(&camera->GetViewMx());
                 DirectX::XMMATRIX m_ProjectionMatrix = DirectX::XMLoadFloat4x4(&camera->GetProjMx());
+                
+                if (std::shared_ptr<FreeCamera> camera = m_level->GetCamera().lock()){
+                    DirectX::XMFLOAT3 cam_pos;
+                    cam_pos = camera->GetPosition();
+                    gD3DApp->SetVector3Constant(Constants::cCP, cam_pos, command_list);
+                }
                 gD3DApp->SetMatrix4Constant(Constants::cV, m_ViewMatrix, command_list);
                 gD3DApp->SetMatrix4Constant(Constants::cP, m_ProjectionMatrix, command_list);
             }
@@ -318,4 +328,94 @@ void DXAppImplementation::RenderLevel(ComPtr<ID3D12GraphicsCommandList6>& comman
 
         ent.Render(command_list);
     }
+}
+
+void DXAppImplementation::OnMouseMoved(WPARAM btnState, int x, int y){
+	if ((btnState & MK_RBUTTON) != 0) {
+			m_camera_movement.camera_x_delta = x - m_camera_movement.camera_x;
+			m_camera_movement.camera_y_delta = y - m_camera_movement.camera_y;
+	}
+
+	m_camera_movement.camera_x = x;
+	m_camera_movement.camera_y = y;
+}
+
+void DXAppImplementation::OnKeyDown(UINT8 key) {
+    switch(key){
+        case 'W':
+            m_camera_movement.camera_movement_state |= m_camera_movement.cm_fwd;
+            break;
+        case 'A':
+            m_camera_movement.camera_movement_state |= m_camera_movement.cm_left;
+            break;
+        case 'S':
+            m_camera_movement.camera_movement_state |= m_camera_movement.cm_bcwd;
+            break;
+        case 'D':
+            m_camera_movement.camera_movement_state |= m_camera_movement.cm_right;
+            break;
+    }
+}
+
+void DXAppImplementation::OnKeyUp(UINT8 key) {
+    switch(key){
+        case 'W':
+            m_camera_movement.camera_movement_state &= (~m_camera_movement.cm_fwd);
+            break;
+        case 'A':
+            m_camera_movement.camera_movement_state &= (~m_camera_movement.cm_left);
+            break;
+        case 'S':
+            m_camera_movement.camera_movement_state &= (~m_camera_movement.cm_bcwd);
+            break;
+        case 'D':
+            m_camera_movement.camera_movement_state &= (~m_camera_movement.cm_right);
+            break;
+    }
+}
+
+void DXAppImplementation::UpdateCamera(std::shared_ptr<FreeCamera> &camera, float dt){
+    auto move_func = [&camera,dt](const DirectX::XMFLOAT3& pos, const DirectX::XMFLOAT3& dir, bool neg){
+           const float camera_speed = 30; 
+        const DirectX::XMVECTOR dir_vec = neg ? DirectX::XMVectorNegate(DirectX::XMLoadFloat3(&dir)) : DirectX::XMLoadFloat3(&dir);
+        const DirectX::XMVECTOR pos_vec = DirectX::XMLoadFloat3(&pos);
+        DirectX::XMVECTOR new_pos_vec = DirectX::XMVectorMultiplyAdd(dir_vec, DirectX::XMLoadFloat3(&DirectX::XMFLOAT3(camera_speed * dt, camera_speed * dt, camera_speed * dt)), pos_vec);
+        camera->Move(new_pos_vec);
+    };
+
+    if ((m_camera_movement.camera_movement_state & m_camera_movement.cm_fwd) && !(m_camera_movement.camera_movement_state & m_camera_movement.cm_bcwd)){
+        move_func(camera->GetPosition(), camera->GetDirection(), false);
+    }
+    else if ((m_camera_movement.camera_movement_state & m_camera_movement.cm_bcwd) && !(m_camera_movement.camera_movement_state & m_camera_movement.cm_fwd)){
+        move_func(camera->GetPosition(), camera->GetDirection(), true);
+    }
+    else if ((m_camera_movement.camera_movement_state & m_camera_movement.cm_right) && !(m_camera_movement.camera_movement_state & m_camera_movement.cm_left)){
+        move_func(camera->GetPosition(), camera->GetRightDirection(), false);
+    }
+    else if ((m_camera_movement.camera_movement_state & m_camera_movement.cm_left) && !(m_camera_movement.camera_movement_state & m_camera_movement.cm_right)){
+        move_func(camera->GetPosition(), camera->GetRightDirection(), true);
+    }
+
+    auto rot_func = [&camera,dt](const DirectX::XMFLOAT3& dir, const DirectX::XMFLOAT3& rot_axis, bool x, uint32_t w, uint32_t h, int32_t dx, int32_t dy){
+
+        const float ang = DirectX::XMConvertToRadians(0.25f*static_cast<float>( x ? dx : dy));
+
+        const DirectX::XMVECTOR dir_vec = DirectX::XMLoadFloat3(&dir);
+        const DirectX::XMVECTOR axis_vec = DirectX::XMLoadFloat3(&rot_axis);
+
+        DirectX::XMMATRIX rot_mx = DirectX::XMMatrixRotationAxis(axis_vec, ang);
+        const DirectX::XMVECTOR new_dir = DirectX::XMVector3TransformNormal(dir_vec, rot_mx);
+
+        camera->Rotate(new_dir);
+    };
+
+    if (m_camera_movement.camera_x_delta != 0){
+        rot_func(camera->GetDirection(), camera->GetUpDirection(), true, m_width, m_height, m_camera_movement.camera_x_delta, 0);
+        m_camera_movement.camera_x_delta = 0;
+    }
+
+    if (m_camera_movement.camera_y_delta != 0){
+        rot_func(camera->GetDirection(), camera->GetRightDirection(), false, m_width, m_height, 0, m_camera_movement.camera_y_delta);
+        m_camera_movement.camera_y_delta = 0;
+    } 
 }
