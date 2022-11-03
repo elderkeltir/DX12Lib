@@ -79,7 +79,9 @@ void FileManager::TraverseMeshes(const aiScene* scene, aiNode* rootNode, const a
 }
 
 FileManager::FileManager() : 
-	m_modelImporter(std::make_unique<Assimp::Importer>())
+	m_modelImporter(std::make_unique<Assimp::Importer>()),
+	m_vertex_buffer(1024 * 1024),
+	m_index_buffer(1024 * 1024)
 {
 	m_model_dir = gD3DApp->GetRootDir() / L"content" / L"models";
 	m_texture_dir = gD3DApp->GetRootDir() / L"content" / L"textures";

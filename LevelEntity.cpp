@@ -57,7 +57,6 @@ void LevelEntity::Load(const std::wstring &name){
 }
 
 void LevelEntity::Update(float dt){
-    TODO("Major! rewrite all this xforms + make entity external class")
     float angle = static_cast<float>(gD3DApp->TotalTime().count() * 90.0);
     const DirectX::XMVECTOR rot_axis  = DirectX::XMVectorSet(0, 1, 1, 0);
     DirectX::XMMATRIX rot = DirectX::XMMatrixRotationAxis(rot_axis, DirectX::XMConvertToRadians(angle));

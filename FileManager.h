@@ -6,6 +6,7 @@
 #include <assimp/matrix4x4.h>
 #include "simple_object_pool.h"
 #include "RenderModel.h"
+#include "free_allocator.h"
 
 namespace Assimp
 {
@@ -38,6 +39,9 @@ private:
     std::unique_ptr<Assimp::Importer> m_modelImporter;
     pro_game_containers::simple_object_pool<RenderModel, models_capacity> m_load_meshes;
     pro_game_containers::simple_object_pool<TextureData, textures_capacity> m_load_textures;
+    pro_game_containers::free_allocator m_vertex_buffer;
+    pro_game_containers::free_allocator m_index_buffer;
+
     std::filesystem::path m_model_dir;
     std::filesystem::path m_texture_dir;
 };
