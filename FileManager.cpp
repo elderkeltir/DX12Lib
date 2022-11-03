@@ -189,7 +189,6 @@ void FileManager::InitializeModel(const aiScene* scene, const aiNode* rootNode, 
 			}
 
 			// materials, textures
-			TODO("Critical! Load textures, probably in png to generate mips later?")
 			if (scene->mNumMaterials)
 			{
 				aiMaterial *material = scene->mMaterials[mesh->mMaterialIndex];
@@ -302,7 +301,6 @@ const std::filesystem::path& FileManager::GetModelDir() const{
 }
 
 RenderModel* FileManager::LoadModelInternal(const std::wstring &name){
-	TODO("Minor! when we will decide to free some models or textures, we gonna get dangling pointers. fix this later")
 	RenderModel* new_model = AllocModel();
 	uint32_t cnt = 0;
 	ReadModelFromFBX(name, 0, new_model);

@@ -7,7 +7,7 @@ using Microsoft::WRL::ComPtr;
 
 class DescriptorHeapCollection {
 public:
-    void Initialize();
+    void Initialize(std::optional<std::wstring> dbg_name = std::nullopt);
 
     void ReserveRTVhandle(CD3DX12_CPU_DESCRIPTOR_HANDLE &rtvHandle) { 
         assert(m_rtv_actual_size < rtvHeap_size);

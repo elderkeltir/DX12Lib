@@ -19,7 +19,7 @@ public:
         std::wstring ps;
     };
 public:
-    virtual void OnInit(ComPtr<ID3D12Device2> &device);
+    virtual void OnInit(ComPtr<ID3D12Device2> &device, std::optional<std::wstring> dbg_name = std::nullopt);
     const Techniques::Technique * GetTechniqueById(uint32_t id) const { assert(id < m_actual_techniques_count); return &m_techniques[id]; }
 
 private:

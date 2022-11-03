@@ -40,8 +40,8 @@ public:
 private:
     static constexpr uint32_t FrameCount = 2;
     
-    void CreateDevice();
-    void CreateSwapChain();
+    void CreateDevice(std::optional<std::wstring> dbg_name = std::nullopt);
+    void CreateSwapChain(std::optional<std::wstring> dbg_name = std::nullopt);
     void PrepareRenderTarget(ComPtr<ID3D12GraphicsCommandList6> &command_list);
     void RenderLevel(ComPtr<ID3D12GraphicsCommandList6>& command_list);
 

@@ -34,10 +34,11 @@ inline void ThrowIfFailed(HRESULT hr)
 }
 
 // Assign a name to the object to aid with debugging.
+using wstring_empty = std::wstring();
 #if defined(_DEBUG) || defined(DBG)
-inline void SetName(ID3D12Object* pObject, LPCWSTR name)
+inline void SetName(ComPtr<ID3D12Object> pObject, LPCWSTR name)
 {
-    pObject->SetName(name);
+    pObject.Get()->SetName(name);
 }
 inline void SetNameIndexed(ID3D12Object* pObject, LPCWSTR name, uint32_t index)
 {
@@ -48,9 +49,7 @@ inline void SetNameIndexed(ID3D12Object* pObject, LPCWSTR name, uint32_t index)
     }
 }
 #else
-inline void SetName(ID3D12Object*, LPCWSTR)
-{
-}
+#define SetName(ptr, name)
 inline void SetNameIndexed(ID3D12Object*, LPCWSTR, uint32_t)
 {
 }

@@ -1,20 +1,20 @@
 #include "GpuResource.h"
 #include "ResourceDescriptor.h"
 
-void GpuResource::CreateBuffer(HeapBuffer::BufferType type, uint32_t bufferSize, HeapBuffer::UseFlag flag, D3D12_RESOURCE_STATES initial_state){
+void GpuResource::CreateBuffer(HeapBuffer::BufferType type, uint32_t bufferSize, HeapBuffer::UseFlag flag, D3D12_RESOURCE_STATES initial_state, std::optional<std::wstring> dbg_name){
     if (m_buffer){
         ResetViews();
     }
     m_buffer = std::make_shared<HeapBuffer>();
-    m_buffer->Create(type, bufferSize, flag, initial_state);
+    m_buffer->Create(type, bufferSize, flag, initial_state, dbg_name);
 }
 
-void GpuResource::CreateTexture(HeapBuffer::BufferType type, const CD3DX12_RESOURCE_DESC &res_desc, D3D12_RESOURCE_STATES initial_state, const D3D12_CLEAR_VALUE *clear_val){
+void GpuResource::CreateTexture(HeapBuffer::BufferType type, const CD3DX12_RESOURCE_DESC &res_desc, D3D12_RESOURCE_STATES initial_state, const D3D12_CLEAR_VALUE *clear_val, std::optional<std::wstring> dbg_name){
     if (m_buffer){
         ResetViews();
     }
     m_buffer = std::make_shared<HeapBuffer>();
-    m_buffer->CreateTexture(type, res_desc, initial_state, clear_val);
+    m_buffer->CreateTexture(type, res_desc, initial_state, clear_val, dbg_name);
 }
 
 void GpuResource::SetBuffer(ComPtr<ID3D12Resource> res){

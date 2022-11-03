@@ -36,21 +36,19 @@ DXAppImplementation::~DXAppImplementation() = default;
 
 void DXAppImplementation::OnInit()
 {
-    TODO("Minor! SetName should be used to make debugging easier")
-    
     m_start_time = std::chrono::system_clock::now();
     gD3DApp = this;
     ResourceManager::OnInit();
-    CreateDevice();
-    m_commandQueueGfx->OnInit(m_device, D3D12_COMMAND_LIST_TYPE_DIRECT);
-    CreateSwapChain();
-    Techniques::OnInit(m_device);
+    CreateDevice(L"DXAppImplementation");
+    m_commandQueueGfx->OnInit(m_device, D3D12_COMMAND_LIST_TYPE_DIRECT, L"Gfx");
+    CreateSwapChain(L"DXAppImplementation");
+    Techniques::OnInit(m_device, L"PredefinedTechinue");
 
     m_level = std::make_shared<Level>();
     m_level->Load(L"test_level.json");
 }
 
-void DXAppImplementation::CreateDevice(){
+void DXAppImplementation::CreateDevice(std::optional<std::wstring> dbg_name){
 #if defined(USE_PIX) && defined(USE_PIX_DEBUG)
     {
         // Check to see if a copy of WinPixGpuCapturer.dll has already been injected into the application.
@@ -79,6 +77,7 @@ void DXAppImplementation::CreateDevice(){
 #endif
 
     ThrowIfFailed(CreateDXGIFactory2(dxgiFactoryFlags, IID_PPV_ARGS(&m_factory)));
+    SetName(m_factory, dbg_name.value_or(wstring_empty).append("_factory").c_str());
 
     if (m_useWarpDevice)
     {
@@ -101,6 +100,7 @@ void DXAppImplementation::CreateDevice(){
             D3D_FEATURE_LEVEL_12_0,
             IID_PPV_ARGS(&m_device)
             ));
+            SetName(m_device, dbg_name.value_or(wstring_empty).append("_device").c_str());
     }
 
  // Enable debug messages in debug mode.
@@ -141,7 +141,7 @@ void DXAppImplementation::CreateDevice(){
 #endif
 }
 
-void DXAppImplementation::CreateSwapChain(){
+void DXAppImplementation::CreateSwapChain(std::optional<std::wstring> dbg_name){
     // Describe and create the swap chain.
     DXGI_SWAP_CHAIN_DESC1 swapChainDesc = {};
     swapChainDesc.BufferCount = FrameCount;
@@ -161,15 +161,17 @@ void DXAppImplementation::CreateSwapChain(){
         nullptr,
         &swapChain
         ));
-
+        
     // This sample does not support fullscreen transitions.
     ThrowIfFailed(m_factory->MakeWindowAssociation(Application::GetHwnd(), DXGI_MWA_NO_ALT_ENTER));
 
     ThrowIfFailed(swapChain.As(&m_swapChain));
+    SetName(m_swapChain, dbg_name.value_or(wstring_empty).append("_swap_chain").c_str());
+
     m_frameIndex = m_swapChain->GetCurrentBackBufferIndex();
     
     // Create descriptor heaps.
-    m_descriptor_heap_collection->Initialize();
+    m_descriptor_heap_collection->Initialize("DxAppImplemenation");
 
     // Create frame resources.
     {
@@ -178,6 +180,7 @@ void DXAppImplementation::CreateSwapChain(){
         {
             ComPtr<ID3D12Resource> renderTarget;
             ThrowIfFailed(m_swapChain->GetBuffer(n, IID_PPV_ARGS(&renderTarget)));
+            SetName(renderTarget, std::wstring(L"render_target_").append(to_string(n));
             m_renderTargets[n].SetBuffer(renderTarget);
             m_renderTargets[n].CreateRTV();
         }
@@ -191,7 +194,7 @@ void DXAppImplementation::CreateSwapChain(){
         depthOptimizedClearValue.DepthStencil.Stencil = 0;
         CD3DX12_RESOURCE_DESC res_desc = CD3DX12_RESOURCE_DESC::Tex2D(DXGI_FORMAT_D32_FLOAT, m_width, m_height, 1, 0, 1, 0, D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL);
         
-        m_depthStencil->CreateTexture(HeapBuffer::BufferType::bt_default, res_desc, D3D12_RESOURCE_STATE_DEPTH_WRITE, &depthOptimizedClearValue);
+        m_depthStencil->CreateTexture(HeapBuffer::BufferType::bt_default, res_desc, D3D12_RESOURCE_STATE_DEPTH_WRITE, &depthOptimizedClearValue, L"depth_stencil");
 
         D3D12_DEPTH_STENCIL_VIEW_DESC depthStencilDesc = {};
         depthStencilDesc.Format = DXGI_FORMAT_D32_FLOAT;

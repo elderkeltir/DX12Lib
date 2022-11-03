@@ -22,7 +22,7 @@ public:
         else
             return nullptr;
     }
-    ComPtr<IDxcBlob> Load(const std::wstring &name, const std::wstring &entry_point, ShaderType target);
+    IDxcBlob* Load(const std::wstring &name, const std::wstring &entry_point, ShaderType target);
 
     const std::filesystem::path& GetShaderSourceDir() const;
     const std::filesystem::path& GetShaderBinaryDir() const;

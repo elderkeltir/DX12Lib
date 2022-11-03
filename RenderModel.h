@@ -2,6 +2,7 @@
 
 #include <directx/d3d12.h>
 #include <DirectXMath.h>
+#include <variant>
 #include <memory>
 #include <vector>
 #include <array>
@@ -14,7 +15,7 @@ using Microsoft::WRL::ComPtr;
 class Transformations;
 class GpuResource;
 
-class RenderModel {
+class RenderModel : protected pro_game_containers::object {
 public:
     struct Vertex
 	{
@@ -64,6 +65,48 @@ private:
     inline void LoadVertexDataOnGpu(ComPtr<ID3D12GraphicsCommandList6> &commandList);
     inline void LoadIndexDataOnGpu(ComPtr<ID3D12GraphicsCommandList6> &commandList);
     inline void LoadTextures(ComPtr<ID3D12GraphicsCommandList6> & commandList);
+
+    inline std::variant GetDataByAssignment(data_assignment ass, uint32_t idx){
+        std::variant<float, float2, float3, float4> var;
+        switch(ass){
+            case pos:
+                var = m_vertexDataBuffer[idx]; // assign float3
+            break;
+        }
+
+        return var;
+    }
+#define VariantGetFloat(valiant) variant.get<float>()
+#define VariantGetFloat3(valiant) variant.get<DirectX::XMFLOAT3>()
+    void build_vertex(){
+        for(i in vert.size()){
+            for (j in assingments){
+                // pos
+                vertex vet;
+                SetVertParam(vert, GetDataByAssignment(asses[j], i), j);
+                switch (ass){
+                    case pos:
+                        vertex.position = VariantGetFloat3(variant);
+                        break;
+                    case normals:
+                        vertex.normal = VariantGetFloat3(variant);
+                        break;
+                    case tex_coords:
+                        vertex.tex_coords = VariantGetFloat2(variant);
+                        break;
+                    case tangents:
+                        vertex.tangents = VariantGetFloat2(variant);
+                        break;
+                    case bitangents:
+                        vertex.bitangents = VariantGetFloat2(variant);
+                        break;
+                    default:
+                        assert(false);
+                        break;
+                }
+            }
+        }
+    }
 
     enum dirty_bits {
         db_vertex       = 1 << 0,

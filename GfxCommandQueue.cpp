@@ -3,21 +3,24 @@
 #include <directx/d3dx12.h>
 
 
-void GfxCommandQueue::OnInit(ComPtr<ID3D12Device2> device, D3D12_COMMAND_LIST_TYPE type){
+void GfxCommandQueue::OnInit(ComPtr<ID3D12Device2> device, D3D12_COMMAND_LIST_TYPE type, std::optional<std::wstring> dbg_name = std::nullopt){
     D3D12_COMMAND_QUEUE_DESC queueDesc = {};
     queueDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
     queueDesc.Type = type;
     ThrowIfFailed(device->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(&m_commandQueue)));
+    SetName(m_commandQueue, dbg_name.value_or(wstring_empty)append("_cmd_queue").c_str());
 
     for (uint32_t i = 0; i < CommandListsCount; i++){
         ThrowIfFailed(device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&m_commandAllocator[i])));
+        SetName(m_commandAllocator, dbg_name.value_or(wstring_empty).append("_cmd_allocator_").append(std::to_string(i)).c_str());
     }
     ThrowIfFailed(device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, m_commandAllocator[m_active_cl].Get(), nullptr, IID_PPV_ARGS(&m_commandList)));
+    SetName(m_commandAllocator, dbg_name.value_or(wstring_empty).append("_cmd_list").c_str());
     ThrowIfFailed(m_commandList->Close());
 
     {
         ThrowIfFailed(device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&m_fence)));
-
+        SetName(m_commandAllocator, dbg_name.value_or(wstring_empty).append("_fence").c_str());
         m_fenceEvent = CreateEvent(nullptr, FALSE, FALSE, nullptr);
         if (m_fenceEvent == nullptr)
         {

@@ -9,7 +9,7 @@ using Microsoft::WRL::ComPtr;
 
 class RenderModel;
 
-class LevelEntity {
+class LevelEntity : protected pro_game_containers::object {
 public:
     LevelEntity() = default;
     LevelEntity(const std::wstring &model_name, DirectX::XMFLOAT3 pos, DirectX::XMFLOAT3 rot, DirectX::XMFLOAT3 scale);

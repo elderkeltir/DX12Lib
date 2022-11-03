@@ -47,7 +47,8 @@ void HeapBuffer::Create(BufferType type, uint32_t bufferSize, UseFlag flags, D3D
         initial_state,
         nullptr,
         IID_PPV_ARGS(&m_resourse)));
-   
+    SetName(m_commandAllocator, dbg_name.value_or(wstring_empty).append("_buffer").c_str());
+    
     m_recreate_intermediate_res = true;
 }
 
@@ -74,6 +75,8 @@ void HeapBuffer::CreateTexture(BufferType type, const CD3DX12_RESOURCE_DESC &res
         clear_val,
         IID_PPV_ARGS(&m_resourse)
     ));
+    SetName(m_commandAllocator, dbg_name.value_or(wstring_empty).append("_texture").c_str());
+    
     m_recreate_intermediate_res = true;
 }
 
@@ -92,6 +95,7 @@ void HeapBuffer::Load(ComPtr<ID3D12GraphicsCommandList6> &commandList, uint32_t 
                 D3D12_RESOURCE_STATE_GENERIC_READ,
                 nullptr,
                 IID_PPV_ARGS(pIntermediateResource.GetAddressOf())));
+                SetName(m_commandAllocator, dbg_name.value_or(wstring_empty).append("_intermediate").c_str());
             
             m_recreate_intermediate_res = !m_recreate_intermediate_res;
         }
@@ -122,6 +126,7 @@ void HeapBuffer::Load(ComPtr<ID3D12GraphicsCommandList6> &commandList, uint32_t 
                 D3D12_RESOURCE_STATE_GENERIC_READ,
                 nullptr,
                 IID_PPV_ARGS(pIntermediateResource.GetAddressOf())));
+                SetName(m_commandAllocator, dbg_name.value_or(wstring_empty).append("_intermediate").c_str());
             
             m_recreate_intermediate_res = !m_recreate_intermediate_res;
         }

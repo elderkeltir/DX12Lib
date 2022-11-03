@@ -26,7 +26,7 @@ inline std::wstring GetLatestWinPixGpuCapturerPath_Cpp17()
 
     if (newestVersionFound.empty())
     {
-        // TODO: Error, no PIX installation found
+        assert(false);
     }
 
     return pixInstallationPath / newestVersionFound / L"WinPixGpuCapturer.dll";

@@ -21,8 +21,7 @@ ShaderManager::ShaderManager()
     m_shader_bin_dir = gD3DApp->GetRootDir() / L"build" / L"shaders";
 }
 
-ComPtr<IDxcBlob> ShaderManager::Load(const std::wstring &name, const std::wstring &entry_point, ShaderType target){
-    TODO("Minor! Make it looking for already loaded shaders. later")
+IDxcBlob* ShaderManager::Load(const std::wstring &name, const std::wstring &entry_point, ShaderType target){
     ComPtr<IDxcBlob> pShader = nullptr;
 
     std::wstring pdb_name = name;
@@ -30,6 +29,32 @@ ComPtr<IDxcBlob> ShaderManager::Load(const std::wstring &name, const std::wstrin
     std::wstring bin_name = pdb_name;
     pdb_name += L".pdb";
     bin_name += L".bin";
+    std::filesystem::path full_path_hlsl = m_shader_source_dir / name;
+    std::filesystem::path full_path_bin = m_shader_bin_dir / bin_name;
+
+    assert(std::filesystem::exists(full_path_hlsl);
+
+    // check if shader already loaded in cache
+    if (IDxcBlob* cached_shader = GetShaderBLOB(name)){
+        return cached_shader;
+    }
+
+    // check if shader already compiled
+    if (std::filesystem::exists(full_path_bin)){
+        // check if modified of bin > moifided of hlsl
+        if (std::filesystem::last_write_time(full_path_bin) > std::filesystem::last_write_time(full_path_hlsl)){
+            FILE* fp = NULL;
+        _   wfopen_s(&fp, full_path_bin.wstring().c_str(), L"rb");
+            wfseek_s(f, 0, SEEK_END);
+            uint64_t fsize = ftell(f);
+            wfseek_s(f, 0, SEEK_SET);  /* same as rewind(f); */
+            std::vector<uint8_t> raw_data(fsize);
+            fread(raw_data.data(), fsize, 1, f);
+            fclose(f);
+
+            ThrowIfFailed(CoCreateInstance(CLSID_IDxcBlob, NULL, CLSCTX_INPROC_SERVER, IID_IUnknown, reinterpret_cast<void**>(pShader.GetAddressOf())));
+        }
+    }
 
     //
     // COMMAND LINE:
@@ -59,8 +84,7 @@ ComPtr<IDxcBlob> ShaderManager::Load(const std::wstring &name, const std::wstrin
     //
 
     ComPtr<IDxcBlobEncoding> pSource = nullptr;
-    std::filesystem::path fullPath = m_shader_source_dir / name;
-    ThrowIfFailed(m_utils->LoadFile(fullPath.wstring().c_str(), nullptr, &pSource));
+    ThrowIfFailed(m_utils->LoadFile(full_path_hlsl.wstring().c_str(), nullptr, &pSource));
     DxcBuffer Source;
     Source.Ptr = pSource->GetBufferPointer();
     Source.Size = pSource->GetBufferSize();
@@ -101,7 +125,7 @@ ComPtr<IDxcBlob> ShaderManager::Load(const std::wstring &name, const std::wstrin
     {
         wprintf(L"Compilation Failed\n");
         assert(false);
-        return pShader;
+        return pShader.Get();
     }
 
     //
@@ -201,7 +225,7 @@ ComPtr<IDxcBlob> ShaderManager::Load(const std::wstring &name, const std::wstrin
         
     }
 
-    return pShader;
+    return pShader.Get();
 }
 
 const std::filesystem::path& ShaderManager::GetShaderSourceDir() const{

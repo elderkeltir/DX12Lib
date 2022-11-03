@@ -13,7 +13,7 @@ class RenderModel;
 
 class Level {
 public:
-    struct LevelLight {
+    struct LevelLight : protected pro_game_containers::object {
         DirectX::XMFLOAT3 pos;
         DirectX::XMFLOAT3 dir;
         DirectX::XMFLOAT3 power;

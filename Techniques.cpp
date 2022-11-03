@@ -63,7 +63,7 @@ std::array<const CD3DX12_STATIC_SAMPLER_DESC, 6> GetStaticSamplers()
 }
 
 TODO("Minor. Implement PSO composition and serialization later. maybe.")
-static Techniques::Technique CreateTechnique_0(ComPtr<ID3D12Device2> &device){
+static Techniques::Technique CreateTechnique_0(ComPtr<ID3D12Device2> &device, std::optional<std::wstring> dbg_name = std::nullopt){
     Techniques::Technique tech;
     tech.vs = L"vertex_shader_0.hlsl";
     tech.ps = L"pixel_shader_0.hlsl";
@@ -111,6 +111,7 @@ static Techniques::Technique CreateTechnique_0(ComPtr<ID3D12Device2> &device){
     // Create the root signature.
     ThrowIfFailed(device->CreateRootSignature(0, rootSignatureBlob->GetBufferPointer(),
         rootSignatureBlob->GetBufferSize(), IID_PPV_ARGS(&tech.root_signature)));
+    SetName(m_commandAllocator, dbg_name.value_or(wstring_empty).append("_root_signature_0").c_str());
 
     struct PipelineStateStream
     {
@@ -151,11 +152,12 @@ static Techniques::Technique CreateTechnique_0(ComPtr<ID3D12Device2> &device){
         sizeof(PipelineStateStream), &pipelineStateStream
     };
     ThrowIfFailed(device->CreatePipelineState(&pipelineStateStreamDesc, IID_PPV_ARGS(&tech.pipeline_state)));
-
+    SetName(m_commandAllocator, dbg_name.value_or(wstring_empty).append("_pso_0").c_str());
+            
     return tech;
 }
 
-static Techniques::Technique CreateTechnique_1(ComPtr<ID3D12Device2> &device){
+static Techniques::Technique CreateTechnique_1(ComPtr<ID3D12Device2> &device, std::optional<std::wstring> dbg_name = std::nullopt){
     Techniques::Technique tech;
     tech.vs = L"vertex_shader_1.hlsl";
     tech.ps = L"pixel_shader_1.hlsl";
@@ -212,6 +214,7 @@ static Techniques::Technique CreateTechnique_1(ComPtr<ID3D12Device2> &device){
     // Create the root signature.
     ThrowIfFailed(device->CreateRootSignature(0, rootSignatureBlob->GetBufferPointer(),
         rootSignatureBlob->GetBufferSize(), IID_PPV_ARGS(&tech.root_signature)));
+        SetName(m_commandAllocator, dbg_name.value_or(wstring_empty).append("_root_signature_1").c_str());
 
     struct PipelineStateStream
     {
@@ -252,11 +255,11 @@ static Techniques::Technique CreateTechnique_1(ComPtr<ID3D12Device2> &device){
         sizeof(PipelineStateStream), &pipelineStateStream
     };
     ThrowIfFailed(device->CreatePipelineState(&pipelineStateStreamDesc, IID_PPV_ARGS(&tech.pipeline_state)));
-
+    SetName(m_commandAllocator, dbg_name.value_or(wstring_empty).append("_pso_1").c_str());
     return tech;
 }
 
-void Techniques::OnInit(ComPtr<ID3D12Device2> &device){
-    m_techniques[m_actual_techniques_count++] = CreateTechnique_0(device);
-    m_techniques[m_actual_techniques_count++] = CreateTechnique_1(device);
+void Techniques::OnInit(ComPtr<ID3D12Device2> &device, std::optional<std::wstring> dbg_name){
+    m_techniques[m_actual_techniques_count++] = CreateTechnique_0(device, dbg_name);
+    m_techniques[m_actual_techniques_count++] = CreateTechnique_1(device, dbg_name);
 }

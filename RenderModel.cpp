@@ -7,6 +7,29 @@
 
 extern DXAppImplementation *gD3DApp;
 
+// separate header
+enum data_types {
+    dt_float = 0,
+    dt_float2,
+    dt_float3,
+    dt_float4,
+
+    dt_num
+};
+
+enum data_assignment {
+    da_position = 0,
+    da_normal,
+    da_tex_coords,
+    da_tangents,
+    da_bitangents
+}
+
+static uint32_t g_size_types[dt_num] = {
+    sizeof(float),                      // dt_float
+}
+
+
 
 RenderModel::RenderModel() :
     m_transformations(std::make_unique<Transformations>())
@@ -75,7 +98,7 @@ void RenderModel::LoadVertexDataOnGpu(ComPtr<ID3D12GraphicsCommandList6> &comman
     if (m_dirty & db_vertex){
         FormVertexes();
         m_VertexBuffer = std::make_unique<GpuResource>();
-        m_VertexBuffer->CreateBuffer(HeapBuffer::BufferType::bt_default, ((uint32_t)m_vertexDataBuffer.size() * sizeof(Vertex)), HeapBuffer::UseFlag::uf_none, D3D12_RESOURCE_STATE_COPY_DEST);
+        m_VertexBuffer->CreateBuffer(HeapBuffer::BufferType::bt_default, ((uint32_t)m_vertexDataBuffer.size() * sizeof(Vertex)), HeapBuffer::UseFlag::uf_none, D3D12_RESOURCE_STATE_COPY_DEST, std::wstring(L"vertex_buffer").append(m_name));
         m_VertexBuffer->LoadBuffer(commandList, (uint32_t)m_vertexDataBuffer.size(), sizeof(Vertex), m_vertexDataBuffer.data());
         if (std::shared_ptr<HeapBuffer> buff = m_VertexBuffer->GetBuffer().lock()){
             commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(buff->GetResource().Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER));
@@ -88,7 +111,7 @@ void RenderModel::LoadVertexDataOnGpu(ComPtr<ID3D12GraphicsCommandList6> &comman
 void RenderModel::LoadIndexDataOnGpu(ComPtr<ID3D12GraphicsCommandList6> &commandList){
     if (m_dirty & db_index){
         m_IndexBuffer = std::make_unique<GpuResource>();
-        m_IndexBuffer->CreateBuffer(HeapBuffer::BufferType::bt_default, ((uint32_t)m_indices.size() * sizeof(uint16_t)), HeapBuffer::UseFlag::uf_none, D3D12_RESOURCE_STATE_COPY_DEST);
+        m_IndexBuffer->CreateBuffer(HeapBuffer::BufferType::bt_default, ((uint32_t)m_indices.size() * sizeof(uint16_t)), HeapBuffer::UseFlag::uf_none, D3D12_RESOURCE_STATE_COPY_DEST, std::wstring(L"index_buffer").append(m_name));
         m_IndexBuffer->LoadBuffer(commandList, (uint32_t)m_indices.size(), sizeof(uint16_t), m_indices.data());
         if (std::shared_ptr<HeapBuffer> buff = m_IndexBuffer->GetBuffer().lock()){
             commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(buff->GetResource().Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_INDEX_BUFFER));
@@ -155,7 +178,7 @@ void RenderModel::LoadTextures(ComPtr<ID3D12GraphicsCommandList6> & commandList)
             }
             
             D3D12_RESOURCE_STATES initial_state = D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_COPY_DEST;
-            res->CreateTexture(HeapBuffer::BufferType::bt_default, tex_desc, initial_state, nullptr);
+            res->CreateTexture(HeapBuffer::BufferType::bt_default, tex_desc, initial_state, nullptr, std::wstring(m_name).append(L"model_srv_").append(to_string(idx)));
 
             const uint32_t image_count = (uint32_t)m_textures_data[idx]->scratch_image.GetImageCount();
             std::vector<D3D12_SUBRESOURCE_DATA> subresources(image_count);
@@ -186,7 +209,6 @@ void RenderModel::LoadTextures(ComPtr<ID3D12GraphicsCommandList6> & commandList)
 }
 
 void RenderModel::Render(ComPtr<ID3D12GraphicsCommandList6> &commandList, const DirectX::XMFLOAT4X4 &parent_xform){
-TODO("Minor: avoid every frame call to function")
     DirectX::XMMATRIX parent_xform_mx = DirectX::XMLoadFloat4x4(&parent_xform);
     parent_xform_mx = DirectX::XMMatrixMultiply(m_transformations->GetModel(), parent_xform_mx);
 
