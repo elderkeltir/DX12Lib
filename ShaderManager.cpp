@@ -151,7 +151,15 @@ ShaderManager::ShaderBlob* ShaderManager::Load(const std::wstring &name, const s
             fwrite(pShaderDx->GetBufferPointer(), pShaderDx->GetBufferSize(), 1, fp);
             fclose(fp);
 
-            //m_loaded_shaders.insert({name, pShader});
+            ShaderBlob blob;
+            blob.data.resize(pShaderDx->GetBufferSize());
+            memcpy_s(blob.data.data(), pShaderDx->GetBufferSize(), pShaderDx->GetBufferPointer(), pShaderDx->GetBufferSize());
+            blob.name = name;
+
+            const uint32_t idx = m_loaded_shaders.push_back(blob);
+            pShader = &m_loaded_shaders[idx];
+
+            return pShader;
         }
     }
 
