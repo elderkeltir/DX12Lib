@@ -66,7 +66,7 @@ void RenderModel::SetTextureCoords(std::vector<DirectX::XMFLOAT2> textCoords){
 void RenderModel::FormVertexes(){
     TODO("Normal! set a way to process different vertex format")
     for (uint32_t i = 0; i < m_vertices.size(); i++) {
-        m_vertexDataBuffer[i] = Vertex{m_vertices.at(i), m_normals.at(i), m_textCoords.at(i)};
+        m_vertexDataBuffer[i] = Vertex{m_vertices.at(i), m_normals.at(i), m_tangents.at(i), m_bitangents.at(i), m_textCoords.at(i)};
     }
 }
 

@@ -22,10 +22,9 @@ public:
 	{
 		DirectX::XMFLOAT3 Position;
         DirectX::XMFLOAT3 Normal;
-		DirectX::XMFLOAT2 TextCoord;
-		
-		//DirectX::XMFLOAT3 Tangents;
-		//DirectX::XMFLOAT3 Bitangents;
+		DirectX::XMFLOAT3 Tangents;
+		DirectX::XMFLOAT3 Bitangents;
+        DirectX::XMFLOAT2 TextCoord;
 
 		//Vertex() {}
 		//Vertex(DirectX::XMFLOAT3 pos, DirectX::XMFLOAT2 textCoord) : Position(pos), TextCoord(textCoord) {}

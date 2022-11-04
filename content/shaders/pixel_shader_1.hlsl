@@ -2,7 +2,7 @@ struct PixelShaderInput
 {
     float2 TexC : TEXCOORD;
     float3 Pos : POSITION;
-    float3 Normal : NORMAL;
+    float3x3 TBN : TBN0;
 };
 
 struct Light
@@ -15,11 +15,17 @@ struct Light
     float SpotPower;    // spot light only
 };
 
+struct ModelViewProjection
+{
+    matrix mx;
+};
+
 struct CameraPos
 {
     float4 vec;
 };
 
+ConstantBuffer<ModelViewProjection> ModelCB : register(b0);
 ConstantBuffer<CameraPos> CamPos : register(b3);
 
 Texture2D    gDiffuseMap : register(t0);
@@ -34,18 +40,23 @@ SamplerState anisotropicClamp  : register(s5);
  
 float4 main( PixelShaderInput IN ) : SV_Target
 {
+    // normal mapping
+    float3 normal = gNormalMap.Sample(linearClamp, IN.TexC).xyz;
+    normal = normal * 2.0 - 1.0;   
+    normal = normalize(mul(IN.TBN, normal)); 
+
     // hard coded values
     Light light;
-    light.Color = float3(0.9, 0.9, 0.9);
+    light.Color = float3(0.4, 0.4, 0.4);
+    light.Color = light.Color * 2;
     light.Direction = normalize(float3(-1, -1, 1));
     float shininess = 12;
     
     // ambient
-    float ambientStrength = 0.2;
+    float ambientStrength = 0.1;
     float3 ambient = ambientStrength * light.Color;
 
     // diffuse
-    float3 normal = normalize(IN.Normal);
     float3 light_dir = normalize(-light.Direction);
     float diff = max(dot(normal, light_dir), 0.0);
     float3 diffuse = diff * light.Color;
@@ -60,6 +71,23 @@ float4 main( PixelShaderInput IN ) : SV_Target
     float4 diffuseAlbedo = gDiffuseMap.Sample(linearWrap, IN.TexC);
     float3 result = (ambient + diffuse+ specular) * diffuseAlbedo.rgb;
     float4 pix_color = float4(result, 1);
-    
+
+    // brightness and contrast
+    float c = 1.013;
+    float b = -0.001;
+    //pix_color.rgb = c * (pix_color.rgb - float3(0.5, 0.5, 0.5)) + 0.5 + b;
+
+    // saturation
+    float3 greyscale = pix_color.rgb * float3(0.299, 0.587, 0.114);
+    //pix_color.rgb = lerp(greyscale, pix_color.rgb, 1);
+
+    // reinhard tone mapping
+    pix_color.rgb = pix_color.rgb / (pix_color.rgb + float3(1.0, 1.0, 1.0));
+    pix_color.a = 1;
+
+    // gamma correction
+    float gamma = 2.2;
+    pix_color.rgb = pow(pix_color.rgb, float3(1.0/gamma, 1.0/gamma, 1.0/gamma));
+
     return pix_color;
 }
