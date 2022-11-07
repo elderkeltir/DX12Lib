@@ -81,13 +81,6 @@ float4 main( PixelShaderInput IN ) : SV_Target
     float3 greyscale = pix_color.rgb * float3(0.299, 0.587, 0.114);
     //pix_color.rgb = lerp(greyscale, pix_color.rgb, 1);
 
-    // reinhard tone mapping
-    pix_color.rgb = pix_color.rgb / (pix_color.rgb + float3(1.0, 1.0, 1.0));
-    pix_color.a = 1;
-
-    // gamma correction
-    float gamma = 2.2;
-    pix_color.rgb = pow(pix_color.rgb, float3(1.0/gamma, 1.0/gamma, 1.0/gamma));
 
     return pix_color;
 }

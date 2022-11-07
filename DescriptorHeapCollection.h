@@ -33,7 +33,7 @@ public:
 
     ComPtr<ID3D12DescriptorHeap>& GetShaderVisibleHeap() { return m_srvUavCbvHeap; }
 private:
-    static const uint32_t rtvHeap_size = 2;
+    static const uint32_t rtvHeap_size = 4;
     static const uint32_t dsvHeap_size = 1;
     static const uint32_t srvUavCbvHeap_size = 256;
 

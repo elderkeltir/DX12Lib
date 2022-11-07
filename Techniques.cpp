@@ -227,7 +227,7 @@ static Techniques::Technique CreateTechnique_1(ComPtr<ID3D12Device2> &device, st
 
     D3D12_RT_FORMAT_ARRAY rtvFormats = {};
     rtvFormats.NumRenderTargets = 1;
-    rtvFormats.RTFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
+    rtvFormats.RTFormats[0] = DXGI_FORMAT_R16G16B16A16_FLOAT;
 
     CD3DX12_SHADER_BYTECODE vs;
     CD3DX12_SHADER_BYTECODE ps;
@@ -257,7 +257,107 @@ static Techniques::Technique CreateTechnique_1(ComPtr<ID3D12Device2> &device, st
     return tech;
 }
 
+static Techniques::Technique CreateTechnique_2(ComPtr<ID3D12Device2> &device, std::optional<std::wstring> dbg_name = std::nullopt){
+    Techniques::Technique tech;
+    tech.vs = L"vertex_shader_2.hlsl";
+    tech.ps = L"pixel_shader_2.hlsl";
+
+    // Create the vertex input layout
+    D3D12_INPUT_ELEMENT_DESC inputLayout[] = {
+        { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+        { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+    };
+
+    // Create a root signature.
+    D3D12_FEATURE_DATA_ROOT_SIGNATURE featureData = {};
+    featureData.HighestVersion = D3D_ROOT_SIGNATURE_VERSION_1_1;
+    ThrowIfFailed(device->CheckFeatureSupport(D3D12_FEATURE_ROOT_SIGNATURE, &featureData, sizeof(featureData)));
+
+    // Allow input layout and deny unnecessary access to certain pipeline stages.
+    D3D12_ROOT_SIGNATURE_FLAGS rootSignatureFlags =
+        D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT |
+        D3D12_ROOT_SIGNATURE_FLAG_DENY_HULL_SHADER_ROOT_ACCESS |
+        D3D12_ROOT_SIGNATURE_FLAG_DENY_DOMAIN_SHADER_ROOT_ACCESS |
+        D3D12_ROOT_SIGNATURE_FLAG_DENY_GEOMETRY_SHADER_ROOT_ACCESS |
+        D3D12_ROOT_SIGNATURE_FLAG_DENY_VERTEX_SHADER_ROOT_ACCESS;
+
+    // A single 32-bit constant root parameter that is used by the vertex shader.
+    CD3DX12_DESCRIPTOR_RANGE1 texTable;
+	texTable.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 2, 0);
+
+    auto staticSamplers = GetStaticSamplers();
+
+    const uint32_t rootParameters_cnt = 1;
+    CD3DX12_ROOT_PARAMETER1 rootParameters[rootParameters_cnt];
+    rootParameters[0].InitAsDescriptorTable(1, &texTable, D3D12_SHADER_VISIBILITY_PIXEL); // Texture
+    assert(_countof(rootParameters) == rootParameters_cnt);
+
+    CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC rootSignatureDescription;
+    rootSignatureDescription.Init_1_1(_countof(rootParameters), rootParameters, (uint32_t)staticSamplers.size(), staticSamplers.data(), rootSignatureFlags);
+
+    // Serialize the root signature.
+    ComPtr<ID3DBlob> rootSignatureBlob;
+    ComPtr<ID3DBlob> errorBlob;
+    ThrowIfFailed(D3DX12SerializeVersionedRootSignature(&rootSignatureDescription,
+        featureData.HighestVersion, &rootSignatureBlob, &errorBlob));
+        if (errorBlob.Get()){
+            assert(false);
+        }
+    // Create the root signature.
+    ThrowIfFailed(device->CreateRootSignature(0, rootSignatureBlob->GetBufferPointer(),
+        rootSignatureBlob->GetBufferSize(), IID_PPV_ARGS(&tech.root_signature)));
+    SetName(tech.root_signature, dbg_name.value_or(L"").append(L"_root_signature_2").c_str());
+
+    struct PipelineStateStream
+    {
+        CD3DX12_PIPELINE_STATE_STREAM_ROOT_SIGNATURE pRootSignature;
+        CD3DX12_PIPELINE_STATE_STREAM_INPUT_LAYOUT InputLayout;
+        CD3DX12_PIPELINE_STATE_STREAM_PRIMITIVE_TOPOLOGY PrimitiveTopologyType;
+        CD3DX12_PIPELINE_STATE_STREAM_VS VS;
+        CD3DX12_PIPELINE_STATE_STREAM_PS PS;
+        CD3DX12_PIPELINE_STATE_STREAM_DEPTH_STENCIL_FORMAT DSVFormat;
+        CD3DX12_PIPELINE_STATE_STREAM_RENDER_TARGET_FORMATS RTVFormats;
+    } pipelineStateStream;
+
+    D3D12_RT_FORMAT_ARRAY rtvFormats = {};
+    rtvFormats.NumRenderTargets = 1;
+    rtvFormats.RTFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
+
+    CD3DX12_SHADER_BYTECODE vs;
+    CD3DX12_SHADER_BYTECODE ps;
+    if (std::shared_ptr<ShaderManager> shader_mgr = gD3DApp->GetShaderManager().lock()){
+        ShaderManager::ShaderBlob* vs_blob = shader_mgr->Load(tech.vs, L"main", ShaderManager::ShaderType::st_vertex);
+        ShaderManager::ShaderBlob* ps_blob = shader_mgr->Load(tech.ps, L"main", ShaderManager::ShaderType::st_pixel);
+        vs = CD3DX12_SHADER_BYTECODE((const void*)vs_blob->data.data(), vs_blob->data.size());
+        ps = CD3DX12_SHADER_BYTECODE((const void*)ps_blob->data.data(), ps_blob->data.size());
+    }
+    else{
+        assert(false);
+    }
+
+    pipelineStateStream.pRootSignature = tech.root_signature.Get();
+    pipelineStateStream.InputLayout = { inputLayout, _countof(inputLayout) };
+    pipelineStateStream.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+    pipelineStateStream.VS = vs;
+    pipelineStateStream.PS = ps;
+    pipelineStateStream.DSVFormat = DXGI_FORMAT_D32_FLOAT;
+    pipelineStateStream.RTVFormats = rtvFormats;
+
+    D3D12_PIPELINE_STATE_STREAM_DESC pipelineStateStreamDesc = {
+        sizeof(PipelineStateStream), &pipelineStateStream
+    };
+    ThrowIfFailed(device->CreatePipelineState(&pipelineStateStreamDesc, IID_PPV_ARGS(&tech.pipeline_state)));
+    SetName(tech.pipeline_state, dbg_name.value_or(L"").append(L"_pso_2").c_str());
+
+    return tech;
+}
+
 void Techniques::OnInit(ComPtr<ID3D12Device2> &device, std::optional<std::wstring> dbg_name){
-    m_techniques[m_actual_techniques_count++] = CreateTechnique_0(device, dbg_name);
-    m_techniques[m_actual_techniques_count++] = CreateTechnique_1(device, dbg_name);
+    uint32_t id = 0;
+    id = m_techniques.push_back(CreateTechnique_0(device, dbg_name));
+    m_techniques[id].id = id;
+    id = m_techniques.push_back(CreateTechnique_1(device, dbg_name));
+    m_techniques[id].id = id;
+    id = m_techniques.push_back(CreateTechnique_2(device, dbg_name));
+    m_techniques[id].id = id;
 }

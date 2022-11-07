@@ -10,13 +10,13 @@
 #include "FreeCamera.h"
 #include "LevelEntity.h"
 #include "GfxCommandQueue.h"
+#include "RenderQuad.h"
 
 #include "WinPixEventRuntime/pix3.h"
 
 #if defined(USE_PIX) && defined(USE_PIX_DEBUG)
 #include "PIXapi.h"
 #endif // defined(USE_PIX) && defined(USE_PIX_DEBUG)
-
 
 DXAppImplementation *gD3DApp = nullptr;
 
@@ -28,7 +28,8 @@ DXAppImplementation::DXAppImplementation(uint32_t width, uint32_t height, std::w
     m_descriptor_heap_collection(std::make_shared<DescriptorHeapCollection>()),
     m_renderTargets(std::make_unique<GpuResource[]>(FrameCount)),
     m_depthStencil(std::make_unique<GpuResource>()),
-    m_commandQueueGfx(std::make_unique<GfxCommandQueue>())
+    m_commandQueueGfx(std::make_unique<GfxCommandQueue>()),
+    m_post_process_quad(std::make_unique<RenderQuad>())
 {
 }
 
@@ -46,6 +47,8 @@ void DXAppImplementation::OnInit()
 
     m_level = std::make_shared<Level>();
     m_level->Load(L"test_level.json");
+
+    m_post_process_quad->Initialize(FrameCount);
 }
 
 void DXAppImplementation::CreateDevice(std::optional<std::wstring> dbg_name){
@@ -233,18 +236,36 @@ void DXAppImplementation::OnRender()
     command_list->RSSetScissorRects(1, &m_scissorRect);
 
     // Clear rt and set proper state
+    m_post_process_quad->CreateQuadTexture(m_width, m_height);
     ComPtr<ID3D12Resource> render_target;
+    if (std::shared_ptr<GpuResource> rt = m_post_process_quad->GetRt(m_frameIndex).lock()){
+        if (std::shared_ptr<HeapBuffer> render_target_buff = rt->GetBuffer().lock()){
+            render_target = render_target_buff->GetResource();
+            m_commandQueueGfx->ResourceBarrier(render_target, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET);
+            PrepareRenderTarget(command_list, rt.get());
+        }
+        else {
+        assert(false);
+        }
+    }
+
+    
+
+    // Render scene
+    RenderLevel(command_list);
+
+    // post process
+    m_commandQueueGfx->ResourceBarrier(render_target, D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
     if (std::shared_ptr<HeapBuffer> render_target_buff = m_renderTargets[m_frameIndex].GetBuffer().lock()){
         render_target = render_target_buff->GetResource();
+        m_commandQueueGfx->ResourceBarrier(render_target, D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
+        PrepareRenderTarget(command_list, &m_renderTargets[m_frameIndex]);
     }
     else {
         assert(false);
     }
-    m_commandQueueGfx->ResourceBarrier(render_target, D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
-    PrepareRenderTarget(command_list);
 
-    // Render scene
-    RenderLevel(command_list);
+    RenderPostProcessQuad(command_list);
 
     // Indicate that the back buffer will now be used to present.
     m_commandQueueGfx->ResourceBarrier(render_target, D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
@@ -270,10 +291,10 @@ void DXAppImplementation::OnDestroy()
     gD3DApp = nullptr;
 }
 
-void DXAppImplementation::PrepareRenderTarget(ComPtr<ID3D12GraphicsCommandList6> &command_list){
+void DXAppImplementation::PrepareRenderTarget(ComPtr<ID3D12GraphicsCommandList6> &command_list, GpuResource * rt){
     CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle;
     CD3DX12_CPU_DESCRIPTOR_HANDLE dsvHandle;
-    if (std::shared_ptr<ResourceDescriptor> render_target_view = m_renderTargets[m_frameIndex].GetRTV().lock()){
+    if (std::shared_ptr<ResourceDescriptor> render_target_view = rt->GetRTV().lock()){
         rtvHandle = render_target_view->GetCPUhandle();
     }
     else {
@@ -331,6 +352,21 @@ void DXAppImplementation::RenderLevel(ComPtr<ID3D12GraphicsCommandList6>& comman
 
         ent.Render(command_list);
     }
+}
+
+void DXAppImplementation::RenderPostProcessQuad(ComPtr<ID3D12GraphicsCommandList6>& command_list){
+    // set technique
+    const Techniques::Technique* tech = GetTechniqueById(2);
+    command_list->SetPipelineState(tech->pipeline_state.Get());
+    command_list->SetGraphicsRootSignature(tech->root_signature.Get());
+
+    // set root desc
+    ID3D12DescriptorHeap* descriptorHeaps[] = { m_descriptor_heap_collection->GetShaderVisibleHeap().Get() };
+    command_list->SetDescriptorHeaps(_countof(descriptorHeaps), descriptorHeaps);
+    m_post_process_quad->LoadDataToGpu(command_list);
+    m_post_process_quad->SetSrv(command_list, m_frameIndex);
+    
+    m_post_process_quad->Render(command_list);
 }
 
 void DXAppImplementation::OnMouseMoved(WPARAM btnState, int x, int y){

@@ -13,6 +13,7 @@ class DescriptorHeapCollection;
 class GpuResource;
 class GfxCommandQueue;
 class FreeCamera;
+class RenderQuad;
 
 class DXAppImplementation : public DXApp, public ResourceManager, public ConstantBufferManager, public Techniques
 {
@@ -43,8 +44,9 @@ private:
     
     void CreateDevice(std::optional<std::wstring> dbg_name = std::nullopt);
     void CreateSwapChain(std::optional<std::wstring> dbg_name = std::nullopt);
-    void PrepareRenderTarget(ComPtr<ID3D12GraphicsCommandList6> &command_list);
+    void PrepareRenderTarget(ComPtr<ID3D12GraphicsCommandList6> &command_list, GpuResource * rt = nullptr);
     void RenderLevel(ComPtr<ID3D12GraphicsCommandList6>& command_list);
+    void RenderPostProcessQuad(ComPtr<ID3D12GraphicsCommandList6>& command_list);
 
     void UpdateCamera(std::shared_ptr<FreeCamera> &camera, float dt);
 
@@ -58,6 +60,7 @@ private:
     std::unique_ptr<GfxCommandQueue> m_commandQueueGfx;
     std::unique_ptr<GpuResource[]> m_renderTargets;
     std::unique_ptr<GpuResource> m_depthStencil;
+    std::unique_ptr<RenderQuad> m_post_process_quad;
 
     uint32_t m_frameIndex;
     uint64_t m_fenceValues[FrameCount]{0};

@@ -158,8 +158,6 @@ ShaderManager::ShaderBlob* ShaderManager::Load(const std::wstring &name, const s
 
             const uint32_t idx = m_loaded_shaders.push_back(blob);
             pShader = &m_loaded_shaders[idx];
-
-            return pShader;
         }
     }
 
@@ -180,68 +178,68 @@ ShaderManager::ShaderBlob* ShaderManager::Load(const std::wstring &name, const s
         fclose(fp);
     }
 
-    //
-    // Print hash.
-    //
-    ComPtr<IDxcBlob> pHash = nullptr;
-    ThrowIfFailed(pResults->GetOutput(DXC_OUT_SHADER_HASH, IID_PPV_ARGS(&pHash), nullptr));
-    if (pHash != nullptr)
-    {
-        wprintf(L"Hash: ");
-        DxcShaderHash* pHashBuf = (DxcShaderHash*)pHash->GetBufferPointer();
-        for (int i = 0; i < _countof(pHashBuf->HashDigest); i++){
-            wprintf(L"%.2x", pHashBuf->HashDigest[i]);
-        }
-        wprintf(L"\n");
-    }
+    // //
+    // // Print hash.
+    // //
+    // ComPtr<IDxcBlob> pHash = nullptr;
+    // ThrowIfFailed(pResults->GetOutput(DXC_OUT_SHADER_HASH, IID_PPV_ARGS(&pHash), nullptr));
+    // if (pHash != nullptr)
+    // {
+    //     wprintf(L"Hash: ");
+    //     DxcShaderHash* pHashBuf = (DxcShaderHash*)pHash->GetBufferPointer();
+    //     for (int i = 0; i < _countof(pHashBuf->HashDigest); i++){
+    //         wprintf(L"%.2x", pHashBuf->HashDigest[i]);
+    //     }
+    //     wprintf(L"\n");
+    // }
 
-    //
-    // Demonstrate getting the hash from the PDB blob using the IDxcUtils::GetPDBContents API
-    //
-    ComPtr<IDxcBlob> pHashDigestBlob = nullptr;
-    ComPtr<IDxcBlob> pDebugDxilContainer = nullptr;
-    if (SUCCEEDED(m_utils->GetPDBContents(pPDB.Get(), &pHashDigestBlob, &pDebugDxilContainer)))
-    {
-        // This API returns the raw hash digest, rather than a DxcShaderHash structure.
-        // This will be the same as the DxcShaderHash::HashDigest returned from
-        // IDxcResult::GetOutput(DXC_OUT_SHADER_HASH, ...).
-        wprintf(L"Hash from PDB: ");
-        const BYTE *pHashDigest = (const BYTE*)pHashDigestBlob->GetBufferPointer();
-        assert(pHashDigestBlob->GetBufferSize() == 16); // hash digest is always 16 bytes.
-        for (int i = 0; i < pHashDigestBlob->GetBufferSize(); i++){
-            wprintf(L"%.2x", pHashDigest[i]);
-        }
-        wprintf(L"\n");
+    // //
+    // // Demonstrate getting the hash from the PDB blob using the IDxcUtils::GetPDBContents API
+    // //
+    // ComPtr<IDxcBlob> pHashDigestBlob = nullptr;
+    // ComPtr<IDxcBlob> pDebugDxilContainer = nullptr;
+    // if (SUCCEEDED(m_utils->GetPDBContents(pPDB.Get(), &pHashDigestBlob, &pDebugDxilContainer)))
+    // {
+    //     // This API returns the raw hash digest, rather than a DxcShaderHash structure.
+    //     // This will be the same as the DxcShaderHash::HashDigest returned from
+    //     // IDxcResult::GetOutput(DXC_OUT_SHADER_HASH, ...).
+    //     wprintf(L"Hash from PDB: ");
+    //     const BYTE *pHashDigest = (const BYTE*)pHashDigestBlob->GetBufferPointer();
+    //     assert(pHashDigestBlob->GetBufferSize() == 16); // hash digest is always 16 bytes.
+    //     for (int i = 0; i < pHashDigestBlob->GetBufferSize(); i++){
+    //         wprintf(L"%.2x", pHashDigest[i]);
+    //     }
+    //     wprintf(L"\n");
 
-        // The pDebugDxilContainer blob will contain a DxilContainer formatted
-        // binary, but with different parts than the pShader blob retrieved
-        // earlier.
-        // The parts in this container will vary depending on debug options and
-        // the compiler version.
-        // This blob is not meant to be directly interpreted by an application.
-    }
+    //     // The pDebugDxilContainer blob will contain a DxilContainer formatted
+    //     // binary, but with different parts than the pShader blob retrieved
+    //     // earlier.
+    //     // The parts in this container will vary depending on debug options and
+    //     // the compiler version.
+    //     // This blob is not meant to be directly interpreted by an application.
+    // }
 
-    //
-    // Get separate reflection.
-    //
-    ComPtr<IDxcBlob> pReflectionData;
-    ThrowIfFailed(pResults->GetOutput(DXC_OUT_REFLECTION, IID_PPV_ARGS(&pReflectionData), nullptr));
-    if (pReflectionData != nullptr)
-    {
-        // Optionally, save reflection blob for later here.
+    // //
+    // // Get separate reflection.
+    // //
+    // ComPtr<IDxcBlob> pReflectionData;
+    // ThrowIfFailed(pResults->GetOutput(DXC_OUT_REFLECTION, IID_PPV_ARGS(&pReflectionData), nullptr));
+    // if (pReflectionData != nullptr)
+    // {
+    //     // Optionally, save reflection blob for later here.
 
-        // Create reflection interface.
-        DxcBuffer ReflectionData;
-        ReflectionData.Encoding = DXC_CP_ACP;
-        ReflectionData.Ptr = pReflectionData->GetBufferPointer();
-        ReflectionData.Size = pReflectionData->GetBufferSize();
+    //     // Create reflection interface.
+    //     DxcBuffer ReflectionData;
+    //     ReflectionData.Encoding = DXC_CP_ACP;
+    //     ReflectionData.Ptr = pReflectionData->GetBufferPointer();
+    //     ReflectionData.Size = pReflectionData->GetBufferSize();
 
-        ComPtr <ID3D12ShaderReflection> pReflection;
-        m_utils->CreateReflection(&ReflectionData, IID_PPV_ARGS(&pReflection));
+    //     ComPtr <ID3D12ShaderReflection> pReflection;
+    //     m_utils->CreateReflection(&ReflectionData, IID_PPV_ARGS(&pReflection));
 
-        // Use reflection interface here.
+    //     // Use reflection interface here.
         
-    }
+    // }
 
     return pShader;
 }

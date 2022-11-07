@@ -1,6 +1,10 @@
 #include "GpuResource.h"
 #include "ResourceDescriptor.h"
 
+GpuResource::~GpuResource(){
+
+}
+
 void GpuResource::CreateBuffer(HeapBuffer::BufferType type, uint32_t bufferSize, HeapBuffer::UseFlag flag, D3D12_RESOURCE_STATES initial_state, std::optional<std::wstring> dbg_name){
     if (m_buffer){
         ResetViews();
