@@ -3,8 +3,8 @@
 #include "ResourceDescriptor.h"
 #include "DXHelper.h"
 
-void RenderQuad::Initialize(uint32_t texture_num) {
-    m_texture_num = texture_num;
+void RenderQuad::Initialize() {
+
 
     std::vector<DirectX::XMFLOAT3> vertices;
     vertices.push_back(DirectX::XMFLOAT3(-1.0f, -1.0f, 0.0f));
@@ -50,39 +50,44 @@ void RenderQuad::LoadDataToGpu(ComPtr<ID3D12GraphicsCommandList6> &command_list)
     LoadIndexDataOnGpu(command_list);
 }
 
-void RenderQuad::CreateQuadTexture(uint32_t width, uint32_t height) {
+void RenderQuad::CreateQuadTexture(uint32_t width, uint32_t height, const std::vector<DXGI_FORMAT> &formats, uint32_t texture_num, std::optional<std::wstring> dbg_name) {
     if (m_dirty & db_rt_tx){
         // Create a RTV for each frame.
-        for (uint32_t n = 0; n < m_texture_num; n++)
+        m_textures.resize(texture_num);
+        for (uint32_t n = 0; n < texture_num; n++)
         {
-            std::shared_ptr<GpuResource> res(std::make_shared<GpuResource>());
-            CD3DX12_RESOURCE_DESC res_desc = CD3DX12_RESOURCE_DESC::Tex2D(DXGI_FORMAT_R16G16B16A16_FLOAT, width, height, 1, 0, 1, 0, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET);
-            res->CreateTexture(HeapBuffer::BufferType::bt_default, res_desc, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, nullptr, L"Quad's texture");
-            res->CreateRTV();
+            std::vector<std::shared_ptr<GpuResource>> &set_resources = m_textures[n];
+            set_resources.resize(formats.size());
+            for (uint32_t m = 0; m < formats.size(); m++){
+                set_resources[m] = std::make_shared<GpuResource>();
+                std::shared_ptr<GpuResource>& res = set_resources[m];
 
-            D3D12_SHADER_RESOURCE_VIEW_DESC srv_desc = {};
-            srv_desc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-            srv_desc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
-            srv_desc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
-            srv_desc.Texture2D.MostDetailedMip = 0;
-            srv_desc.Texture2D.MipLevels = 1;
-            srv_desc.Texture2D.ResourceMinLODClamp = 0.0f;
-            res->Create_SRV(srv_desc, true);
+                CD3DX12_RESOURCE_DESC res_desc = CD3DX12_RESOURCE_DESC::Tex2D(formats[m], width, height, 1, 0, 1, 0, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET);
+                res->CreateTexture(HeapBuffer::BufferType::bt_default, res_desc, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, nullptr, dbg_name.value_or(L"quad_tex_").append(std::to_wstring(n).append(L"-")).append(std::to_wstring(m)));
+                res->CreateRTV();
 
-            m_textures.push_back(std::move(res));
+                D3D12_SHADER_RESOURCE_VIEW_DESC srv_desc = {};
+                srv_desc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+                srv_desc.Format = formats[m];
+                srv_desc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+                srv_desc.Texture2D.MostDetailedMip = 0;
+                srv_desc.Texture2D.MipLevels = 1;
+                srv_desc.Texture2D.ResourceMinLODClamp = 0.0f;
+                res->Create_SRV(srv_desc, true);
+            }
         }
         m_dirty &= (~db_rt_tx);
     }
 }
 
-void RenderQuad::SetSrv(ComPtr<ID3D12GraphicsCommandList6> &command_list, uint32_t idx) {
-    if (std::shared_ptr<ResourceDescriptor> srv = m_textures.at(idx)->GetSRV().lock()){
-        command_list->SetGraphicsRootDescriptorTable(0, srv->GetGPUhandle());
+void RenderQuad::SetSrv(ComPtr<ID3D12GraphicsCommandList6> &command_list, uint32_t set_idx, uint32_t root_idx, uint32_t idx_in_set) {
+    if (std::shared_ptr<ResourceDescriptor> srv = m_textures.at(set_idx).at(idx_in_set)->GetSRV().lock()){
+        command_list->SetGraphicsRootDescriptorTable(root_idx, srv->GetGPUhandle());
     }
 }
 
-std::weak_ptr<GpuResource> RenderQuad::GetRt(uint32_t idx) {
-    return m_textures.at(idx);
+std::weak_ptr<GpuResource> RenderQuad::GetRt(uint32_t set_idx, uint32_t idx_in_set) {
+    return m_textures.at(set_idx).at(idx_in_set);
 }
 
 void RenderQuad::Render(ComPtr<ID3D12GraphicsCommandList6> &command_list) {

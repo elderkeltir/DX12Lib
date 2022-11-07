@@ -132,7 +132,7 @@ void RenderModel::Render(ComPtr<ID3D12GraphicsCommandList6> &command_list, const
         
         gD3DApp->SetMatrix4Constant(Constants::cM, parent_xform_mx, command_list);
         if (std::shared_ptr<ResourceDescriptor> srv = m_diffuse_tex->GetSRV().lock()){
-            command_list->SetGraphicsRootDescriptorTable(4, srv->GetGPUhandle());
+            command_list->SetGraphicsRootDescriptorTable(3, srv->GetGPUhandle());
         }
         TODO("Major! DrawIndexed should be at upper level where you know there are few such meshes to render")
         command_list->DrawIndexedInstanced((UINT)m_indices.size(), 1, 0, 0, 0);

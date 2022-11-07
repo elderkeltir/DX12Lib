@@ -44,9 +44,11 @@ private:
     
     void CreateDevice(std::optional<std::wstring> dbg_name = std::nullopt);
     void CreateSwapChain(std::optional<std::wstring> dbg_name = std::nullopt);
-    void PrepareRenderTarget(ComPtr<ID3D12GraphicsCommandList6> &command_list, GpuResource * rt = nullptr);
+    void PrepareRenderTarget(ComPtr<ID3D12GraphicsCommandList6> &command_list, const std::vector<std::shared_ptr<GpuResource>> &rt);
+    void PrepareRenderTarget(ComPtr<ID3D12GraphicsCommandList6> &command_list, GpuResource &rts);
     void RenderLevel(ComPtr<ID3D12GraphicsCommandList6>& command_list);
     void RenderPostProcessQuad(ComPtr<ID3D12GraphicsCommandList6>& command_list);
+    void RenderDeferredShadingQuad(ComPtr<ID3D12GraphicsCommandList6>& command_list);
 
     void UpdateCamera(std::shared_ptr<FreeCamera> &camera, float dt);
 
@@ -61,6 +63,7 @@ private:
     std::unique_ptr<GpuResource[]> m_renderTargets;
     std::unique_ptr<GpuResource> m_depthStencil;
     std::unique_ptr<RenderQuad> m_post_process_quad;
+    std::unique_ptr<RenderQuad> m_deferred_shading_quad;
 
     uint32_t m_frameIndex;
     uint64_t m_fenceValues[FrameCount]{0};

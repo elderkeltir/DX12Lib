@@ -10,7 +10,7 @@ enum Constants {
     cM,             // model matrix
     cV,             // view matrix
     cP,             // projection matrix
-    cCP             // camera pos
+    cCP = cM        // camera pos
 };
 
 class ConstantBufferManager {

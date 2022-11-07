@@ -1,5 +1,6 @@
 #include "GfxCommandQueue.h"
 #include "DXHelper.h"
+#include "GpuResource.h"
 #include <directx/d3dx12.h>
 
 
@@ -46,8 +47,16 @@ void GfxCommandQueue::ExecuteActiveCL(){
     m_commandQueue->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
 }
 
-void GfxCommandQueue::ResourceBarrier(ComPtr<ID3D12Resource> &res, D3D12_RESOURCE_STATES from, D3D12_RESOURCE_STATES to){
+void GfxCommandQueue::ResourceBarrier(std::shared_ptr<GpuResource> &res, D3D12_RESOURCE_STATES from, D3D12_RESOURCE_STATES to){
     TODO("Normal! Implement feasible way to store/get curent state of resource. later")
-    m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(res.Get(), from, to));
+    if (std::shared_ptr<HeapBuffer> buff = res->GetBuffer().lock()){
+        m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(buff->GetResource().Get(), from, to));
+    }
+}
 
+void GfxCommandQueue::ResourceBarrier(GpuResource &res, D3D12_RESOURCE_STATES from, D3D12_RESOURCE_STATES to) {
+    TODO("Normal! Implement feasible way to store/get curent state of resource. later")
+    if (std::shared_ptr<HeapBuffer> buff = res.GetBuffer().lock()){
+        m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(buff->GetResource().Get(), from, to));
+    }
 }
