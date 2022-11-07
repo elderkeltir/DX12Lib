@@ -71,6 +71,8 @@ inline uint32_t CalculateConstantBufferByteSize(uint32_t byteSize)
 
 
 // PIXSetMarker(m_commandList.Get(), PIX_COLOR(120, 120, 120), L"UpdateBufferResource for index buffer");
+#define BEGIN_EVENT(cmd_list, name) PIXBeginEvent(cmd_list.Get(), PIX_COLOR(55, 120, 55), name)
+#define END_EVENT(cmd_list) PIXEndEvent(cmd_list.Get())
 // PIXBeginEvent(m_commandList.Get(), PIX_COLOR(55, 120, 55), L"LoadTechnique");
 // PIXEndEvent(m_commandList.Get());
 // PIXCaptureParameters cap_params{};

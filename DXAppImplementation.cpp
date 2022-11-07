@@ -238,6 +238,7 @@ void DXAppImplementation::OnRender()
     command_list->RSSetScissorRects(1, &m_scissorRect);
 
     // Clear rt and set proper state
+    BEGIN_EVENT(command_list, "G-Buffer");
     {
         std::vector<DXGI_FORMAT> formats = { DXGI_FORMAT_R16G16B16A16_FLOAT, DXGI_FORMAT_R8G8B8A8_SNORM, DXGI_FORMAT_R16G16B16A16_FLOAT };
         m_deferred_shading_quad->CreateQuadTexture(m_width, m_height, formats, FrameCount, L"m_deferred_shading_quad_");
@@ -250,8 +251,10 @@ void DXAppImplementation::OnRender()
 
     // Render scene
     RenderLevel(command_list);
+    END_EVENT(command_list);
 
     // deferred shading setup rts
+    BEGIN_EVENT(command_list, "Deferred Shading");
     {
         std::vector< std::shared_ptr<GpuResource>>& rts = m_deferred_shading_quad->GetRts(m_frameIndex);
         for (uint32_t i = 0; i < rts.size(); i++){
@@ -270,9 +273,10 @@ void DXAppImplementation::OnRender()
 
     // deferred shading
     RenderDeferredShadingQuad(command_list);
-
+    END_EVENT(command_list);
 
     // post process
+    BEGIN_EVENT(command_list, "Post Processing");
     if (std::shared_ptr<GpuResource> rt = m_post_process_quad->GetRt(m_frameIndex).lock()){
         m_commandQueueGfx->ResourceBarrier(rt, D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
     }
@@ -284,6 +288,7 @@ void DXAppImplementation::OnRender()
     PrepareRenderTarget(command_list, m_renderTargets[m_frameIndex]);
 
     RenderPostProcessQuad(command_list);
+    END_EVENT(command_list);
 
     // Indicate that the back buffer will now be used to present.
     m_commandQueueGfx->ResourceBarrier(m_renderTargets[m_frameIndex], D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);

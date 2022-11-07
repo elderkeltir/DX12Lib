@@ -15,7 +15,7 @@ struct Light
 
 struct CameraPos
 {
-    float4 vec;
+    float3 vec;
 };
 
 ConstantBuffer<CameraPos> CamPos : register(b0);

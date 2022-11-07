@@ -32,7 +32,6 @@ ps_output main( PixelShaderInput IN )
     normal = normal * 2.0 - 1.0;   
     normal = normalize(mul(IN.TBN, normal)); 
     output.normal = float4(normal, 0);
-
     output.pos = float4(IN.Pos, 1);
 
     return output;
