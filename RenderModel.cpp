@@ -4,6 +4,7 @@
 #include "DXHelper.h"
 #include "DXAppImplementation.h"
 #include "ResourceDescriptor.h"
+#include "VertexFormats.h"
 
 extern DXAppImplementation *gD3DApp;
 
@@ -41,10 +42,23 @@ void RenderModel::SetTangents(std::vector<DirectX::XMFLOAT3> tangents, std::vect
 }
 
 void RenderModel::FormVertexes(){
-    TODO("Normal! set a way to process different vertex format")
-    m_vertexDataBuffer.resize(m_vertices.size());
-    for (uint32_t i = 0; i < m_vertices.size(); i++) {
-        m_vertexDataBuffer[i] = Vertex{m_vertices.at(i), m_normals.at(i), m_tangents.at(i), m_bitangents.at(i), m_textCoords.at(i)};
+    const Techniques::Technique * tech = gD3DApp->GetTechniqueById(m_tech_id);
+
+    if (tech->vertex_type == 0) {
+        using Vertex = Vertex0;
+        AllocateVertexBuffer((uint32_t)m_vertices.size() * sizeof(Vertex));
+        Vertex* vertex_data_buffer = (Vertex*) m_vertex_buffer_start;
+        for (uint32_t i = 0; i < m_vertices.size(); i++) {
+            vertex_data_buffer[i] = Vertex{m_vertices.at(i), m_color};
+        }
+    }
+    else if (tech->vertex_type == 1) {
+        using Vertex = Vertex1;
+        AllocateVertexBuffer((uint32_t)m_vertices.size() * sizeof(Vertex));
+        Vertex* vertex_data_buffer = (Vertex*) m_vertex_buffer_start;
+        for (uint32_t i = 0; i < m_vertices.size(); i++) {
+            vertex_data_buffer[i] = Vertex{m_vertices.at(i), m_normals.at(i), m_tangents.at(i), m_bitangents.at(i), m_textCoords.at(i)};
+        }
     }
 }
 
@@ -150,7 +164,8 @@ void RenderModel::LoadDataToGpu(ComPtr<ID3D12GraphicsCommandList6> &command_list
         if (m_dirty & db_vertex){
             FormVertexes();
         }
-        LoadVertexDataOnGpu(command_list, m_vertexDataBuffer.data(), (uint32_t)sizeof(Vertex), (uint32_t)m_vertexDataBuffer.size());
+        const Techniques::Technique * tech = gD3DApp->GetTechniqueById(m_tech_id);
+        LoadVertexDataOnGpu(command_list, (const void*)m_vertex_buffer_start, GetSizeByVertexType(tech->vertex_type), (uint32_t)m_vertices.size());
         LoadIndexDataOnGpu(command_list);
         LoadTextures(command_list);
     }

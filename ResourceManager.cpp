@@ -1,6 +1,7 @@
 #include "ResourceManager.h"
 #include "ShaderManager.h"
 #include "FileManager.h"
+#include "GpuDataManager.h"
 
 ResourceManager::ResourceManager()
 {
@@ -20,6 +21,7 @@ ResourceManager::~ResourceManager() = default;
 void ResourceManager::OnInit(){
     m_fileMgr = std::make_shared<FileManager>();
     m_shaderMgr = std::make_shared<ShaderManager>();
+    m_gpu_data_mgr = std::make_shared<GpuDataManager>();
 }
 
 const std::filesystem::path& ResourceManager::GetRootDir() const{

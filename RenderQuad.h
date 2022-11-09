@@ -16,15 +16,7 @@ public:
     std::vector< std::shared_ptr<GpuResource>>& GetRts(uint32_t set_idx) { return m_textures.at(set_idx); }
     void Render(ComPtr<ID3D12GraphicsCommandList6> &command_list);
 private:
-    
-    struct Vertex
-    {
-        DirectX::XMFLOAT3 pos;
-        DirectX::XMFLOAT2 textCoord;
-    };
-
     void FormVertex();
 
-    std::vector<Vertex> m_vertexDataBuffer;
     std::vector<std::vector<std::shared_ptr<GpuResource>>> m_textures;
 };

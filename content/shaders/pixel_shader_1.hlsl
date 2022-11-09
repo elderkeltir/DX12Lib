@@ -29,7 +29,7 @@ ps_output main( PixelShaderInput IN )
 
     // normal mapping
     float3 normal = gNormalMap.Sample(linearClamp, IN.TexC).xyz;
-    normal = normal * 2.0 - 1.0;   
+    normal = normal * 2.0 - 1.0;
     normal = normalize(mul(IN.TBN, normal)); 
     output.normal = float4(normal, 0);
     output.pos = float4(IN.Pos, 1);

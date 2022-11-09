@@ -18,6 +18,7 @@ public:
         ComPtr<ID3D12RootSignature> root_signature;
         std::wstring vs;
         std::wstring ps;
+        uint32_t vertex_type;
         uint32_t id;
     };
 public:

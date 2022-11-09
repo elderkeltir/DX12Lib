@@ -3,9 +3,15 @@
 #include "ResourceDescriptor.h"
 #include "DXHelper.h"
 
+static const uint32_t vert_num = 4;
+
+struct Vertex
+{
+    DirectX::XMFLOAT3 pos;
+    DirectX::XMFLOAT2 textCoord;
+};
+
 void RenderQuad::Initialize() {
-
-
     std::vector<DirectX::XMFLOAT3> vertices;
     vertices.push_back(DirectX::XMFLOAT3(-1.0f, -1.0f, 0.0f));
     vertices.push_back(DirectX::XMFLOAT3(-1.0f, 1.0f, 0.0f));
@@ -37,16 +43,17 @@ void RenderQuad::Initialize() {
 RenderQuad::~RenderQuad() = default;
 
 void RenderQuad::FormVertex() {
-    const uint32_t vert_num = 4;
-    m_vertexDataBuffer.resize(vert_num);
+    AllocateVertexBuffer(vert_num  * sizeof(Vertex));
+    Vertex* vertex_data_buffer = (Vertex*) m_vertex_buffer_start;
+
     for (uint32_t i = 0; i < vert_num; i++){
-        m_vertexDataBuffer.at(i) = Vertex{m_vertices.at(i), m_textCoords.at(i)};
+        vertex_data_buffer[i] = Vertex{m_vertices.at(i), m_textCoords.at(i)};
     }
 }
 
 void RenderQuad::LoadDataToGpu(ComPtr<ID3D12GraphicsCommandList6> &command_list) {
     FormVertex();
-    LoadVertexDataOnGpu(command_list, m_vertexDataBuffer.data(), (uint32_t)sizeof(Vertex), (uint32_t)m_vertexDataBuffer.size());
+    LoadVertexDataOnGpu(command_list, (const void*)m_vertex_buffer_start, (uint32_t)sizeof(Vertex), vert_num);
     LoadIndexDataOnGpu(command_list);
 }
 
@@ -107,7 +114,6 @@ void RenderQuad::Render(ComPtr<ID3D12GraphicsCommandList6> &command_list) {
         }
         command_list->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
         
-        TODO("Major! DrawIndexed should be at upper level where you know there are few such meshes to render")
         command_list->DrawIndexedInstanced((UINT)m_indices.size(), 1, 0, 0, 0);
     }
 }

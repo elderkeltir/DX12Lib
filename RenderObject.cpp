@@ -1,7 +1,13 @@
 #include "RenderObject.h"
 #include "GpuResource.h"
+#include "DXAppImplementation.h"
+#include "GpuDataManager.h"
 
-RenderObject::~RenderObject() = default;
+extern DXAppImplementation *gD3DApp;
+
+RenderObject::~RenderObject() {
+    DeallocateVertexBuffer();
+}
 
 void RenderObject::LoadVertexDataOnGpu(ComPtr<ID3D12GraphicsCommandList6> &commandList, const void* data, uint32_t size_of_vertex, uint32_t vertex_count){
     if (m_dirty & db_vertex){
@@ -56,4 +62,23 @@ void RenderObject::Loadtexture(ComPtr<ID3D12GraphicsCommandList6> & commandList,
     srv_desc.Texture2D.ResourceMinLODClamp = 0.0f;
 
     res->Create_SRV(srv_desc, true);
+}
+
+void RenderObject::AllocateVertexBuffer(uint32_t size) {
+    if (std::shared_ptr<GpuDataManager> gpu_res_mgr = gD3DApp->GetGpuDatamanager().lock()){
+        m_vertex_buffer_start = gpu_res_mgr->AllocateVertexBuffer(size);
+        m_vertex_buffer_size = size;
+    }
+}
+
+void RenderObject::DeallocateVertexBuffer() {
+    if (!gD3DApp) {
+        return;
+    }
+    
+    if (std::shared_ptr<GpuDataManager> gpu_res_mgr = gD3DApp->GetGpuDatamanager().lock()){
+        gpu_res_mgr->DeallocateVertexBuffer(m_vertex_buffer_start, m_vertex_buffer_size);
+        m_vertex_buffer_start = 0ull;
+        m_vertex_buffer_size = 0ul;
+    }
 }

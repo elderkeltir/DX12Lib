@@ -25,16 +25,8 @@ public:
     void SetNormals(std::vector<DirectX::XMFLOAT3> normals);
     void SetTangents(std::vector<DirectX::XMFLOAT3> tangents, std::vector<DirectX::XMFLOAT3> bitangents);
     void SetTexture(TextureData * texture_data, TextureType type);
+    void SetTechniqueId(uint32_t id) { m_tech_id = id; for(auto &child : m_children) child->SetTechniqueId(id); }
 private:
-    struct Vertex
-	{
-		DirectX::XMFLOAT3 Position;
-        DirectX::XMFLOAT3 Normal;
-		DirectX::XMFLOAT3 Tangents;
-		DirectX::XMFLOAT3 Bitangents;
-        DirectX::XMFLOAT2 TextCoord;
-	};
-    
     inline void FormVertexes();
     inline void LoadTextures(ComPtr<ID3D12GraphicsCommandList6> & commandList);
 
@@ -42,11 +34,11 @@ private:
     std::vector<DirectX::XMFLOAT3> m_tangents;
     std::vector<DirectX::XMFLOAT3> m_bitangents;
 
-    std::vector<Vertex> m_vertexDataBuffer;
     std::unique_ptr<GpuResource> m_diffuse_tex;
     std::unique_ptr<GpuResource> m_normals_tex;
     std::unique_ptr<GpuResource> m_specular_tex;
     std::array<TextureData*, TextureCount> m_textures_data;
     std::unique_ptr<Transformations> m_transformations;
     std::vector<RenderModel*> m_children;
+    uint32_t m_tech_id{uint32_t(-1)};
 };

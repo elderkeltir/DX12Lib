@@ -34,7 +34,6 @@ RenderModel* FileManager::LoadModel(const std::wstring &name){
 		return &(*it);
 	}
 	else {
-		
 		return LoadModelInternal(name);
 	}
 }

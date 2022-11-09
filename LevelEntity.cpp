@@ -45,15 +45,16 @@ void LevelEntity::Load(const std::wstring &name){
     Document d;
     d.Parse(content.c_str());
 
+    const Value &shaders = d["technique"];
+    m_tech_id = shaders.GetInt();
+
     const char * model_name_8 = d["model"].GetString();
     const std::wstring model_name(&model_name_8[0], &model_name_8[strlen(model_name_8)]);
     if (std::shared_ptr<FileManager> fileMgr = gD3DApp->GetFileManager().lock()){
         m_model = fileMgr->LoadModel(model_name);
         m_model->SetName(model_name);
+        m_model->SetTechniqueId(m_tech_id);
     }
-
-    const Value &shaders = d["technique"];
-    m_tech_id = shaders.GetInt();
 }
 
 void LevelEntity::Update(float dt){

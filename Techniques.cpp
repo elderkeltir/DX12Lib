@@ -67,6 +67,7 @@ static Techniques::Technique CreateTechnique_0(ComPtr<ID3D12Device2> &device, st
     Techniques::Technique tech;
     tech.vs = L"vertex_shader_0.hlsl";
     tech.ps = L"pixel_shader_0.hlsl";
+    tech.vertex_type = 0;
 
     // Create the vertex input layout
     D3D12_INPUT_ELEMENT_DESC inputLayout[] = {
@@ -157,10 +158,7 @@ static Techniques::Technique CreateTechnique_1(ComPtr<ID3D12Device2> &device, st
     Techniques::Technique tech;
     tech.vs = L"vertex_shader_1.hlsl";
     tech.ps = L"pixel_shader_1.hlsl";
-
-    if (std::shared_ptr<ShaderManager> shaderMgr = gD3DApp->GetShaderManager().lock()){
-
-    }
+    tech.vertex_type = 1;
 
     // Create the vertex input layout
     D3D12_INPUT_ELEMENT_DESC inputLayout[] = {
@@ -259,6 +257,7 @@ static Techniques::Technique CreateTechnique_2(ComPtr<ID3D12Device2> &device, st
     Techniques::Technique tech;
     tech.vs = L"vertex_shader_2.hlsl";
     tech.ps = L"pixel_shader_2.hlsl";
+    tech.vertex_type = 2;
 
     // Create the vertex input layout
     D3D12_INPUT_ELEMENT_DESC inputLayout[] = {
@@ -354,6 +353,7 @@ static Techniques::Technique CreateTechnique_3(ComPtr<ID3D12Device2> &device, st
     Techniques::Technique tech;
     tech.vs = L"vertex_shader_2.hlsl";
     tech.ps = L"pixel_shader_3.hlsl";
+    tech.vertex_type = 2;
 
     // Create the vertex input layout
     D3D12_INPUT_ELEMENT_DESC inputLayout[] = {

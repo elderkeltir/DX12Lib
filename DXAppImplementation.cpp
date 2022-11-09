@@ -390,7 +390,7 @@ void DXAppImplementation::RenderLevel(ComPtr<ID3D12GraphicsCommandList6>& comman
             if (std::shared_ptr<FreeCamera> camera = m_level->GetCamera().lock()){
                 DirectX::XMMATRIX m_ViewMatrix = DirectX::XMLoadFloat4x4(&camera->GetViewMx());
                 DirectX::XMMATRIX m_ProjectionMatrix = DirectX::XMLoadFloat4x4(&camera->GetProjMx());
-                
+                TODO("Critical! Implement processing of different root desc setup")
                 gD3DApp->SetMatrix4Constant(Constants::cV, m_ViewMatrix, command_list);
                 gD3DApp->SetMatrix4Constant(Constants::cP, m_ProjectionMatrix, command_list);
             }
@@ -495,7 +495,7 @@ void DXAppImplementation::UpdateCamera(std::shared_ptr<FreeCamera> &camera, floa
     else if ((m_camera_movement.camera_movement_state & m_camera_movement.cm_bcwd) && !(m_camera_movement.camera_movement_state & m_camera_movement.cm_fwd)){
         move_func(camera->GetPosition(), camera->GetDirection(), true);
     }
-    else if ((m_camera_movement.camera_movement_state & m_camera_movement.cm_right) && !(m_camera_movement.camera_movement_state & m_camera_movement.cm_left)){
+    if ((m_camera_movement.camera_movement_state & m_camera_movement.cm_right) && !(m_camera_movement.camera_movement_state & m_camera_movement.cm_left)){
         move_func(camera->GetPosition(), camera->GetRightDirection(), false);
     }
     else if ((m_camera_movement.camera_movement_state & m_camera_movement.cm_left) && !(m_camera_movement.camera_movement_state & m_camera_movement.cm_right)){

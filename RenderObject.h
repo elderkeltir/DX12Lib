@@ -43,6 +43,7 @@ protected:
     virtual void LoadVertexDataOnGpu(ComPtr<ID3D12GraphicsCommandList6> &commandList, const void* data, uint32_t size_of_vertex, uint32_t vertex_count);
     virtual void LoadIndexDataOnGpu(ComPtr<ID3D12GraphicsCommandList6> &commandList);
     void Loadtexture(ComPtr<ID3D12GraphicsCommandList6> & commandList, GpuResource* res, TextureData* tex_data, const CD3DX12_RESOURCE_DESC &tex_desc, const D3D12_SRV_DIMENSION &srv_dim, uint32_t idx) const;
+    void AllocateVertexBuffer(uint32_t size);
 
     enum dirty_bits {
         db_vertex       = 1 << 0,
@@ -60,9 +61,15 @@ protected:
     std::unique_ptr<GpuResource> m_VertexBuffer;
     std::unique_ptr<GpuResource> m_IndexBuffer;
     std::unique_ptr<GpuResource> m_diffuse_tex;
+    DirectX::XMFLOAT3 m_color{0,0,0};
+
+    uint64_t m_vertex_buffer_start{0};
+    uint32_t m_vertex_buffer_size{0};
 
     std::wstring m_name;
     uint32_t m_id{uint32_t(-1)};
     bool m_is_initialized{false};
     uint8_t m_dirty{0};
+private:
+        void DeallocateVertexBuffer();
 };
