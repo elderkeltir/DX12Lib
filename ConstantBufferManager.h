@@ -7,10 +7,10 @@
 using Microsoft::WRL::ComPtr;
 
 enum Constants {
+    cCP,            // camera pos
     cM,             // model matrix
     cV,             // view matrix
-    cP,             // projection matrix
-    cCP = cM        // camera pos
+    cP              // projection matrix
 };
 
 class ConstantBufferManager {

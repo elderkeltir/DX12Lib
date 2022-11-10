@@ -51,7 +51,8 @@ protected:
         db_diffuse_tx   = 1 << 2,
         db_normals_tx   = 1 << 3,
         db_specular_tx  = 1 << 4,
-        db_rt_tx        = 1 << 5
+        db_rt_tx        = 1 << 5,
+        db_rt_cbv       = 1<< 6
     };
 
     std::vector<DirectX::XMFLOAT3> m_vertices;
@@ -61,7 +62,6 @@ protected:
     std::unique_ptr<GpuResource> m_VertexBuffer;
     std::unique_ptr<GpuResource> m_IndexBuffer;
     std::unique_ptr<GpuResource> m_diffuse_tex;
-    DirectX::XMFLOAT3 m_color{0,0,0};
 
     uint64_t m_vertex_buffer_start{0};
     uint32_t m_vertex_buffer_size{0};

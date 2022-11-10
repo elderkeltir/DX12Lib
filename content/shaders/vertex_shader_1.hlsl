@@ -20,9 +20,9 @@ struct ModelViewProjection
     matrix mx;
 };
  
-ConstantBuffer<ModelViewProjection> ModelCB : register(b0);
-ConstantBuffer<ModelViewProjection> ViewCB : register(b1);
-ConstantBuffer<ModelViewProjection> ProjectionCB : register(b2);
+ConstantBuffer<ModelViewProjection> ModelCB : register(b1);
+ConstantBuffer<ModelViewProjection> ViewCB : register(b2);
+ConstantBuffer<ModelViewProjection> ProjectionCB : register(b3);
 
 VertexShaderOutput main(VertexPosColor IN)
 {

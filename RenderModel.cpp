@@ -49,7 +49,7 @@ void RenderModel::FormVertexes(){
         AllocateVertexBuffer((uint32_t)m_vertices.size() * sizeof(Vertex));
         Vertex* vertex_data_buffer = (Vertex*) m_vertex_buffer_start;
         for (uint32_t i = 0; i < m_vertices.size(); i++) {
-            vertex_data_buffer[i] = Vertex{m_vertices.at(i), m_color};
+            vertex_data_buffer[i] = Vertex{m_vertices.at(i), m_normals.at(i), m_color};
         }
     }
     else if (tech->vertex_type == 1) {
@@ -146,7 +146,7 @@ void RenderModel::Render(ComPtr<ID3D12GraphicsCommandList6> &command_list, const
         
         gD3DApp->SetMatrix4Constant(Constants::cM, parent_xform_mx, command_list);
         if (std::shared_ptr<ResourceDescriptor> srv = m_diffuse_tex->GetSRV().lock()){
-            command_list->SetGraphicsRootDescriptorTable(3, srv->GetGPUhandle());
+            command_list->SetGraphicsRootDescriptorTable(5, srv->GetGPUhandle());
         }
         TODO("Major! DrawIndexed should be at upper level where you know there are few such meshes to render")
         command_list->DrawIndexedInstanced((UINT)m_indices.size(), 1, 0, 0, 0);

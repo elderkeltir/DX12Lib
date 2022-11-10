@@ -6,10 +6,10 @@
 // extern DXAppImplementation *gD3DApp;
 
 static const uint32_t constansIds[] = {
-    0,                  // Constants::cM
-    1,                  // Constants::cV
-    2,                  // Constants::cP
-    3
+    0,                  // Constants::cCP
+    1,                  // Constants::cM
+    2,                  // Constants::cV
+    3                   // Constants::cP
 };
 
 void ConstantBufferManager::SetMatrix4Constant(Constants id, const DirectX::XMMATRIX & matrix, ComPtr<ID3D12GraphicsCommandList6> &commandList){

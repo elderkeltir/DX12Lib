@@ -72,6 +72,7 @@ static Techniques::Technique CreateTechnique_0(ComPtr<ID3D12Device2> &device, st
     // Create the vertex input layout
     D3D12_INPUT_ELEMENT_DESC inputLayout[] = {
         { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+        { "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
         { "COLOR", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
     };
 
@@ -85,14 +86,25 @@ static Techniques::Technique CreateTechnique_0(ComPtr<ID3D12Device2> &device, st
         D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT |
         D3D12_ROOT_SIGNATURE_FLAG_DENY_HULL_SHADER_ROOT_ACCESS |
         D3D12_ROOT_SIGNATURE_FLAG_DENY_DOMAIN_SHADER_ROOT_ACCESS |
-        D3D12_ROOT_SIGNATURE_FLAG_DENY_GEOMETRY_SHADER_ROOT_ACCESS |
-        D3D12_ROOT_SIGNATURE_FLAG_DENY_PIXEL_SHADER_ROOT_ACCESS;
+        D3D12_ROOT_SIGNATURE_FLAG_DENY_GEOMETRY_SHADER_ROOT_ACCESS;
 
     // A single 32-bit constant root parameter that is used by the vertex shader.
-    CD3DX12_ROOT_PARAMETER1 rootParameters[3];
-    rootParameters[0].InitAsConstants(sizeof(DirectX::XMMATRIX) / 4, 0, 0, D3D12_SHADER_VISIBILITY_VERTEX); // M
-    rootParameters[1].InitAsConstants(sizeof(DirectX::XMMATRIX) / 4, 1, 0, D3D12_SHADER_VISIBILITY_VERTEX); // V
-    rootParameters[2].InitAsConstants(sizeof(DirectX::XMMATRIX) / 4, 2, 0, D3D12_SHADER_VISIBILITY_VERTEX); // P
+    CD3DX12_DESCRIPTOR_RANGE1 tex_table_srv;
+	tex_table_srv.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0);
+    CD3DX12_DESCRIPTOR_RANGE1 tex_table_cbv;
+    tex_table_cbv.Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 1, 4);
+
+    auto staticSamplers = GetStaticSamplers();
+
+    const uint32_t rootParameters_cnt = 6;
+    CD3DX12_ROOT_PARAMETER1 rootParameters[rootParameters_cnt];
+    rootParameters[0].InitAsConstants(sizeof(DirectX::XMFLOAT3) / 4, 0, 0, D3D12_SHADER_VISIBILITY_PIXEL); // CamPos
+    rootParameters[1].InitAsConstants(sizeof(DirectX::XMMATRIX) / 4, 1, 0, D3D12_SHADER_VISIBILITY_VERTEX); // M
+    rootParameters[2].InitAsConstants(sizeof(DirectX::XMMATRIX) / 4, 2, 0, D3D12_SHADER_VISIBILITY_VERTEX); // V
+    rootParameters[3].InitAsConstants(sizeof(DirectX::XMMATRIX) / 4, 3, 0, D3D12_SHADER_VISIBILITY_VERTEX); // P
+    rootParameters[4].InitAsDescriptorTable(1, &tex_table_cbv, D3D12_SHADER_VISIBILITY_PIXEL); // cbv
+    rootParameters[5].InitAsDescriptorTable(1, &tex_table_srv, D3D12_SHADER_VISIBILITY_PIXEL); // Texture
+    assert(_countof(rootParameters) == rootParameters_cnt);
 
     CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC rootSignatureDescription;
     rootSignatureDescription.Init_1_1(_countof(rootParameters), rootParameters, 0, nullptr, rootSignatureFlags);
@@ -121,9 +133,8 @@ static Techniques::Technique CreateTechnique_0(ComPtr<ID3D12Device2> &device, st
         CD3DX12_PIPELINE_STATE_STREAM_RENDER_TARGET_FORMATS RTVFormats;
     } pipelineStateStream;
 
-    D3D12_RT_FORMAT_ARRAY rtvFormats = {};
-    rtvFormats.NumRenderTargets = 1;
-    rtvFormats.RTFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
+    D3D12_RT_FORMAT_ARRAY rtvFormats = {DXGI_FORMAT_R16G16B16A16_FLOAT, DXGI_FORMAT_R8G8B8A8_SNORM, DXGI_FORMAT_R16G16B16A16_FLOAT };
+    rtvFormats.NumRenderTargets = 3;
 
     CD3DX12_SHADER_BYTECODE vs;
     CD3DX12_SHADER_BYTECODE ps;
@@ -182,17 +193,21 @@ static Techniques::Technique CreateTechnique_1(ComPtr<ID3D12Device2> &device, st
         D3D12_ROOT_SIGNATURE_FLAG_DENY_GEOMETRY_SHADER_ROOT_ACCESS;
 
     // A single 32-bit constant root parameter that is used by the vertex shader.
-    CD3DX12_DESCRIPTOR_RANGE1 texTable;
-	texTable.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 2, 0);
+    CD3DX12_DESCRIPTOR_RANGE1 tex_table_srv;
+	tex_table_srv.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 2, 0);
+    CD3DX12_DESCRIPTOR_RANGE1 tex_table_cbv;
+    tex_table_cbv.Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 1, 4);
 
     auto staticSamplers = GetStaticSamplers();
 
-    const uint32_t rootParameters_cnt = 4;
+    const uint32_t rootParameters_cnt = 6;
     CD3DX12_ROOT_PARAMETER1 rootParameters[rootParameters_cnt];
-    rootParameters[0].InitAsConstants(sizeof(DirectX::XMMATRIX) / 4, 0, 0, D3D12_SHADER_VISIBILITY_VERTEX); // M
-    rootParameters[1].InitAsConstants(sizeof(DirectX::XMMATRIX) / 4, 1, 0, D3D12_SHADER_VISIBILITY_VERTEX); // V
-    rootParameters[2].InitAsConstants(sizeof(DirectX::XMMATRIX) / 4, 2, 0, D3D12_SHADER_VISIBILITY_VERTEX); // P
-    rootParameters[3].InitAsDescriptorTable(1, &texTable, D3D12_SHADER_VISIBILITY_PIXEL); // Texture
+    rootParameters[0].InitAsConstants(sizeof(DirectX::XMFLOAT3) / 4, 0, 0, D3D12_SHADER_VISIBILITY_PIXEL); // CamPos
+    rootParameters[1].InitAsConstants(sizeof(DirectX::XMMATRIX) / 4, 1, 0, D3D12_SHADER_VISIBILITY_VERTEX); // M
+    rootParameters[2].InitAsConstants(sizeof(DirectX::XMMATRIX) / 4, 2, 0, D3D12_SHADER_VISIBILITY_VERTEX); // V
+    rootParameters[3].InitAsConstants(sizeof(DirectX::XMMATRIX) / 4, 3, 0, D3D12_SHADER_VISIBILITY_VERTEX); // P
+    rootParameters[4].InitAsDescriptorTable(1, &tex_table_cbv, D3D12_SHADER_VISIBILITY_PIXEL); // cbv
+    rootParameters[5].InitAsDescriptorTable(1, &tex_table_srv, D3D12_SHADER_VISIBILITY_PIXEL); // Texture
     assert(_countof(rootParameters) == rootParameters_cnt);
 
     CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC rootSignatureDescription;

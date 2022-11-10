@@ -34,6 +34,7 @@ private:
     std::vector<DirectX::XMFLOAT3> m_tangents;
     std::vector<DirectX::XMFLOAT3> m_bitangents;
 
+    std::unique_ptr<GpuResource> m_constant_buffer;
     std::unique_ptr<GpuResource> m_diffuse_tex;
     std::unique_ptr<GpuResource> m_normals_tex;
     std::unique_ptr<GpuResource> m_specular_tex;
@@ -41,4 +42,5 @@ private:
     std::unique_ptr<Transformations> m_transformations;
     std::vector<RenderModel*> m_children;
     uint32_t m_tech_id{uint32_t(-1)};
+    DirectX::XMFLOAT3 m_color{0.5f,0.3f,0.7f};
 };

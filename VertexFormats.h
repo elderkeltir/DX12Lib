@@ -4,6 +4,7 @@
 struct Vertex0
 {
     DirectX::XMFLOAT3 Position;
+    DirectX::XMFLOAT3 Normal;
     DirectX::XMFLOAT3 Color;
 };
 struct Vertex1
