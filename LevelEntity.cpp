@@ -16,6 +16,7 @@
 #include "RenderModel.h"
 #include "FileManager.h"
 #include "Level.h"
+#include "MaterialManager.h"
 
 extern DXAppImplementation *gD3DApp;
 using rapidjson::Document;
@@ -54,6 +55,21 @@ void LevelEntity::Load(const std::wstring &name){
         m_model = fileMgr->LoadModel(model_name);
         m_model->SetName(model_name);
         m_model->SetTechniqueId(m_tech_id);
+
+        if (gD3DApp->TechHasColor(m_tech_id)){
+            const Value &color_val = d["color"];
+            const DirectX::XMFLOAT3 color(color_val[0].GetFloat(), color_val[1].GetFloat(), color_val[2].GetFloat());
+            m_model->SetColor(color);
+        }
+    }
+
+    // load material
+    const Value &material = d["material"];
+    const Value &metallic = material["metallic"];
+    const Value &roughness = material["roughness"];
+    if (std::shared_ptr<MaterialManager> mat_mgr = gD3DApp->GetMaterialManager().lock()){
+        uint32_t mat_id = mat_mgr->CreateMaterial(metallic.GetFloat(), roughness.GetFloat());
+        m_model->SetMaterial(mat_id);
     }
 }
 

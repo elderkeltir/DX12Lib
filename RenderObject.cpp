@@ -65,7 +65,7 @@ void RenderObject::Loadtexture(ComPtr<ID3D12GraphicsCommandList6> & commandList,
 }
 
 void RenderObject::AllocateVertexBuffer(uint32_t size) {
-    if (std::shared_ptr<GpuDataManager> gpu_res_mgr = gD3DApp->GetGpuDatamanager().lock()){
+    if (std::shared_ptr<GpuDataManager> gpu_res_mgr = gD3DApp->GetGpuDataManager().lock()){
         m_vertex_buffer_start = gpu_res_mgr->AllocateVertexBuffer(size);
         m_vertex_buffer_size = size;
     }
@@ -76,7 +76,7 @@ void RenderObject::DeallocateVertexBuffer() {
         return;
     }
     
-    if (std::shared_ptr<GpuDataManager> gpu_res_mgr = gD3DApp->GetGpuDatamanager().lock()){
+    if (std::shared_ptr<GpuDataManager> gpu_res_mgr = gD3DApp->GetGpuDataManager().lock()){
         gpu_res_mgr->DeallocateVertexBuffer(m_vertex_buffer_start, m_vertex_buffer_size);
         m_vertex_buffer_start = 0ull;
         m_vertex_buffer_size = 0ul;

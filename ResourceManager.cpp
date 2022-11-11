@@ -2,6 +2,7 @@
 #include "ShaderManager.h"
 #include "FileManager.h"
 #include "GpuDataManager.h"
+#include "MaterialManager.h"
 
 ResourceManager::ResourceManager()
 {
@@ -22,6 +23,7 @@ void ResourceManager::OnInit(){
     m_fileMgr = std::make_shared<FileManager>();
     m_shaderMgr = std::make_shared<ShaderManager>();
     m_gpu_data_mgr = std::make_shared<GpuDataManager>();
+    m_material_mgr = std::make_shared<MaterialManager>();
 }
 
 const std::filesystem::path& ResourceManager::GetRootDir() const{

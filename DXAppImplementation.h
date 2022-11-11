@@ -34,6 +34,7 @@ public:
     const std::chrono::duration<float>& FrameTime() const { return m_dt; }
     uint64_t FrameNumber() const { return m_frame_id; }
     float GetAspectRatio() const { return m_width/(float)m_height; }
+    std::weak_ptr<GfxCommandQueue> GetGfxQueue() { return m_commandQueueGfx; }
 
     // Events
     virtual void OnMouseMoved(WPARAM btnState, int x, int y) override;
@@ -59,7 +60,7 @@ private:
     ComPtr<ID3D12Device2> m_device;
     ComPtr<IDXGISwapChain4> m_swapChain;
     
-    std::unique_ptr<GfxCommandQueue> m_commandQueueGfx;
+    std::shared_ptr<GfxCommandQueue> m_commandQueueGfx;
     std::unique_ptr<GpuResource[]> m_renderTargets;
     std::unique_ptr<GpuResource> m_depthStencil;
     std::unique_ptr<RenderQuad> m_post_process_quad;

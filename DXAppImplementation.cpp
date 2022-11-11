@@ -11,6 +11,7 @@
 #include "LevelEntity.h"
 #include "GfxCommandQueue.h"
 #include "RenderQuad.h"
+#include "MaterialManager.h"
 
 #include "WinPixEventRuntime/pix3.h"
 
@@ -28,7 +29,7 @@ DXAppImplementation::DXAppImplementation(uint32_t width, uint32_t height, std::w
     m_descriptor_heap_collection(std::make_shared<DescriptorHeapCollection>()),
     m_renderTargets(std::make_unique<GpuResource[]>(FrameCount)),
     m_depthStencil(std::make_unique<GpuResource>()),
-    m_commandQueueGfx(std::make_unique<GfxCommandQueue>()),
+    m_commandQueueGfx(std::make_shared<GfxCommandQueue>()),
     m_post_process_quad(std::make_unique<RenderQuad>()),
     m_deferred_shading_quad(std::make_unique<RenderQuad>())
 {
@@ -48,6 +49,7 @@ void DXAppImplementation::OnInit()
 
     m_level = std::make_shared<Level>();
     m_level->Load(L"test_level.json");
+    m_material_mgr->LoadMaterials();
 
     m_post_process_quad->Initialize();
     m_deferred_shading_quad->Initialize();
@@ -368,37 +370,7 @@ void DXAppImplementation::PrepareRenderTarget(ComPtr<ID3D12GraphicsCommandList6>
 }
 
 void DXAppImplementation::RenderLevel(ComPtr<ID3D12GraphicsCommandList6>& command_list){
-    TODO("Normal! Create Gatherer or RenderScene to avoid this shity code")
-    bool is_scene_constants_set = false;
-    for (uint32_t id = 0; id < m_level->GetEntityCount(); id++){
-        LevelEntity ent = m_level->GetEntityById(id);
-        ent.LoadDataToGpu(command_list);
-
-        const Technique *tech = GetTechniqueById(ent.GetTechniqueId());
-
-        // set technique
-        command_list->SetPipelineState(tech->pipeline_state.Get());
-        command_list->SetGraphicsRootSignature(tech->root_signature.Get());
-
-        // set root desc
-        if (ent.GetTechniqueId() == 1){
-            ID3D12DescriptorHeap* descriptorHeaps[] = { m_descriptor_heap_collection->GetShaderVisibleHeap().Get() };
-            command_list->SetDescriptorHeaps(_countof(descriptorHeaps), descriptorHeaps);
-        }
-
-        if (!is_scene_constants_set){
-            if (std::shared_ptr<FreeCamera> camera = m_level->GetCamera().lock()){
-                DirectX::XMMATRIX m_ViewMatrix = DirectX::XMLoadFloat4x4(&camera->GetViewMx());
-                DirectX::XMMATRIX m_ProjectionMatrix = DirectX::XMLoadFloat4x4(&camera->GetProjMx());
-                TODO("Critical! Implement processing of different root desc setup")
-                gD3DApp->SetMatrix4Constant(Constants::cV, m_ViewMatrix, command_list);
-                gD3DApp->SetMatrix4Constant(Constants::cP, m_ProjectionMatrix, command_list);
-            }
-            is_scene_constants_set = !is_scene_constants_set;
-        }
-
-        ent.Render(command_list);
-    }
+    m_level->Render(command_list);
 }
 
 void DXAppImplementation::RenderPostProcessQuad(ComPtr<ID3D12GraphicsCommandList6>& command_list){

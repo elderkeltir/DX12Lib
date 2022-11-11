@@ -1,4 +1,9 @@
 {
     "model": "Arissa.fbx",
-    "technique": 1
+    "technique": 1,
+    "material":
+    {
+        "metallic": 0.2,
+        "roughness": 0.4
+    }
 }

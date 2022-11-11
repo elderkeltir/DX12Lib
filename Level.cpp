@@ -16,6 +16,13 @@
 #include "FreeCamera.h"
 #include "DXAppImplementation.h"
 #include "FileManager.h"
+#include "GpuResource.h"
+#include "DXHelper.h"
+#include "Techniques.h"
+#include "DescriptorHeapCollection.h"
+#include "ResourceDescriptor.h"
+#include "MaterialManager.h"
+#include "GfxCommandQueue.h"
 
 extern DXAppImplementation *gD3DApp;
 using rapidjson::Document;
@@ -93,16 +100,23 @@ void Level::Load(const std::wstring &name){
         if (ltype == LevelLight::LightType::lt_direct){
             // const Value& light_pos = light["pos"]; NOT FOR DIRECTION LIGHT
             const Value& light_dir = light["dir"];
-            const Value& light_power = light["power"];
+            const Value& light_color = light["color"];
             // const DirectX::XMFLOAT3 pos(light_pos[0].GetFloat(), light_pos[1].GetFloat(), light_pos[2].GetFloat());
             const DirectX::XMFLOAT3 dir(light_dir[0].GetFloat(), light_dir[1].GetFloat(), light_dir[2].GetFloat());
-            const DirectX::XMFLOAT3 power(light_power[0].GetFloat(), light_power[1].GetFloat(), light_power[2].GetFloat());
+            const DirectX::XMFLOAT3 color(light_color[0].GetFloat(), light_color[1].GetFloat(), light_color[2].GetFloat());
 
-            const LevelLight level_light{ dir, power, ltype };
+            const LevelLight level_light{ dir, color, ltype };
             uint32_t id = m_lights.push_back(level_light);
             m_lights[id].id = id;
         }
     }
+
+    m_lights_res = std::make_unique<GpuResource>();
+    uint32_t cb_size = (lights_num * sizeof(LevelLight) + 255) & ~255;
+    m_lights_res->CreateBuffer(HeapBuffer::BufferType::bt_default, cb_size, HeapBuffer::UseFlag::uf_none, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER, std::wstring(L"lights_buffer_").append(m_name));
+    D3D12_CONSTANT_BUFFER_VIEW_DESC desc;
+    desc.SizeInBytes = cb_size;
+    m_lights_res->Create_CBV(desc);
 }
 
 void Level::Update(float dt){
@@ -115,8 +129,59 @@ void Level::Update(float dt){
     }
 }
 
-void Level::Render(){
+void Level::Render(ComPtr<ID3D12GraphicsCommandList6>& command_list){
+    TODO("Normal! Create Gatherer or RenderScene to avoid this shity code")
+    bool is_scene_constants_set = false;
+    for (uint32_t id = 0; id < m_entites.size(); id++){
+        LevelEntity &ent = m_entites[id];
+        ent.LoadDataToGpu(command_list);
 
+        const Techniques::Technique *tech = gD3DApp->GetTechniqueById(ent.GetTechniqueId());
+
+        // set technique
+        command_list->SetPipelineState(tech->pipeline_state.Get());
+        command_list->SetGraphicsRootSignature(tech->root_signature.Get());
+
+        // set root desc
+        if (gD3DApp->ShouldMapHead(tech->id)){
+            if (std::shared_ptr<DescriptorHeapCollection> descriptor_heap_collection = gD3DApp->GetDescriptorHeapCollection().lock()){
+                ID3D12DescriptorHeap* descriptorHeaps[] = { descriptor_heap_collection->GetShaderVisibleHeap().Get() };
+                command_list->SetDescriptorHeaps(_countof(descriptorHeaps), descriptorHeaps);
+            }
+
+            // update CBs
+            if (std::shared_ptr<HeapBuffer> buff = m_lights_res->GetBuffer().lock()){
+                if (std::shared_ptr<GfxCommandQueue> queue = gD3DApp->GetGfxQueue().lock()){
+                    queue->ResourceBarrier(*m_lights_res.get(), D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER, D3D12_RESOURCE_STATE_COPY_DEST);
+                }
+                uint32_t cb_size = (lights_num * sizeof(LevelLight) + 255) & ~255;
+                buff->Load(command_list, 1, cb_size, m_lights.data());
+                if (std::shared_ptr<GfxCommandQueue> queue = gD3DApp->GetGfxQueue().lock()){
+                    queue->ResourceBarrier(*m_lights_res.get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER);
+                }
+            }
+
+            if (std::shared_ptr<MaterialManager> mat_mgr = gD3DApp->GetMaterialManager().lock()){
+                mat_mgr->SyncGpuData(command_list);
+            }
+
+            if (std::shared_ptr<ResourceDescriptor> srv = m_lights_res->GetCBV().lock()){
+                command_list->SetGraphicsRootDescriptorTable(6, srv->GetGPUhandle());
+            }
+        }
+
+        if (!is_scene_constants_set){
+            DirectX::XMMATRIX m_ViewMatrix = DirectX::XMLoadFloat4x4(&m_camera->GetViewMx());
+            DirectX::XMMATRIX m_ProjectionMatrix = DirectX::XMLoadFloat4x4(&m_camera->GetProjMx());
+            TODO("Critical! Implement processing of different root desc setup")
+            gD3DApp->SetMatrix4Constant(Constants::cV, m_ViewMatrix, command_list);
+            gD3DApp->SetMatrix4Constant(Constants::cP, m_ProjectionMatrix, command_list);
+
+            is_scene_constants_set = !is_scene_constants_set;
+        }
+
+        ent.Render(command_list);
+    }
 }
 
 const std::filesystem::path& Level::GetLevelsDir() const{

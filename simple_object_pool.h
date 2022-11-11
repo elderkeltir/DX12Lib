@@ -35,6 +35,9 @@ namespace pro_game_containers {
         uint32_t size() const noexcept {
             return m_size;
         }
+        T* data() {
+            return m_pool.data();
+        }
     private:
         uint32_t GetNextFree(uint32_t start) {
             assert(m_size < m_capacity);

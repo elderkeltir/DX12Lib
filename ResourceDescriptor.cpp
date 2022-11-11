@@ -59,3 +59,19 @@ bool ResourceDescriptor::Create_UAV(std::weak_ptr<HeapBuffer> buff, const D3D12_
     }
     return false;
 }
+
+bool ResourceDescriptor::Create_CBV(std::weak_ptr<HeapBuffer> buff, const D3D12_CONSTANT_BUFFER_VIEW_DESC &desc, bool gpu_visible) {
+    assert(gpu_visible);
+    if (std::shared_ptr<DescriptorHeapCollection> descriptorHeapCollection = gD3DApp->GetDescriptorHeapCollection().lock()){
+        descriptorHeapCollection->ReserveSRVUAVCBVhandle(m_cpu_handle, m_gpu_handle);
+        if (std::shared_ptr<HeapBuffer> buffer = buff.lock()){
+            D3D12_CONSTANT_BUFFER_VIEW_DESC cbv_desc = desc;
+            cbv_desc.BufferLocation = buffer->GetResource()->GetGPUVirtualAddress();
+            gD3DApp->GetDevice()->CreateConstantBufferView(&cbv_desc, m_cpu_handle);
+            m_type = ResourceDescriptorType::rdt_uav;
+
+            return true;
+        }
+    }
+    return false;
+}

@@ -18,6 +18,7 @@ public:
     void Create_DSV(const D3D12_DEPTH_STENCIL_VIEW_DESC &desc);
     void Create_SRV(const D3D12_SHADER_RESOURCE_VIEW_DESC &desc, bool gpu_visible = true);
     void Create_UAV(const D3D12_UNORDERED_ACCESS_VIEW_DESC &desc, bool gpu_visible = true);
+    void Create_CBV(const D3D12_CONSTANT_BUFFER_VIEW_DESC &desc, bool gpu_visible = true);
     void Create_Vertex_View(uint32_t sizSizeInBytese, uint32_t StrideInBytes);
     void Create_Index_View(DXGI_FORMAT format, uint32_t SizeInBytes);
 
@@ -25,6 +26,7 @@ public:
     std::weak_ptr<ResourceDescriptor> GetRTV() { return m_rtv; }
     std::weak_ptr<ResourceDescriptor> GetDSV() { return m_dsv; }
     std::weak_ptr<ResourceDescriptor> GetSRV() { return m_srv; }
+    std::weak_ptr<ResourceDescriptor> GetCBV() { return m_cbv; }
     std::weak_ptr<D3D12_VERTEX_BUFFER_VIEW> Get_Vertex_View() { return m_vertex_view; }
     std::weak_ptr<D3D12_INDEX_BUFFER_VIEW> Get_Index_View() { return m_index_view; }
 private:
@@ -34,6 +36,7 @@ private:
     std::shared_ptr<ResourceDescriptor> m_dsv;
     std::shared_ptr<ResourceDescriptor> m_srv;
     std::shared_ptr<ResourceDescriptor> m_uav;
+    std::shared_ptr<ResourceDescriptor> m_cbv;
     std::shared_ptr<D3D12_VERTEX_BUFFER_VIEW> m_vertex_view;
     std::shared_ptr<D3D12_INDEX_BUFFER_VIEW> m_index_view;
 };

@@ -5,6 +5,7 @@
 #include "DXAppImplementation.h"
 #include "ResourceDescriptor.h"
 #include "VertexFormats.h"
+#include "GfxCommandQueue.h"
 
 extern DXAppImplementation *gD3DApp;
 
@@ -145,9 +146,27 @@ void RenderModel::Render(ComPtr<ID3D12GraphicsCommandList6> &command_list, const
         command_list->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
         
         gD3DApp->SetMatrix4Constant(Constants::cM, parent_xform_mx, command_list);
-        if (std::shared_ptr<ResourceDescriptor> srv = m_diffuse_tex->GetSRV().lock()){
-            command_list->SetGraphicsRootDescriptorTable(5, srv->GetGPUhandle());
+        if (m_diffuse_tex){
+            if (std::shared_ptr<ResourceDescriptor> srv = m_diffuse_tex->GetSRV().lock()){
+                command_list->SetGraphicsRootDescriptorTable(5, srv->GetGPUhandle());
+            }
         }
+
+        if (std::shared_ptr<HeapBuffer> buff = m_constant_buffer->GetBuffer().lock()){
+            if (std::shared_ptr<GfxCommandQueue> queue = gD3DApp->GetGfxQueue().lock()){
+                queue->ResourceBarrier(*m_constant_buffer.get(), D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER, D3D12_RESOURCE_STATE_COPY_DEST);
+            }
+            uint32_t cb_size = (sizeof(uint32_t) + 255) & ~255;
+            buff->Load(command_list, 1, cb_size, &m_material_id);
+            if (std::shared_ptr<GfxCommandQueue> queue = gD3DApp->GetGfxQueue().lock()){
+                queue->ResourceBarrier(*m_constant_buffer.get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER);
+            }
+        }
+        if (std::shared_ptr<ResourceDescriptor> srv = m_constant_buffer->GetCBV().lock()){
+            command_list->SetGraphicsRootDescriptorTable(4, srv->GetGPUhandle());
+        }
+
+
         TODO("Major! DrawIndexed should be at upper level where you know there are few such meshes to render")
         command_list->DrawIndexedInstanced((UINT)m_indices.size(), 1, 0, 0, 0);
     }
@@ -168,6 +187,7 @@ void RenderModel::LoadDataToGpu(ComPtr<ID3D12GraphicsCommandList6> &command_list
         LoadVertexDataOnGpu(command_list, (const void*)m_vertex_buffer_start, GetSizeByVertexType(tech->vertex_type), (uint32_t)m_vertices.size());
         LoadIndexDataOnGpu(command_list);
         LoadTextures(command_list);
+        LoadConstantData(command_list);
     }
 
     for (auto child : m_children){
@@ -187,5 +207,17 @@ void RenderModel::SetTexture(TextureData * texture_data, TextureType type){
         case TextureType::SpecularTexture:
             //m_dirty |= db_specular_tx;
             break;
+    }
+}
+
+void RenderModel::LoadConstantData(ComPtr<ID3D12GraphicsCommandList6> &command_list){
+    if (m_dirty & db_rt_cbv){
+        m_constant_buffer = std::make_unique<GpuResource>();
+        uint32_t cb_size = (sizeof(uint32_t) + 255) & ~255;
+        m_constant_buffer->CreateBuffer(HeapBuffer::BufferType::bt_default, cb_size, HeapBuffer::UseFlag::uf_none, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER, std::wstring(L"lights_buffer_").append(m_name));
+        D3D12_CONSTANT_BUFFER_VIEW_DESC desc;
+        desc.SizeInBytes = cb_size;
+        m_constant_buffer->Create_CBV(desc);
+        m_dirty &= (~db_rt_cbv);
     }
 }

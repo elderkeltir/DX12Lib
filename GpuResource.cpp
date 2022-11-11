@@ -57,6 +57,11 @@ void GpuResource::Create_UAV(const D3D12_UNORDERED_ACCESS_VIEW_DESC &desc, bool 
     m_uav->Create_UAV(m_buffer, desc, gpu_visible);
 }
 
+void GpuResource::Create_CBV(const D3D12_CONSTANT_BUFFER_VIEW_DESC &desc, bool gpu_visible) {
+    m_cbv = std::make_shared<ResourceDescriptor>();
+    m_cbv->Create_CBV(m_buffer, desc, gpu_visible);
+}
+
 void GpuResource::Create_Vertex_View(uint32_t sizSizeInBytese, uint32_t StrideInBytes){
     m_vertex_view = std::make_shared<D3D12_VERTEX_BUFFER_VIEW>();
     m_vertex_view->BufferLocation = m_buffer->GetResource()->GetGPUVirtualAddress();

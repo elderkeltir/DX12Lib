@@ -93,17 +93,20 @@ static Techniques::Technique CreateTechnique_0(ComPtr<ID3D12Device2> &device, st
 	tex_table_srv.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0);
     CD3DX12_DESCRIPTOR_RANGE1 tex_table_cbv;
     tex_table_cbv.Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 1, 4);
+    CD3DX12_DESCRIPTOR_RANGE1 tex_table_cbv2;
+    tex_table_cbv2.Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 2, 5);
 
     auto staticSamplers = GetStaticSamplers();
 
-    const uint32_t rootParameters_cnt = 6;
+    const uint32_t rootParameters_cnt = 7;
     CD3DX12_ROOT_PARAMETER1 rootParameters[rootParameters_cnt];
     rootParameters[0].InitAsConstants(sizeof(DirectX::XMFLOAT3) / 4, 0, 0, D3D12_SHADER_VISIBILITY_PIXEL); // CamPos
     rootParameters[1].InitAsConstants(sizeof(DirectX::XMMATRIX) / 4, 1, 0, D3D12_SHADER_VISIBILITY_VERTEX); // M
     rootParameters[2].InitAsConstants(sizeof(DirectX::XMMATRIX) / 4, 2, 0, D3D12_SHADER_VISIBILITY_VERTEX); // V
     rootParameters[3].InitAsConstants(sizeof(DirectX::XMMATRIX) / 4, 3, 0, D3D12_SHADER_VISIBILITY_VERTEX); // P
-    rootParameters[4].InitAsDescriptorTable(1, &tex_table_cbv, D3D12_SHADER_VISIBILITY_PIXEL); // cbv
+    rootParameters[4].InitAsDescriptorTable(1, &tex_table_cbv, D3D12_SHADER_VISIBILITY_PIXEL); // model cbv
     rootParameters[5].InitAsDescriptorTable(1, &tex_table_srv, D3D12_SHADER_VISIBILITY_PIXEL); // Texture
+    rootParameters[6].InitAsDescriptorTable(1, &tex_table_cbv2, D3D12_SHADER_VISIBILITY_PIXEL); // scene cbv
     assert(_countof(rootParameters) == rootParameters_cnt);
 
     CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC rootSignatureDescription;
@@ -197,17 +200,20 @@ static Techniques::Technique CreateTechnique_1(ComPtr<ID3D12Device2> &device, st
 	tex_table_srv.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 2, 0);
     CD3DX12_DESCRIPTOR_RANGE1 tex_table_cbv;
     tex_table_cbv.Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 1, 4);
+    CD3DX12_DESCRIPTOR_RANGE1 tex_table_cbv2;
+    tex_table_cbv2.Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 2, 5);
 
     auto staticSamplers = GetStaticSamplers();
 
-    const uint32_t rootParameters_cnt = 6;
+    const uint32_t rootParameters_cnt = 7;
     CD3DX12_ROOT_PARAMETER1 rootParameters[rootParameters_cnt];
     rootParameters[0].InitAsConstants(sizeof(DirectX::XMFLOAT3) / 4, 0, 0, D3D12_SHADER_VISIBILITY_PIXEL); // CamPos
     rootParameters[1].InitAsConstants(sizeof(DirectX::XMMATRIX) / 4, 1, 0, D3D12_SHADER_VISIBILITY_VERTEX); // M
     rootParameters[2].InitAsConstants(sizeof(DirectX::XMMATRIX) / 4, 2, 0, D3D12_SHADER_VISIBILITY_VERTEX); // V
     rootParameters[3].InitAsConstants(sizeof(DirectX::XMMATRIX) / 4, 3, 0, D3D12_SHADER_VISIBILITY_VERTEX); // P
-    rootParameters[4].InitAsDescriptorTable(1, &tex_table_cbv, D3D12_SHADER_VISIBILITY_PIXEL); // cbv
+    rootParameters[4].InitAsDescriptorTable(1, &tex_table_cbv, D3D12_SHADER_VISIBILITY_PIXEL); // model cbv
     rootParameters[5].InitAsDescriptorTable(1, &tex_table_srv, D3D12_SHADER_VISIBILITY_PIXEL); // Texture
+    rootParameters[6].InitAsDescriptorTable(1, &tex_table_cbv2, D3D12_SHADER_VISIBILITY_PIXEL); // scene cbv
     assert(_countof(rootParameters) == rootParameters_cnt);
 
     CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC rootSignatureDescription;
@@ -470,4 +476,22 @@ void Techniques::OnInit(ComPtr<ID3D12Device2> &device, std::optional<std::wstrin
     m_techniques[id].id = id;
     id = m_techniques.push_back(CreateTechnique_3(device, dbg_name));
     m_techniques[id].id = id;
+}
+
+bool Techniques::TechHasColor(uint32_t tech_id) {
+    if (tech_id == 0) {
+        return true;
+    }
+    else {
+        return false;
+    }
+}
+
+bool Techniques::ShouldMapHead(uint32_t tech_id) {
+    if (tech_id == 0 || tech_id == 1) {
+        return true;
+    }
+    else {
+        return false;
+    }
 }

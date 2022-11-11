@@ -68,7 +68,8 @@ add_executable(DX12Lib WIN32 main.cpp
     Techniques.cpp
     RenderQuad.cpp
     RenderObject.cpp
-    GpuDataManager.cpp)
+    GpuDataManager.cpp
+    MaterialManager.cpp)
 
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})

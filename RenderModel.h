@@ -26,9 +26,12 @@ public:
     void SetTangents(std::vector<DirectX::XMFLOAT3> tangents, std::vector<DirectX::XMFLOAT3> bitangents);
     void SetTexture(TextureData * texture_data, TextureType type);
     void SetTechniqueId(uint32_t id) { m_tech_id = id; for(auto &child : m_children) child->SetTechniqueId(id); }
+    void SetColor(const DirectX::XMFLOAT3 &color) { m_color = color; for(auto &child : m_children) child->SetColor(color); }
+    void SetMaterial(uint32_t id) { m_material_id = id; m_dirty |= db_rt_cbv; for(auto &child : m_children) child->SetMaterial(id); }
 private:
     inline void FormVertexes();
     inline void LoadTextures(ComPtr<ID3D12GraphicsCommandList6> & commandList);
+    inline void LoadConstantData(ComPtr<ID3D12GraphicsCommandList6> &command_list);
 
     std::vector<DirectX::XMFLOAT3> m_normals;
     std::vector<DirectX::XMFLOAT3> m_tangents;
@@ -43,4 +46,5 @@ private:
     std::vector<RenderModel*> m_children;
     uint32_t m_tech_id{uint32_t(-1)};
     DirectX::XMFLOAT3 m_color{0.5f,0.3f,0.7f};
+    uint32_t m_material_id{0};
 };
