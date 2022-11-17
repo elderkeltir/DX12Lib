@@ -1,0 +1,20 @@
+#define LIGHTS_NUM 16
+#define MATERIALS_NUM 64
+static const float PI = 3.14159265359;
+
+struct Material {
+    float metal;
+    float rough;
+};
+
+struct CameraPos
+{
+    float3 vec;
+};
+
+SamplerState pointWrap  : register(s0);
+SamplerState pointClamp  : register(s1);
+SamplerState linearWrap  : register(s2);
+SamplerState linearClamp  : register(s3);
+SamplerState anisotropicWrap  : register(s4);
+SamplerState anisotropicClamp  : register(s5);

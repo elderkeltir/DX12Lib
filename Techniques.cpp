@@ -63,6 +63,7 @@ std::array<const CD3DX12_STATIC_SAMPLER_DESC, 6> GetStaticSamplers()
 }
 
 TODO("Minor. Implement PSO composition and serialization later. maybe.")
+// g-buffer color
 static Techniques::Technique CreateTechnique_0(ComPtr<ID3D12Device2> &device, std::optional<std::wstring> dbg_name = std::nullopt){
     Techniques::Technique tech;
     tech.vs = L"vertex_shader_0.hlsl";
@@ -94,7 +95,7 @@ static Techniques::Technique CreateTechnique_0(ComPtr<ID3D12Device2> &device, st
     CD3DX12_DESCRIPTOR_RANGE1 tex_table_cbv;
     tex_table_cbv.Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 1, 4);
     CD3DX12_DESCRIPTOR_RANGE1 tex_table_cbv2;
-    tex_table_cbv2.Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 2, 5);
+    tex_table_cbv2.Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 1, 5);
 
     auto staticSamplers = GetStaticSamplers();
 
@@ -136,8 +137,8 @@ static Techniques::Technique CreateTechnique_0(ComPtr<ID3D12Device2> &device, st
         CD3DX12_PIPELINE_STATE_STREAM_RENDER_TARGET_FORMATS RTVFormats;
     } pipelineStateStream;
 
-    D3D12_RT_FORMAT_ARRAY rtvFormats = {DXGI_FORMAT_R16G16B16A16_FLOAT, DXGI_FORMAT_R8G8B8A8_SNORM, DXGI_FORMAT_R16G16B16A16_FLOAT };
-    rtvFormats.NumRenderTargets = 3;
+    D3D12_RT_FORMAT_ARRAY rtvFormats = {DXGI_FORMAT_R16G16B16A16_FLOAT, DXGI_FORMAT_R8G8B8A8_SNORM, DXGI_FORMAT_R16G16B16A16_FLOAT, DXGI_FORMAT_R16G16B16A16_FLOAT };
+    rtvFormats.NumRenderTargets = 4;
 
     CD3DX12_SHADER_BYTECODE vs;
     CD3DX12_SHADER_BYTECODE ps;
@@ -167,7 +168,7 @@ static Techniques::Technique CreateTechnique_0(ComPtr<ID3D12Device2> &device, st
 
     return tech;
 }
-
+// g-buffer texture
 static Techniques::Technique CreateTechnique_1(ComPtr<ID3D12Device2> &device, std::optional<std::wstring> dbg_name = std::nullopt){
     Techniques::Technique tech;
     tech.vs = L"vertex_shader_1.hlsl";
@@ -201,7 +202,7 @@ static Techniques::Technique CreateTechnique_1(ComPtr<ID3D12Device2> &device, st
     CD3DX12_DESCRIPTOR_RANGE1 tex_table_cbv;
     tex_table_cbv.Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 1, 4);
     CD3DX12_DESCRIPTOR_RANGE1 tex_table_cbv2;
-    tex_table_cbv2.Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 2, 5);
+    tex_table_cbv2.Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 1, 5);
 
     auto staticSamplers = GetStaticSamplers();
 
@@ -243,8 +244,8 @@ static Techniques::Technique CreateTechnique_1(ComPtr<ID3D12Device2> &device, st
         CD3DX12_PIPELINE_STATE_STREAM_RENDER_TARGET_FORMATS RTVFormats;
     } pipelineStateStream;
 
-    D3D12_RT_FORMAT_ARRAY rtvFormats = {DXGI_FORMAT_R16G16B16A16_FLOAT, DXGI_FORMAT_R8G8B8A8_SNORM, DXGI_FORMAT_R16G16B16A16_FLOAT };
-    rtvFormats.NumRenderTargets = 3;
+    D3D12_RT_FORMAT_ARRAY rtvFormats = {DXGI_FORMAT_R16G16B16A16_FLOAT, DXGI_FORMAT_R8G8B8A8_SNORM, DXGI_FORMAT_R16G16B16A16_FLOAT, DXGI_FORMAT_R16G16B16A16_FLOAT };
+    rtvFormats.NumRenderTargets = 4;
 
     CD3DX12_SHADER_BYTECODE vs;
     CD3DX12_SHADER_BYTECODE ps;
@@ -273,7 +274,7 @@ static Techniques::Technique CreateTechnique_1(ComPtr<ID3D12Device2> &device, st
     SetName(tech.pipeline_state, dbg_name.value_or(L"").append(L"_pso_1").c_str());
     return tech;
 }
-
+// post-processing
 static Techniques::Technique CreateTechnique_2(ComPtr<ID3D12Device2> &device, std::optional<std::wstring> dbg_name = std::nullopt){
     Techniques::Technique tech;
     tech.vs = L"vertex_shader_2.hlsl";
@@ -369,7 +370,7 @@ static Techniques::Technique CreateTechnique_2(ComPtr<ID3D12Device2> &device, st
 
     return tech;
 }
-
+// def shading
 static Techniques::Technique CreateTechnique_3(ComPtr<ID3D12Device2> &device, std::optional<std::wstring> dbg_name = std::nullopt){
     Techniques::Technique tech;
     tech.vs = L"vertex_shader_2.hlsl";
@@ -397,14 +398,17 @@ static Techniques::Technique CreateTechnique_3(ComPtr<ID3D12Device2> &device, st
 
     // A single 32-bit constant root parameter that is used by the vertex shader.
     CD3DX12_DESCRIPTOR_RANGE1 texTable;
-	texTable.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 3, 0);
+	texTable.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 4, 0);
+    CD3DX12_DESCRIPTOR_RANGE1 tex_table_cbv2;
+    tex_table_cbv2.Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 1, 1);
 
     auto staticSamplers = GetStaticSamplers();
 
-    const uint32_t rootParameters_cnt = 2;
+    const uint32_t rootParameters_cnt = 3;
     CD3DX12_ROOT_PARAMETER1 rootParameters[rootParameters_cnt];
     rootParameters[0].InitAsConstants(sizeof(DirectX::XMFLOAT3) / 4, 0, 0, D3D12_SHADER_VISIBILITY_PIXEL); // CamPos
     rootParameters[1].InitAsDescriptorTable(1, &texTable, D3D12_SHADER_VISIBILITY_PIXEL); // Texture
+    rootParameters[2].InitAsDescriptorTable(1, &tex_table_cbv2, D3D12_SHADER_VISIBILITY_PIXEL); // scene cbv
     assert(_countof(rootParameters) == rootParameters_cnt);
 
     CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC rootSignatureDescription;

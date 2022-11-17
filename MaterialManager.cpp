@@ -1,6 +1,7 @@
 #include "MaterialManager.h"
 #include "DXAppImplementation.h"
 #include "GfxCommandQueue.h"
+#include "ResourceDescriptor.h"
 
 extern DXAppImplementation *gD3DApp;
 
@@ -30,5 +31,9 @@ void MaterialManager::SyncGpuData(ComPtr<ID3D12GraphicsCommandList6>& command_li
     }
     if (std::shared_ptr<GfxCommandQueue> queue = gD3DApp->GetGfxQueue().lock()){
         queue->ResourceBarrier(*m_materials_res.get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER);
+    }
+
+    if (std::shared_ptr<ResourceDescriptor> srv = m_materials_res->GetCBV().lock()){
+        command_list->SetGraphicsRootDescriptorTable(6, srv->GetGPUhandle());
     }
 }

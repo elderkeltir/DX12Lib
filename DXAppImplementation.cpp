@@ -242,7 +242,7 @@ void DXAppImplementation::OnRender()
     // Clear rt and set proper state
     BEGIN_EVENT(command_list, "G-Buffer");
     {
-        std::vector<DXGI_FORMAT> formats = { DXGI_FORMAT_R16G16B16A16_FLOAT, DXGI_FORMAT_R8G8B8A8_SNORM, DXGI_FORMAT_R16G16B16A16_FLOAT };
+        std::vector<DXGI_FORMAT> formats = { DXGI_FORMAT_R16G16B16A16_FLOAT, DXGI_FORMAT_R8G8B8A8_SNORM, DXGI_FORMAT_R16G16B16A16_FLOAT, DXGI_FORMAT_R16G16B16A16_FLOAT };
         m_deferred_shading_quad->CreateQuadTexture(m_width, m_height, formats, FrameCount, L"m_deferred_shading_quad_");
         std::vector<std::shared_ptr<GpuResource>>& rts = m_deferred_shading_quad->GetRts(m_frameIndex);
         for (uint32_t i = 0; i < rts.size(); i++){
@@ -403,6 +403,7 @@ void DXAppImplementation::RenderDeferredShadingQuad(ComPtr<ID3D12GraphicsCommand
         cam_pos = camera->GetPosition();
         gD3DApp->SetVector3Constant(Constants::cCP, cam_pos, command_list);
     }
+    m_level->BindLights(command_list);
     m_deferred_shading_quad->SetSrv(command_list, m_frameIndex, 1);
     
     m_deferred_shading_quad->Render(command_list);

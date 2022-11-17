@@ -1,3 +1,5 @@
+#include "shader_defs.ihlsl"
+
 struct PixelShaderInput
 {
     float4 Color    : COLOR;
@@ -5,29 +7,23 @@ struct PixelShaderInput
     float4 WorldPos : POSITION;
 };
 
-struct CameraPos
-{
-    float3 vec;
-};
-
-struct Light
-{
-    float3 Color;
-    float FalloffStart; // point/spot light only
-    float3 Direction;   // directional/spot light only
-    float FalloffEnd;   // point/spot light only
-    float3 Position;    // point light only
-    float SpotPower;    // spot light only
-};
-
 struct ps_output
 {
 	float4 albedo : SV_TARGET0;
 	float4 normal : SV_TARGET1;
 	float4 pos : SV_TARGET2;
+    float4 material : SV_TARGET3;
 };
 
-ConstantBuffer<CameraPos> CamPos : register(b0);
+cbuffer Model_cb : register(b4)
+{
+    uint material_id;
+};
+
+cbuffer materials_cb : register(b5)
+{
+    Material materials[MATERIALS_NUM];
+}
  
 ps_output main( PixelShaderInput IN )
 {
@@ -37,6 +33,7 @@ ps_output main( PixelShaderInput IN )
     // normal mapping
     output.normal = IN.Normal;
     output.pos = IN.WorldPos;
+    output.material = float4(materials[material_id].metal, materials[material_id].rough, material_id, 0);
 
     return output;
 }

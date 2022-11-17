@@ -214,7 +214,7 @@ void RenderModel::LoadConstantData(ComPtr<ID3D12GraphicsCommandList6> &command_l
     if (m_dirty & db_rt_cbv){
         m_constant_buffer = std::make_unique<GpuResource>();
         uint32_t cb_size = (sizeof(uint32_t) + 255) & ~255;
-        m_constant_buffer->CreateBuffer(HeapBuffer::BufferType::bt_default, cb_size, HeapBuffer::UseFlag::uf_none, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER, std::wstring(L"lights_buffer_").append(m_name));
+        m_constant_buffer->CreateBuffer(HeapBuffer::BufferType::bt_default, cb_size, HeapBuffer::UseFlag::uf_none, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER, std::wstring(L"models_cbv_").append(m_name));
         D3D12_CONSTANT_BUFFER_VIEW_DESC desc;
         desc.SizeInBytes = cb_size;
         m_constant_buffer->Create_CBV(desc);

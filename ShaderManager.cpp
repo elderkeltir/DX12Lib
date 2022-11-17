@@ -3,6 +3,8 @@
 #include "DXAppImplementation.h"
 #include "DXHelper.h"
 
+#include <unordered_set>
+
 extern DXAppImplementation *gD3DApp;
 
 const wchar_t *targets[] = {
@@ -78,6 +80,8 @@ ShaderManager::ShaderBlob* ShaderManager::Load(const std::wstring &name, const s
 #else
         L"-O3",                         // Default optimization level in release
 #endif // _DEBUG
+        L"-I ..\\content\\shaders",                  // include dirs
+        L"-Vi",                         // Display details about the include process
         L"-Zs",                         // Enable debug information (slim format)
         L"-D", L"MYDEFINE=1",           // A single define.
         L"-Fo", bin_name.c_str(),       // Optional. Stored in the pdb. 

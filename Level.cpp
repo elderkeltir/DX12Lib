@@ -98,14 +98,28 @@ void Level::Load(const std::wstring &name){
         const LevelLight::LightType ltype = static_cast<LevelLight::LightType>(light["type"].GetInt());
 
         if (ltype == LevelLight::LightType::lt_direct){
-            // const Value& light_pos = light["pos"]; NOT FOR DIRECTION LIGHT
             const Value& light_dir = light["dir"];
             const Value& light_color = light["color"];
-            // const DirectX::XMFLOAT3 pos(light_pos[0].GetFloat(), light_pos[1].GetFloat(), light_pos[2].GetFloat());
             const DirectX::XMFLOAT3 dir(light_dir[0].GetFloat(), light_dir[1].GetFloat(), light_dir[2].GetFloat());
             const DirectX::XMFLOAT3 color(light_color[0].GetFloat(), light_color[1].GetFloat(), light_color[2].GetFloat());
 
-            const LevelLight level_light{ dir, color, ltype };
+            LevelLight level_light;
+            level_light.type = ltype;
+            level_light.color = color;
+            level_light.dir = dir;
+            uint32_t id = m_lights.push_back(level_light);
+            m_lights[id].id = id;
+        }
+        else if (ltype == LevelLight::LightType::lt_point){
+            const Value& light_pos = light["pos"];
+            const Value& light_color = light["color"];
+            const DirectX::XMFLOAT3 pos(light_pos[0].GetFloat(), light_pos[1].GetFloat(), light_pos[2].GetFloat());
+            const DirectX::XMFLOAT3 color(light_color[0].GetFloat(), light_color[1].GetFloat(), light_color[2].GetFloat());
+
+            LevelLight level_light;
+            level_light.type = ltype;
+            level_light.color = color;
+            level_light.pos = pos;
             uint32_t id = m_lights.push_back(level_light);
             m_lights[id].id = id;
         }
@@ -149,24 +163,9 @@ void Level::Render(ComPtr<ID3D12GraphicsCommandList6>& command_list){
                 command_list->SetDescriptorHeaps(_countof(descriptorHeaps), descriptorHeaps);
             }
 
-            // update CBs
-            if (std::shared_ptr<HeapBuffer> buff = m_lights_res->GetBuffer().lock()){
-                if (std::shared_ptr<GfxCommandQueue> queue = gD3DApp->GetGfxQueue().lock()){
-                    queue->ResourceBarrier(*m_lights_res.get(), D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER, D3D12_RESOURCE_STATE_COPY_DEST);
-                }
-                uint32_t cb_size = (lights_num * sizeof(LevelLight) + 255) & ~255;
-                buff->Load(command_list, 1, cb_size, m_lights.data());
-                if (std::shared_ptr<GfxCommandQueue> queue = gD3DApp->GetGfxQueue().lock()){
-                    queue->ResourceBarrier(*m_lights_res.get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER);
-                }
-            }
-
+            // update material CBs
             if (std::shared_ptr<MaterialManager> mat_mgr = gD3DApp->GetMaterialManager().lock()){
                 mat_mgr->SyncGpuData(command_list);
-            }
-
-            if (std::shared_ptr<ResourceDescriptor> srv = m_lights_res->GetCBV().lock()){
-                command_list->SetGraphicsRootDescriptorTable(6, srv->GetGPUhandle());
             }
         }
 
@@ -181,6 +180,23 @@ void Level::Render(ComPtr<ID3D12GraphicsCommandList6>& command_list){
         }
 
         ent.Render(command_list);
+    }
+}
+
+void Level::BindLights(ComPtr<ID3D12GraphicsCommandList6>& command_list){
+    if (std::shared_ptr<HeapBuffer> buff = m_lights_res->GetBuffer().lock()){
+        if (std::shared_ptr<GfxCommandQueue> queue = gD3DApp->GetGfxQueue().lock()){
+            queue->ResourceBarrier(*m_lights_res.get(), D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER, D3D12_RESOURCE_STATE_COPY_DEST);
+        }
+        uint32_t cb_size = (lights_num * sizeof(LevelLight) + 255) & ~255;
+        buff->Load(command_list, 1, cb_size, m_lights.data());
+        if (std::shared_ptr<GfxCommandQueue> queue = gD3DApp->GetGfxQueue().lock()){
+            queue->ResourceBarrier(*m_lights_res.get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER);
+        }
+    }
+
+    if (std::shared_ptr<ResourceDescriptor> srv = m_lights_res->GetCBV().lock()){
+        command_list->SetGraphicsRootDescriptorTable(2, srv->GetGPUhandle());
     }
 }
 

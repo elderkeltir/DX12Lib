@@ -1,50 +1,43 @@
+#include "shader_defs.ihlsl"
+
 struct PixelShaderInput
 {
     float2 TexC : TEXCOORD;
 };
 
+// struct Light
+// {
+//     float3 Color;
+//     float FalloffStart; // point/spot light only
+//     float3 Direction;   // directional/spot light only
+//     float FalloffEnd;   // point/spot light only
+//     float3 Position;    // point light only
+//     float SpotPower;    // spot light only
+// };
+
 struct Light
 {
+    uint type;
+    float3 Position;
+    float3 Direction;
     float3 Color;
-    float FalloffStart; // point/spot light only
-    float3 Direction;   // directional/spot light only
-    float FalloffEnd;   // point/spot light only
-    float3 Position;    // point light only
-    float SpotPower;    // spot light only
 };
 
-struct CameraPos
+cbuffer lights_cb : register(b1)
 {
-    float3 vec;
-};
+    Light lights[LIGHTS_NUM];
+}
 
 ConstantBuffer<CameraPos> CamPos : register(b0);
 
 Texture2D    albedo_tx : register(t0);
 Texture2D    normals : register(t1);
 Texture2D    positions : register(t2);
+Texture2D    material : register(t3);
 
-SamplerState pointWrap  : register(s0);
-SamplerState pointClamp  : register(s1);
-SamplerState linearWrap  : register(s2);
-SamplerState linearClamp  : register(s3);
-SamplerState anisotropicWrap  : register(s4);
-SamplerState anisotropicClamp  : register(s5);
+
  
-
- // material parameters
-// const float3  albedo = float3(0.2, );
-static float metallic = 0.8;
-static float roughness = 0.2;
 static float ao = 1;
-
-// lights
-// uniform float3 lightPositions[4];
-// uniform float3 lightColors[4];
-
-// uniform float3 camPos;
-
-static float PI = 3.14159265359;
   
 float DistributionGGX(float3 N, float3 H, float roughness);
 float GeometrySchlickGGX(float NdotV, float roughness);
@@ -53,12 +46,16 @@ float3 fresnelSchlick(float cosTheta, float3 F0);
 
 float4 main(PixelShaderInput IN ) : SV_Target
 {
+    //
+    float metallic = material.Sample(linearClamp, IN.TexC).x;
+    float roughness = material.Sample(linearClamp, IN.TexC).y;
+
     // hard coded values
-    Light light;
-    light.Color = float3(0.4, 0.4, 0.4);
-    light.Color = light.Color * 2;
-    light.Position = float3(0, 10, 0.4);
-    light.Direction = normalize(float3(-1, -1, 1));
+    Light light = lights[0];
+    // light.Color = float3(0.4, 0.4, 0.4);
+    // light.Color = light.Color * 2;
+    // light.Position = float3(0, 10, 0.4);
+    // light.Direction = normalize(float3(-1, -1, 1));
 
     float3 albedo = albedo_tx.Sample(linearClamp, IN.TexC).xyz;
     float3 WorldPos = positions.Sample(linearClamp, IN.TexC).xyz;
