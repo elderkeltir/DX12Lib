@@ -7,6 +7,7 @@
 #include <string>
 #include <memory>
 #include "TextureData.h"
+#include "RenderMesh.h"
 
 using Microsoft::WRL::ComPtr;
 
@@ -21,23 +22,10 @@ public:
     virtual uint32_t GetId() const { return m_id; }
     virtual void SetName(const std::wstring &name) { m_name = name; }
     virtual const std::wstring& GetName() const { return m_name; }
-    virtual void Initialized() { m_is_initialized = true; }
+    virtual void Initialized() { m_is_initialized = true; m_dirty |= db_vertex; m_dirty |= db_index; }
     virtual bool IsInitialized() const { return m_is_initialized; }
-    virtual void SetVertices(std::vector<DirectX::XMFLOAT3> vertices) {
-        m_vertices.swap(vertices);
-        m_dirty |= db_vertex;
-    }
-
-    virtual void SetIndices(std::vector<uint16_t> indices) {
-        m_dirty |= db_index;
-        m_indices.swap(indices);
-    }
-
-    virtual void SetTextureCoords(std::vector<DirectX::XMFLOAT2> textCoords) {
-        m_textCoords.swap(textCoords);
-    }
-
     virtual void LoadDataToGpu(ComPtr<ID3D12GraphicsCommandList6> &commandList) = 0;
+    virtual void SetMesh(RenderMesh * mesh) { m_mesh = mesh; }
 
 protected:
     virtual void LoadVertexDataOnGpu(ComPtr<ID3D12GraphicsCommandList6> &commandList, const void* data, uint32_t size_of_vertex, uint32_t vertex_count);
@@ -55,21 +43,19 @@ protected:
         db_rt_cbv       = 1<< 6
     };
 
-    std::vector<DirectX::XMFLOAT3> m_vertices;
-    std::vector<uint16_t> m_indices;
-    std::vector<DirectX::XMFLOAT2> m_textCoords;
+    RenderMesh* m_mesh {nullptr};
+
+    uint64_t m_vertex_buffer_start{0};
+    uint32_t m_vertex_buffer_size{0};
 
     std::unique_ptr<GpuResource> m_VertexBuffer;
     std::unique_ptr<GpuResource> m_IndexBuffer;
     std::unique_ptr<GpuResource> m_diffuse_tex;
-
-    uint64_t m_vertex_buffer_start{0};
-    uint32_t m_vertex_buffer_size{0};
 
     std::wstring m_name;
     uint32_t m_id{uint32_t(-1)};
     bool m_is_initialized{false};
     uint8_t m_dirty{0};
 private:
-        void DeallocateVertexBuffer();
+    void DeallocateVertexBuffer();
 };

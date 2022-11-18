@@ -9,6 +9,11 @@ using Microsoft::WRL::ComPtr;
 #define TODO(x) __pragma(message("TODO: "_STR(x) "::" __FILE__ ":" STR(__LINE__)))
 #define CHECK(x) __pragma(message("CHECK: "_STR(x) "::" __FILE__ ":" STR(__LINE__)))
 
+inline bool cmpf(float A, float B, float epsilon = 0.00001f)
+{
+    return (fabs(A - B) < epsilon);
+}
+
 inline std::string HrToString(HRESULT hr)
 {
     char s_str[64] = {};

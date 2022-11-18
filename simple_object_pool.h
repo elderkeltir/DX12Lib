@@ -16,7 +16,7 @@ namespace pro_game_containers {
         }
         uint32_t push_back(T element) {
             const uint32_t idx = GetNextFree(m_last_occupied);
-            m_pool[idx] = element;
+            m_pool[idx] = std::move(element);
             return m_size++;
         }
         uint32_t push_back() {

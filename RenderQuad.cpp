@@ -2,6 +2,12 @@
 #include "GpuResource.h"
 #include "ResourceDescriptor.h"
 #include "DXHelper.h"
+#include "FileManager.h"
+#include "DXAppImplementation.h"
+#include "DXHelper.h"
+#include "RenderMesh.h"
+
+extern DXAppImplementation *gD3DApp;
 
 static const uint32_t vert_num = 4;
 
@@ -12,28 +18,9 @@ struct Vertex
 };
 
 void RenderQuad::Initialize() {
-    std::vector<DirectX::XMFLOAT3> vertices;
-    vertices.push_back(DirectX::XMFLOAT3(-1.0f, -1.0f, 0.0f));
-    vertices.push_back(DirectX::XMFLOAT3(-1.0f, 1.0f, 0.0f));
-    vertices.push_back(DirectX::XMFLOAT3(1.0f, 1.0f, 0.0f));
-    vertices.push_back(DirectX::XMFLOAT3(1.0f, -1.0f, 0.0f));
-    SetVertices(vertices);
-
-    std::vector<DirectX::XMFLOAT2> tex_coords;
-    tex_coords.push_back(DirectX::XMFLOAT2(0.0f, 1.0f));
-    tex_coords.push_back(DirectX::XMFLOAT2(0.0f, 0.0f));
-    tex_coords.push_back(DirectX::XMFLOAT2(1.0f, 0.0f));
-    tex_coords.push_back(DirectX::XMFLOAT2(1.0f, 1.0f));
-    SetTextureCoords(tex_coords);
-
-    std::vector<uint16_t> indices;
-    indices.push_back(0);
-    indices.push_back(1);
-    indices.push_back(2);
-    indices.push_back(0);
-    indices.push_back(2);
-    indices.push_back(3);
-    SetIndices(indices);
+    if (std::shared_ptr<FileManager> fileMgr = gD3DApp->GetFileManager().lock()){
+        fileMgr->LoadQuad(this);
+    }
 
     m_dirty |= db_rt_tx;
 
@@ -47,7 +34,7 @@ void RenderQuad::FormVertex() {
     Vertex* vertex_data_buffer = (Vertex*) m_vertex_buffer_start;
 
     for (uint32_t i = 0; i < vert_num; i++){
-        vertex_data_buffer[i] = Vertex{m_vertices.at(i), m_textCoords.at(i)};
+        vertex_data_buffer[i] = Vertex{ m_mesh->GetVertex(i), m_mesh->GetTexCoord(i) };
     }
 }
 
@@ -98,7 +85,7 @@ std::weak_ptr<GpuResource> RenderQuad::GetRt(uint32_t set_idx, uint32_t idx_in_s
 }
 
 void RenderQuad::Render(ComPtr<ID3D12GraphicsCommandList6> &command_list) {
-    if (!m_indices.empty()){
+    if (m_mesh->GetIndicesNum() > 0){
         if (std::shared_ptr<D3D12_VERTEX_BUFFER_VIEW> vert_view = m_VertexBuffer->Get_Vertex_View().lock()){
             command_list->IASetVertexBuffers(0, 1, vert_view.get());
         }
@@ -114,6 +101,6 @@ void RenderQuad::Render(ComPtr<ID3D12GraphicsCommandList6> &command_list) {
         }
         command_list->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
         
-        command_list->DrawIndexedInstanced((UINT)m_indices.size(), 1, 0, 0, 0);
+        command_list->DrawIndexedInstanced((UINT)m_mesh->GetIndicesNum(), 1, 0, 0, 0);
     }
 }

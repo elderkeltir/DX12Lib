@@ -14,6 +14,7 @@
 #include <assimp/postprocess.h>     // Post processing flags
 
 #include "RenderModel.h"
+#include "RenderQuad.h"
 #include "DXAppImplementation.h"
 #include "DXHelper.h"
 
@@ -28,14 +29,25 @@ static const aiMatrix4x4 identity_mx(
 
 static constexpr uint32_t NO_MESH_IDX = (uint32_t)(-1);
 
-RenderModel* FileManager::LoadModel(const std::wstring &name){
-	const auto it = std::find_if(m_load_meshes.begin(), m_load_meshes.end(), [&name](RenderModel &mesh){ return (mesh.GetName() == name); });
+bool FileManager::AllocMesh(const std::wstring &name, RenderMesh* &mesh){
+	const auto it = std::find_if(m_load_meshes.begin(), m_load_meshes.end(), [&name](RenderMesh &mesh){ return (mesh.GetName() == name); });
 	if (it != m_load_meshes.end()){
-		return &(*it);
+		mesh = &(*it);
+
+		return false;
 	}
 	else {
-		return LoadModelInternal(name);
+		const uint32_t idx = m_load_meshes.push_back(); 
+		m_load_meshes[idx].SetId(idx); 
+		mesh = &(m_load_meshes[idx]);
+		mesh->SetName(name);
+
+		return true;
 	}
+}
+
+RenderModel* FileManager::LoadModel(const std::wstring &name){
+	return LoadModelInternal(name);
 }
 
 void FileManager::SetupModelRoot(const aiScene* scene, RenderModel* curr_model){
@@ -51,17 +63,20 @@ void FileManager::TraverseMeshes(const aiScene* scene, aiNode* rootNode, const a
 	aiMatrix4x4 trans_for_children(identity_mx);
 	if (rootNode->mNumMeshes)
 	{
-		RenderModel * curr_model = nullptr;
+		RenderModel* curr_model = nullptr;
 		for (uint32_t i = 0; i < rootNode->mNumMeshes; i++){
 			uint32_t meshesIdx = rootNode->mMeshes[i];
-			curr_model = AllocModel();
+
+			uint32_t id = m_load_models.push_back();
+			curr_model = &m_load_models[id];
+
 			const std::wstring curr_name(&rootNode->mName.C_Str()[0], &rootNode->mName.C_Str()[strlen(rootNode->mName.C_Str())]);
 			curr_model->SetName(curr_name);
 			const aiMatrix4x4 model_xform = (rootNode->mTransformation * parent_trans);
 			InitializeModel(scene, rootNode, meshesIdx, model_xform, curr_model);
 			parent_model->AddChild(curr_model);
 		}
-		parent_model = curr_model ? curr_model : parent_model;
+		parent_model = curr_model;
 		assert(parent_model);
 	}
 	else {
@@ -78,9 +93,7 @@ void FileManager::TraverseMeshes(const aiScene* scene, aiNode* rootNode, const a
 }
 
 FileManager::FileManager() : 
-	m_modelImporter(std::make_unique<Assimp::Importer>()),
-	m_vertex_buffer(1024 * 1024),
-	m_index_buffer(1024 * 1024)
+	m_modelImporter(std::make_unique<Assimp::Importer>())
 {
 	m_model_dir = gD3DApp->GetRootDir() / L"content" / L"models";
 	m_texture_dir = gD3DApp->GetRootDir() / L"content" / L"textures";
@@ -133,59 +146,81 @@ void FileManager::InitializeModel(const aiScene* scene, const aiNode* rootNode, 
 		// mesh
 		if (meshesIdx != NO_MESH_IDX)
 		{
-			uint32_t i = 0;
 			aiMesh *mesh = scene->mMeshes[meshesIdx];
+			uint32_t i = 0;
 			uint32_t verticesNum = mesh->mNumVertices;
 			uint32_t indicesNum = mesh->mNumFaces * 3;
-			std::vector<DirectX::XMFLOAT3> vertices(verticesNum);
+
 			std::vector<DirectX::XMFLOAT3> normals(verticesNum);
 			std::vector<DirectX::XMFLOAT3> tangents(verticesNum);
 			std::vector<DirectX::XMFLOAT3> bitangents(verticesNum);
-			std::vector<uint16_t> indices(indicesNum);
 
-			for (i = 0; i < verticesNum; i++)
-			{
-				vertices[i].x = mesh->mVertices[i].x;
-				vertices[i].y = mesh->mVertices[i].y;
-				vertices[i].z = mesh->mVertices[i].z;
-			}
-			outModel->SetVertices(std::move(vertices));
+			RenderMesh* r_mesh = nullptr;
+			if (AllocMesh(outModel->GetName(), r_mesh)) {
+				std::vector<DirectX::XMFLOAT3> vertices(verticesNum);
 
-			for (uint32_t j = 0, i = 0; i < (uint32_t)mesh->mNumFaces; i++)
-			{
-				indices[j++] = mesh->mFaces[i].mIndices[0];
-				indices[j++] = mesh->mFaces[i].mIndices[1];
-				indices[j++] = mesh->mFaces[i].mIndices[2];
-			}
-			outModel->SetIndices(std::move(indices));
+				std::vector<uint16_t> indices(indicesNum);
 
-			if (mesh->HasNormals())
-			{
 				for (i = 0; i < verticesNum; i++)
 				{
-					normals[i].x = mesh->mNormals[i].x;
-					normals[i].y = mesh->mNormals[i].y;
-					normals[i].z = mesh->mNormals[i].z;
+					vertices[i].x = mesh->mVertices[i].x;
+					vertices[i].y = mesh->mVertices[i].y;
+					vertices[i].z = mesh->mVertices[i].z;
+				}
+				r_mesh->SetVertices(std::move(vertices));
+
+				for (uint32_t j = 0, i = 0; i < (uint32_t)mesh->mNumFaces; i++)
+				{
+					indices[j++] = mesh->mFaces[i].mIndices[0];
+					indices[j++] = mesh->mFaces[i].mIndices[1];
+					indices[j++] = mesh->mFaces[i].mIndices[2];
+				}
+				r_mesh->SetIndices(std::move(indices));
+
+				// texture coords
+				if (mesh->mTextureCoords)
+				{
+					std::vector<DirectX::XMFLOAT2> textCoords_(mesh->mNumVertices);
+
+					for (uint32_t k = 0; k < mesh->mNumVertices; k++)
+					{
+						textCoords_[k].x = mesh->mTextureCoords[0][k].x;
+						textCoords_[k].y = mesh->mTextureCoords[0][k].y;
+					}
+
+					r_mesh->SetTextureCoords(std::move(textCoords_));
+				}
+
+				if (mesh->HasNormals())
+				{
+					for (i = 0; i < verticesNum; i++)
+					{
+						normals[i].x = mesh->mNormals[i].x;
+						normals[i].y = mesh->mNormals[i].y;
+						normals[i].z = mesh->mNormals[i].z;
+
+						if (mesh->HasTangentsAndBitangents())
+						{
+							tangents[i].x = mesh->mTangents[i].x;
+							tangents[i].y = mesh->mTangents[i].y;
+							tangents[i].z = mesh->mTangents[i].z;
+
+							bitangents[i].x = mesh->mBitangents[i].x;
+							bitangents[i].y = mesh->mBitangents[i].y;
+							bitangents[i].z = mesh->mBitangents[i].z;
+						}
+					}
+
+					r_mesh->SetNormals(std::move(normals));
 
 					if (mesh->HasTangentsAndBitangents())
 					{
-						tangents[i].x = mesh->mTangents[i].x;
-						tangents[i].y = mesh->mTangents[i].y;
-						tangents[i].z = mesh->mTangents[i].z;
-
-						bitangents[i].x = mesh->mBitangents[i].x;
-						bitangents[i].y = mesh->mBitangents[i].y;
-						bitangents[i].z = mesh->mBitangents[i].z;
+						r_mesh->SetTangents(std::move(tangents), std::move(bitangents));
 					}
 				}
-
-				outModel->SetNormals(std::move(normals));
-
-				if (mesh->HasTangentsAndBitangents())
-				{
-					outModel->SetTangents(std::move(tangents), std::move(bitangents));
-				}
 			}
+
+			outModel->SetMesh(r_mesh);
 
 			// materials, textures
 			if (scene->mNumMaterials)
@@ -274,23 +309,8 @@ void FileManager::InitializeModel(const aiScene* scene, const aiNode* rootNode, 
 						}
 					}
 				}
-
-				// texture coords
-				if (mesh->mTextureCoords)
-				{
-					std::vector<DirectX::XMFLOAT2> textCoords_(mesh->mNumVertices);
-
-					for (uint32_t k = 0; k < mesh->mNumVertices; k++)
-					{
-						textCoords_[k].x = mesh->mTextureCoords[0][k].x;
-						textCoords_[k].y = mesh->mTextureCoords[0][k].y;
-					}
-
-					outModel->SetTextureCoords(std::move(textCoords_));
-				}
 			}
 		}
-
 		outModel->Initialized();
 	}
 }
@@ -300,7 +320,8 @@ const std::filesystem::path& FileManager::GetModelDir() const{
 }
 
 RenderModel* FileManager::LoadModelInternal(const std::wstring &name){
-	RenderModel* new_model = AllocModel();
+	uint32_t idx = m_load_models.push_back();
+	RenderModel *new_model = &m_load_models[idx];
 	uint32_t cnt = 0;
 	ReadModelFromFBX(name, 0, new_model);
 	assert(new_model->IsInitialized());
@@ -342,4 +363,34 @@ TextureData* FileManager::LoadTexture(const std::wstring &name, uint32_t type){
 
 		return texture;
 	}
+}
+
+void FileManager::LoadQuad(RenderQuad* quad) {
+	RenderMesh* mesh = nullptr;
+	if (AllocMesh(L"RenderQuad", mesh)) {
+		std::vector<DirectX::XMFLOAT3> vertices;
+		vertices.push_back(DirectX::XMFLOAT3(-1.0f, -1.0f, 0.0f));
+		vertices.push_back(DirectX::XMFLOAT3(-1.0f, 1.0f, 0.0f));
+		vertices.push_back(DirectX::XMFLOAT3(1.0f, 1.0f, 0.0f));
+		vertices.push_back(DirectX::XMFLOAT3(1.0f, -1.0f, 0.0f));
+		mesh->SetVertices(vertices);
+
+		std::vector<DirectX::XMFLOAT2> tex_coords;
+		tex_coords.push_back(DirectX::XMFLOAT2(0.0f, 1.0f));
+		tex_coords.push_back(DirectX::XMFLOAT2(0.0f, 0.0f));
+		tex_coords.push_back(DirectX::XMFLOAT2(1.0f, 0.0f));
+		tex_coords.push_back(DirectX::XMFLOAT2(1.0f, 1.0f));
+		mesh->SetTextureCoords(tex_coords);
+
+		std::vector<uint16_t> indices;
+		indices.push_back(0);
+		indices.push_back(1);
+		indices.push_back(2);
+		indices.push_back(0);
+		indices.push_back(2);
+		indices.push_back(3);
+		mesh->SetIndices(indices);
+	}
+
+	quad->SetMesh(mesh);
 }

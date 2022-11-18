@@ -3,3 +3,6 @@ Usually all of the SRV’s for the textures are bound in a contiguous block of G
 Another issue is that only a single descriptor heap of the same type (CBV_SRV_UAV, or SAMPLER) can be bound on the command list at any moment. So all GPU visible descriptors must come from a single descriptor heap (the descriptor heaps can only be changed between Draw or Dispatch calls)! 
 
 Yet another issue arises since descriptors cannot be reused until the command list that is using them has completed executing on the GPU. So how do you know how many GPU visible descriptors need to be allocated up-front? 
+
+
+have to 

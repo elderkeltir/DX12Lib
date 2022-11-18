@@ -2,12 +2,19 @@
 #include "DXAppImplementation.h"
 #include "GfxCommandQueue.h"
 #include "ResourceDescriptor.h"
+#include "DXHelper.h"
 
 extern DXAppImplementation *gD3DApp;
 
 MaterialManager::~MaterialManager() = default;
 
 uint32_t MaterialManager::CreateMaterial(float metallic, float roughness) {
+    for (uint32_t i = 0; i < m_materials.size(); i++){
+        if (cmpf(metallic, m_materials[i].metallic) && cmpf(roughness, m_materials[i].roughness)){
+            return i;
+        }
+    }
+
     Material m{ metallic, roughness };
     return m_materials.push_back(m);
 }

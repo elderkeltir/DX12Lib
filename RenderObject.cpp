@@ -25,12 +25,12 @@ void RenderObject::LoadVertexDataOnGpu(ComPtr<ID3D12GraphicsCommandList6> &comma
 void RenderObject::LoadIndexDataOnGpu(ComPtr<ID3D12GraphicsCommandList6> &commandList){
     if (m_dirty & db_index){
         m_IndexBuffer = std::make_unique<GpuResource>();
-        m_IndexBuffer->CreateBuffer(HeapBuffer::BufferType::bt_default, ((uint32_t)m_indices.size() * sizeof(uint16_t)), HeapBuffer::UseFlag::uf_none, D3D12_RESOURCE_STATE_COPY_DEST, std::wstring(L"index_buffer").append(m_name));
-        m_IndexBuffer->LoadBuffer(commandList, (uint32_t)m_indices.size(), sizeof(uint16_t), m_indices.data());
+        m_IndexBuffer->CreateBuffer(HeapBuffer::BufferType::bt_default, (m_mesh->GetIndicesNum() * sizeof(uint16_t)), HeapBuffer::UseFlag::uf_none, D3D12_RESOURCE_STATE_COPY_DEST, std::wstring(L"index_buffer").append(m_name));
+        m_IndexBuffer->LoadBuffer(commandList, m_mesh->GetIndicesNum(), sizeof(uint16_t), m_mesh->GetIndicesData());
         if (std::shared_ptr<HeapBuffer> buff = m_IndexBuffer->GetBuffer().lock()){
             commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(buff->GetResource().Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_INDEX_BUFFER));
         }
-        m_IndexBuffer->Create_Index_View(DXGI_FORMAT_R16_UINT, ((uint32_t)m_indices.size() * sizeof(uint16_t)));
+        m_IndexBuffer->Create_Index_View(DXGI_FORMAT_R16_UINT, (m_mesh->GetIndicesNum() * sizeof(uint16_t)));
         m_dirty &= (~db_index);
     }
 }
