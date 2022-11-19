@@ -17,11 +17,12 @@ public:
     struct LevelLight {
         LevelLight() : type(LightType::lt_none) {}
         
-        enum class LightType { lt_none = 0, lt_ambient, lt_direct, lt_point, lt_spot } type;
         DirectX::XMFLOAT3 pos;
+        enum class LightType { lt_none = 0, lt_ambient, lt_direct, lt_point, lt_spot } type;
         DirectX::XMFLOAT3 dir;
-        DirectX::XMFLOAT3 color;
         uint32_t id;
+        DirectX::XMFLOAT3 color;
+        uint32_t padding;
     };
 public:
     Level();
@@ -34,8 +35,6 @@ public:
     std::weak_ptr<FreeCamera> GetCamera() { return m_camera; }
     const std::filesystem::path& GetLevelsDir() const;
     const std::filesystem::path& GetEntitiesDir() const;
-    // LevelEntity& GetEntityById(uint32_t id) { return m_entites[id]; }
-    // uint32_t GetEntityCount() const { return m_entites.size(); }
 
 private:
     static const uint32_t lights_num = 16;

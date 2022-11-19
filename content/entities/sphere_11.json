@@ -5,6 +5,6 @@
     "material":
     {
         "metallic": 0.6,
-        "roughness": 0.4
+        "roughness": 0.8
     }
 }

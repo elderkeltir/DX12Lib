@@ -4,7 +4,7 @@
     "color": [1, 0, 0],
     "material":
     {
-        "metallic": 0.6,
+        "metallic": 0.2,
         "roughness": 0.6
     }
 }

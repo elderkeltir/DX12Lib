@@ -11,6 +11,8 @@ public:
     struct Material {
         float metallic;
         float roughness;
+        float padding1;
+        float padding2;
     };
 public:
     ~MaterialManager();

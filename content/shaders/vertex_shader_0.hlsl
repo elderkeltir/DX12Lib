@@ -28,7 +28,7 @@ VertexShaderOutput main(VertexPosColor IN)
     matrix MVP = mul(ProjectionCB.mx, ViewCB.mx);
     MVP = mul(MVP, ModelCB.mx);
     OUT.Position = mul(MVP, float4(IN.Position, 1.0f));
-    OUT.Normal = mul(MVP, float4(IN.Normal, 0.0f));
+    OUT.Normal = mul(ModelCB.mx, float4(IN.Normal, 0.0f));
     OUT.WorldPos = mul(ModelCB.mx, float4(IN.Position, 1.0f));
     OUT.Color = float4(IN.Color, 1.0f);
  

@@ -5,6 +5,7 @@ static const float PI = 3.14159265359;
 struct Material {
     float metal;
     float rough;
+    float2 padding;
 };
 
 struct CameraPos
