@@ -6,7 +6,7 @@ class HeapBuffer;
 
 class ResourceDescriptor{
 public:
-    enum class ResourceDescriptorType { rdt_rtv, rdt_dsv, rdt_srv, rdt_uav };
+    enum class ResourceDescriptorType { rdt_rtv, rdt_dsv, rdt_srv, rdt_uav, rdt_cbv };
 public:
     bool Create_RTV(std::weak_ptr<HeapBuffer> buff);
     bool Create_DSV(std::weak_ptr<HeapBuffer> buff, const D3D12_DEPTH_STENCIL_VIEW_DESC &desc);

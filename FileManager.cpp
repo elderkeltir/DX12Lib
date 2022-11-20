@@ -97,6 +97,7 @@ FileManager::FileManager() :
 {
 	m_model_dir = gD3DApp->GetRootDir() / L"content" / L"models";
 	m_texture_dir = gD3DApp->GetRootDir() / L"content" / L"textures";
+	ThrowIfFailed(CoInitializeEx(nullptr, COINITBASE_MULTITHREADED));
 }
 
 
@@ -331,7 +332,7 @@ RenderModel* FileManager::LoadModelInternal(const std::wstring &name){
 
 TextureData* FileManager::LoadTexture(const std::wstring &name, uint32_t type){
 	std::filesystem::path related_path(name);
-	related_path.replace_extension(L".DDS");
+	//related_path.replace_extension(L".DDS");
 	const std::wstring filename = related_path.filename().wstring();
 
 	const auto it = std::find_if(m_load_textures.begin(), m_load_textures.end(), [&filename](TextureData &texture){ return (texture.name == filename); });

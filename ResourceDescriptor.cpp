@@ -68,7 +68,7 @@ bool ResourceDescriptor::Create_CBV(std::weak_ptr<HeapBuffer> buff, const D3D12_
             D3D12_CONSTANT_BUFFER_VIEW_DESC cbv_desc = desc;
             cbv_desc.BufferLocation = buffer->GetResource()->GetGPUVirtualAddress();
             gD3DApp->GetDevice()->CreateConstantBufferView(&cbv_desc, m_cpu_handle);
-            m_type = ResourceDescriptorType::rdt_uav;
+            m_type = ResourceDescriptorType::rdt_cbv;
 
             return true;
         }
