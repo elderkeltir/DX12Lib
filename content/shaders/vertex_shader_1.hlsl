@@ -1,3 +1,4 @@
+#include "shader_defs.ihlsl"
 struct VertexPosColor
 {
     float3 Position : POSITION;
@@ -13,11 +14,6 @@ struct VertexShaderOutput
     float3 Pos : POSITION;
     float3x3 TBN : TBN0;
     float4 Position : SV_Position;
-};
-
-struct ModelViewProjection
-{
-    matrix mx;
 };
  
 ConstantBuffer<ModelViewProjection> ModelCB : register(b1);

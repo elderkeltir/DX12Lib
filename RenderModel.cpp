@@ -52,6 +52,14 @@ void RenderModel::FormVertexes(){
             vertex_data_buffer[i] = Vertex{m_mesh->GetVertex(i), m_mesh->GetNormal(i), m_mesh->GetTangent(i), m_mesh->GetBiTangent(i), m_mesh->GetTexCoord(i) };
         }
     }
+    else if (tech->vertex_type == 3){
+        using Vertex = Vertex3;
+        AllocateVertexBuffer(m_mesh->GetVerticesNum() * sizeof(Vertex));
+        Vertex* vertex_data_buffer = (Vertex*) m_vertex_buffer_start;
+        for (uint32_t i = 0; i < m_mesh->GetVerticesNum(); i++) {
+            vertex_data_buffer[i] = Vertex{m_mesh->GetVertex(i) };
+        }
+    }
 }
 
 void RenderModel::LoadTextures(ComPtr<ID3D12GraphicsCommandList6> & command_list){
@@ -99,7 +107,7 @@ void RenderModel::LoadTextures(ComPtr<ID3D12GraphicsCommandList6> & command_list
                     break;
                 case DirectX::TEX_DIMENSION_TEXTURE2D:
                     tex_desc = CD3DX12_RESOURCE_DESC::Tex2D(m_textures_data[idx]->meta_data.format, static_cast<UINT64>( m_textures_data[idx]->meta_data.width ), static_cast<UINT>(m_textures_data[idx]->meta_data.height), static_cast<UINT16>(m_textures_data[idx]->meta_data.arraySize) );
-                    srv_dim = D3D12_SRV_DIMENSION_TEXTURE2D;
+                    srv_dim = (m_textures_data[idx]->meta_data.arraySize > 1) ? D3D12_SRV_DIMENSION_TEXTURECUBE : D3D12_SRV_DIMENSION_TEXTURE2D;
                     break;
                 case DirectX::TEX_DIMENSION_TEXTURE3D:
                     srv_dim = D3D12_SRV_DIMENSION_TEXTURE3D;
@@ -143,18 +151,20 @@ void RenderModel::Render(ComPtr<ID3D12GraphicsCommandList6> &command_list, const
             }
         }
 
-        if (std::shared_ptr<HeapBuffer> buff = m_constant_buffer->GetBuffer().lock()){
-            if (std::shared_ptr<GfxCommandQueue> queue = gD3DApp->GetGfxQueue().lock()){
-                queue->ResourceBarrier(*m_constant_buffer.get(), D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER, D3D12_RESOURCE_STATE_COPY_DEST);
+        if (m_constant_buffer){
+            if (std::shared_ptr<HeapBuffer> buff = m_constant_buffer->GetBuffer().lock()){
+                if (std::shared_ptr<GfxCommandQueue> queue = gD3DApp->GetGfxQueue().lock()){
+                    queue->ResourceBarrier(*m_constant_buffer.get(), D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER, D3D12_RESOURCE_STATE_COPY_DEST);
+                }
+                uint32_t cb_size = (sizeof(uint32_t) + 255) & ~255;
+                buff->Load(command_list, 1, cb_size, &m_material_id);
+                if (std::shared_ptr<GfxCommandQueue> queue = gD3DApp->GetGfxQueue().lock()){
+                    queue->ResourceBarrier(*m_constant_buffer.get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER);
+                }
             }
-            uint32_t cb_size = (sizeof(uint32_t) + 255) & ~255;
-            buff->Load(command_list, 1, cb_size, &m_material_id);
-            if (std::shared_ptr<GfxCommandQueue> queue = gD3DApp->GetGfxQueue().lock()){
-                queue->ResourceBarrier(*m_constant_buffer.get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER);
+            if (std::shared_ptr<ResourceDescriptor> srv = m_constant_buffer->GetCBV().lock()){
+                command_list->SetGraphicsRootDescriptorTable(4, srv->GetGPUhandle());
             }
-        }
-        if (std::shared_ptr<ResourceDescriptor> srv = m_constant_buffer->GetCBV().lock()){
-            command_list->SetGraphicsRootDescriptorTable(4, srv->GetGPUhandle());
         }
 
 

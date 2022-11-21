@@ -2,6 +2,7 @@
 
 #include <string>
 #include <memory>
+#include <array>
 #include <filesystem>
 #include <assimp/matrix4x4.h>
 #include "simple_object_pool.h"
@@ -21,11 +22,19 @@ class RenderQuad;
 class FileManager
 {
 public:
+    enum Geom_type { gt_sphere = 0, gt_quad, gt_num };
+    struct Geom {
+        std::vector<DirectX::XMFLOAT3> vertices;
+        std::vector<DirectX::XMFLOAT2> tex_coords;
+        std::vector<uint16_t> indices;
+        Geom_type type;
+    };
+
     FileManager();
     ~FileManager();
 
     RenderModel* LoadModel(const std::wstring &name);
-    void LoadQuad(RenderQuad* quad);
+    void CreateModel(const std::wstring &tex_name, Geom_type type, RenderObject* &model);
     const std::filesystem::path& GetModelDir() const;
 private:
     static constexpr uint32_t meshes_capacity = 256;
@@ -43,6 +52,8 @@ private:
     pro_game_containers::simple_object_pool<RenderModel, meshes_capacity * 2> m_load_models;
     pro_game_containers::simple_object_pool<RenderMesh, meshes_capacity> m_load_meshes;
     pro_game_containers::simple_object_pool<TextureData, textures_capacity> m_load_textures;
+    std::array<Geom, gt_num> m_geoms;
+    std::array<std::wstring, gt_num> m_geom_name;
 
     std::filesystem::path m_model_dir;
     std::filesystem::path m_texture_dir;

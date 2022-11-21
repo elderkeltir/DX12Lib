@@ -57,9 +57,16 @@ void RenderObject::Loadtexture(ComPtr<ID3D12GraphicsCommandList6> & commandList,
     srv_desc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
     srv_desc.Format = tex_data->meta_data.format;
     srv_desc.ViewDimension = srv_dim;
-    srv_desc.Texture2D.MostDetailedMip = 0;
-    srv_desc.Texture2D.MipLevels = (UINT)tex_data->meta_data.mipLevels;
-    srv_desc.Texture2D.ResourceMinLODClamp = 0.0f;
+    if (srv_dim == D3D12_SRV_DIMENSION_TEXTURE2D){
+        srv_desc.Texture2D.MostDetailedMip = 0;
+        srv_desc.Texture2D.MipLevels = (UINT)tex_data->meta_data.mipLevels;
+        srv_desc.Texture2D.ResourceMinLODClamp = 0.0f;
+    }
+    else if (srv_dim == D3D12_SRV_DIMENSION_TEXTURECUBE) {
+        srv_desc.TextureCube.MostDetailedMip = 0;
+        srv_desc.TextureCube.MipLevels = (UINT)tex_data->meta_data.mipLevels;
+        srv_desc.TextureCube.ResourceMinLODClamp = 0.0f;
+    }
 
     res->Create_SRV(srv_desc, true);
 }

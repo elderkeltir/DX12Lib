@@ -17,6 +17,7 @@
 #include "RenderQuad.h"
 #include "DXAppImplementation.h"
 #include "DXHelper.h"
+#include "GeomUtils.h"
 
 extern DXAppImplementation *gD3DApp;
 
@@ -97,6 +98,12 @@ FileManager::FileManager() :
 {
 	m_model_dir = gD3DApp->GetRootDir() / L"content" / L"models";
 	m_texture_dir = gD3DApp->GetRootDir() / L"content" / L"textures";
+
+	CreateSphere(m_geoms[gt_sphere].vertices, m_geoms[gt_sphere].indices);
+	m_geoms[gt_sphere].type = gt_sphere;
+	CreateQuad(m_geoms[gt_quad].vertices, m_geoms[gt_quad].tex_coords, m_geoms[gt_quad].indices);
+	m_geoms[gt_quad].type = gt_quad;
+
 	ThrowIfFailed(CoInitializeEx(nullptr, COINITBASE_MULTITHREADED));
 }
 
@@ -366,32 +373,26 @@ TextureData* FileManager::LoadTexture(const std::wstring &name, uint32_t type){
 	}
 }
 
-void FileManager::LoadQuad(RenderQuad* quad) {
-	RenderMesh* mesh = nullptr;
-	if (AllocMesh(L"RenderQuad", mesh)) {
-		std::vector<DirectX::XMFLOAT3> vertices;
-		vertices.push_back(DirectX::XMFLOAT3(-1.0f, -1.0f, 0.0f));
-		vertices.push_back(DirectX::XMFLOAT3(-1.0f, 1.0f, 0.0f));
-		vertices.push_back(DirectX::XMFLOAT3(1.0f, 1.0f, 0.0f));
-		vertices.push_back(DirectX::XMFLOAT3(1.0f, -1.0f, 0.0f));
-		mesh->SetVertices(vertices);
-
-		std::vector<DirectX::XMFLOAT2> tex_coords;
-		tex_coords.push_back(DirectX::XMFLOAT2(0.0f, 1.0f));
-		tex_coords.push_back(DirectX::XMFLOAT2(0.0f, 0.0f));
-		tex_coords.push_back(DirectX::XMFLOAT2(1.0f, 0.0f));
-		tex_coords.push_back(DirectX::XMFLOAT2(1.0f, 1.0f));
-		mesh->SetTextureCoords(tex_coords);
-
-		std::vector<uint16_t> indices;
-		indices.push_back(0);
-		indices.push_back(1);
-		indices.push_back(2);
-		indices.push_back(0);
-		indices.push_back(2);
-		indices.push_back(3);
-		mesh->SetIndices(indices);
+void FileManager::CreateModel(const std::wstring &tex_name, Geom_type type, RenderObject*& model) {
+	if (!model){
+		const uint32_t id = m_load_models.push_back();
+		model = &m_load_models[id];
+		model->SetId(id);
 	}
 
-	quad->SetMesh(mesh);
+	const uint32_t idx = m_load_meshes.push_back(); 
+	RenderMesh* r_mesh = &m_load_meshes[idx];
+	r_mesh->SetId(idx); 
+
+	r_mesh->SetVertices(m_geoms[type].vertices);
+	r_mesh->SetIndices(m_geoms[type].indices);
+	r_mesh->SetTextureCoords(m_geoms[type].tex_coords);
+	model->SetMesh(r_mesh);
+
+	if (!tex_name.empty()){
+		TextureData *texture_data = LoadTexture(tex_name, aiTextureType_DIFFUSE);
+		assert(texture_data);
+		model->SetTexture(texture_data, RenderModel::TextureType::DiffuseTexture);
+	}
+	model->Initialized();
 }

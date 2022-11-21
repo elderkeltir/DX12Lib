@@ -46,6 +46,10 @@ float4 main(PixelShaderInput IN ) : SV_Target
     float3 N = normalize(normal);
     float3 V = normalize(CamPos.vec.xyz - WorldPos);
 
+    if (positions.Sample(linearClamp, IN.TexC).w == 0) {
+        return float4(albedo.xyz, 1);
+    }
+
     float3 F0 = float3(0.04, 0.04, 0.04); 
     F0 = lerp(F0, albedo, metallic);
 	           

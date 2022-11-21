@@ -26,6 +26,7 @@ public:
     virtual bool IsInitialized() const { return m_is_initialized; }
     virtual void LoadDataToGpu(ComPtr<ID3D12GraphicsCommandList6> &commandList) = 0;
     virtual void SetMesh(RenderMesh * mesh) { m_mesh = mesh; }
+    virtual void SetTexture(TextureData * texture_data, TextureType type) {};
 
 protected:
     virtual void LoadVertexDataOnGpu(ComPtr<ID3D12GraphicsCommandList6> &commandList, const void* data, uint32_t size_of_vertex, uint32_t vertex_count);

@@ -25,7 +25,7 @@ public:
     virtual void OnInit(ComPtr<ID3D12Device2> &device, std::optional<std::wstring> dbg_name = std::nullopt);
     const Techniques::Technique * GetTechniqueById(uint32_t id) const { return &m_techniques[id]; }
     bool TechHasColor(uint32_t tech_id);
-    bool ShouldMapHead(uint32_t tech_id);
+    bool ShouldMapHeap(uint32_t tech_id);
 private:
  
     static constexpr uint32_t TechniquesCount = 8;

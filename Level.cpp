@@ -23,6 +23,7 @@
 #include "ResourceDescriptor.h"
 #include "MaterialManager.h"
 #include "GfxCommandQueue.h"
+#include "SkyBox.h"
 
 extern DXAppImplementation *gD3DApp;
 using rapidjson::Document;
@@ -131,6 +132,13 @@ void Level::Load(const std::wstring &name){
     D3D12_CONSTANT_BUFFER_VIEW_DESC desc;
     desc.SizeInBytes = cb_size;
     m_lights_res->Create_CBV(desc);
+
+    // Skybox
+    const Value& skybox = d["skybox"];
+    const char * skybox_name_8 = skybox["entity"].GetString();
+    const std::wstring skybox_name(&skybox_name_8[0], &skybox_name_8[strlen(skybox_name_8)]);
+    m_skybox_ent.swap(std::make_unique<SkyBox>());
+    m_skybox_ent->Load(skybox_name);    
 }
 
 void Level::Update(float dt){
@@ -148,39 +156,50 @@ void Level::Render(ComPtr<ID3D12GraphicsCommandList6>& command_list){
     bool is_scene_constants_set = false;
     for (uint32_t id = 0; id < m_entites.size(); id++){
         LevelEntity &ent = m_entites[id];
-        ent.LoadDataToGpu(command_list);
-
-        const Techniques::Technique *tech = gD3DApp->GetTechniqueById(ent.GetTechniqueId());
-
-        // set technique
-        command_list->SetPipelineState(tech->pipeline_state.Get());
-        command_list->SetGraphicsRootSignature(tech->root_signature.Get());
-
-        // set root desc
-        if (gD3DApp->ShouldMapHead(tech->id)){
-            if (std::shared_ptr<DescriptorHeapCollection> descriptor_heap_collection = gD3DApp->GetDescriptorHeapCollection().lock()){
-                ID3D12DescriptorHeap* descriptorHeaps[] = { descriptor_heap_collection->GetShaderVisibleHeap().Get() };
-                command_list->SetDescriptorHeaps(_countof(descriptorHeaps), descriptorHeaps);
-            }
-
-            // update material CBs
-            if (std::shared_ptr<MaterialManager> mat_mgr = gD3DApp->GetMaterialManager().lock()){
-                mat_mgr->SyncGpuData(command_list);
-            }
-        }
-
-        if (!is_scene_constants_set){
-            DirectX::XMMATRIX m_ViewMatrix = DirectX::XMLoadFloat4x4(&m_camera->GetViewMx());
-            DirectX::XMMATRIX m_ProjectionMatrix = DirectX::XMLoadFloat4x4(&m_camera->GetProjMx());
-            TODO("Critical! Implement processing of different root desc setup")
-            gD3DApp->SetMatrix4Constant(Constants::cV, m_ViewMatrix, command_list);
-            gD3DApp->SetMatrix4Constant(Constants::cP, m_ProjectionMatrix, command_list);
-
-            is_scene_constants_set = !is_scene_constants_set;
-        }
-
-        ent.Render(command_list);
+        RenderEntity(command_list, ent, is_scene_constants_set);
     }
+
+    RenderEntity(command_list, *m_skybox_ent, is_scene_constants_set);
+}
+
+void Level::RenderEntity(ComPtr<ID3D12GraphicsCommandList6>& command_list, LevelEntity & ent, bool &is_scene_constants_set){
+    ent.LoadDataToGpu(command_list);
+
+    const Techniques::Technique *tech = gD3DApp->GetTechniqueById(ent.GetTechniqueId());
+
+    // set technique
+    command_list->SetPipelineState(tech->pipeline_state.Get());
+    command_list->SetGraphicsRootSignature(tech->root_signature.Get());
+
+    // set root desc
+    if (gD3DApp->ShouldMapHeap(tech->id)){
+        if (std::shared_ptr<DescriptorHeapCollection> descriptor_heap_collection = gD3DApp->GetDescriptorHeapCollection().lock()){
+            ID3D12DescriptorHeap* descriptorHeaps[] = { descriptor_heap_collection->GetShaderVisibleHeap().Get() };
+            command_list->SetDescriptorHeaps(_countof(descriptorHeaps), descriptorHeaps);
+        }
+
+        // update material CBs
+        if (std::shared_ptr<MaterialManager> mat_mgr = gD3DApp->GetMaterialManager().lock()){
+            mat_mgr->SyncGpuData(command_list);
+        }
+    }
+
+    if (!is_scene_constants_set){
+        DirectX::XMMATRIX m_ViewMatrix = DirectX::XMLoadFloat4x4(&m_camera->GetViewMx());
+        DirectX::XMMATRIX m_ProjectionMatrix = DirectX::XMLoadFloat4x4(&m_camera->GetProjMx());
+        TODO("Critical! Implement processing of different root desc setup")
+        gD3DApp->SetMatrix4Constant(Constants::cV, m_ViewMatrix, command_list);
+        gD3DApp->SetMatrix4Constant(Constants::cP, m_ProjectionMatrix, command_list);
+
+        DirectX::XMFLOAT3 cam_pos;
+        cam_pos = m_camera->GetPosition();
+        gD3DApp->SetVector3Constant(Constants::cCP, cam_pos, command_list);
+        
+
+        is_scene_constants_set = !is_scene_constants_set;
+    }
+
+    ent.Render(command_list);
 }
 
 void Level::BindLights(ComPtr<ID3D12GraphicsCommandList6>& command_list){

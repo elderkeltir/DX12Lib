@@ -11,6 +11,7 @@
 class FreeCamera;
 class RenderModel;
 class GpuResource;
+class SkyBox;
 
 class Level {
 public:
@@ -37,11 +38,13 @@ public:
     const std::filesystem::path& GetEntitiesDir() const;
 
 private:
+    void RenderEntity(ComPtr<ID3D12GraphicsCommandList6>& command_list, LevelEntity & ent, bool &is_scene_constants_set);
     static const uint32_t lights_num = 16;
     static const uint32_t entities_num = 256;
     std::wstring m_name;
     pro_game_containers::simple_object_pool<LevelEntity, entities_num> m_entites;
     pro_game_containers::simple_object_pool<LevelLight, lights_num> m_lights;
+    std::unique_ptr<SkyBox> m_skybox_ent;
     std::unique_ptr<GpuResource> m_lights_res;
     std::shared_ptr<FreeCamera> m_camera;
     std::filesystem::path m_levels_dir;

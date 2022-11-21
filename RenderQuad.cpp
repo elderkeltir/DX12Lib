@@ -6,20 +6,16 @@
 #include "DXAppImplementation.h"
 #include "DXHelper.h"
 #include "RenderMesh.h"
+#include "VertexFormats.h"
 
 extern DXAppImplementation *gD3DApp;
 
 static const uint32_t vert_num = 4;
 
-struct Vertex
-{
-    DirectX::XMFLOAT3 pos;
-    DirectX::XMFLOAT2 textCoord;
-};
-
 void RenderQuad::Initialize() {
     if (std::shared_ptr<FileManager> fileMgr = gD3DApp->GetFileManager().lock()){
-        fileMgr->LoadQuad(this);
+        RenderObject* obj = (RenderObject*)this;
+        fileMgr->CreateModel(L"", FileManager::Geom_type::gt_quad, obj);
     }
 
     m_dirty |= db_rt_tx;
@@ -30,6 +26,7 @@ void RenderQuad::Initialize() {
 RenderQuad::~RenderQuad() = default;
 
 void RenderQuad::FormVertex() {
+    using Vertex = Vertex2;
     AllocateVertexBuffer(vert_num  * sizeof(Vertex));
     Vertex* vertex_data_buffer = (Vertex*) m_vertex_buffer_start;
 
@@ -39,6 +36,7 @@ void RenderQuad::FormVertex() {
 }
 
 void RenderQuad::LoadDataToGpu(ComPtr<ID3D12GraphicsCommandList6> &command_list) {
+    using Vertex = Vertex2;
     FormVertex();
     LoadVertexDataOnGpu(command_list, (const void*)m_vertex_buffer_start, (uint32_t)sizeof(Vertex), vert_num);
     LoadIndexDataOnGpu(command_list);

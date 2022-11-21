@@ -25,11 +25,15 @@ namespace pro_game_containers {
             return idx;
         }
         T& operator[](uint32_t idx) {
-            assert(idx < m_size);
+            if (idx > m_size){
+                assert(false);
+            }
             return m_pool[idx];
         }
         const T& operator[](uint32_t idx) const {
-            assert(idx < m_size);
+            if (idx > m_size){
+                assert(false);
+            }
             return m_pool[idx];
         }
         uint32_t size() const noexcept {

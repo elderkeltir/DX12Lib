@@ -16,12 +16,13 @@ public:
     virtual void LoadDataToGpu(ComPtr<ID3D12GraphicsCommandList6> &commandList) override;
 
     void AddChild(RenderModel* child) { m_children.push_back(child); }
+    RenderModel* GetChild(uint32_t idx) { return m_children[idx]; }
 
     void Move(const DirectX::XMFLOAT3 &pos);
     void Rotate(const DirectX::XMFLOAT3 &angles);
     void Scale(const DirectX::XMFLOAT3 &scale);
 
-    void SetTexture(TextureData * texture_data, TextureType type);
+    void SetTexture(TextureData * texture_data, TextureType type) override;
     void SetTechniqueId(uint32_t id) { m_tech_id = id; for(auto &child : m_children) child->SetTechniqueId(id); }
     void SetColor(const DirectX::XMFLOAT3 &color) { m_color = color; for(auto &child : m_children) child->SetColor(color); }
     void SetMaterial(uint32_t id) { m_material_id = id; m_dirty |= db_rt_cbv; for(auto &child : m_children) child->SetMaterial(id); }

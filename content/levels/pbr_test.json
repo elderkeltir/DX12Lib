@@ -124,5 +124,8 @@
         "fov": 45.0,
         "near": 0.1,
         "far": 100.0
+    },
+    "skybox": {
+        "model": "skybox.json"
     }
 }
