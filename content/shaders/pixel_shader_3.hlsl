@@ -90,9 +90,6 @@ float4 main(PixelShaderInput IN ) : SV_Target
   
     float3 ambient = float3(0.03, 0.03, 0.03) * albedo * ao;
     float3 color = ambient + Lo;
-	
-    //color = color / (color + float3(1.0, 1.0, 1.0));
-    //color = pow(color, float3(1.0/2.2, 1.0/2.2, 1.0/2.2));  
    
     float4 FragColor = float4(color, 1.0);
 

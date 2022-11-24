@@ -401,7 +401,7 @@ static Techniques::Technique CreateTechnique_3(ComPtr<ID3D12Device2> &device, st
 
     // A single 32-bit constant root parameter that is used by the vertex shader.
     CD3DX12_DESCRIPTOR_RANGE1 texTable;
-	texTable.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 4, 0);
+	texTable.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 5, 0);
     CD3DX12_DESCRIPTOR_RANGE1 tex_table_cbv2;
     tex_table_cbv2.Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 1, 1);
 
