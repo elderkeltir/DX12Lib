@@ -126,6 +126,6 @@
         "far": 100.0
     },
     "skybox": {
-        "model": "skybox.json"
+        "entity": "skybox.json"
     }
 }

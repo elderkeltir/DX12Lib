@@ -1,22 +1,4 @@
-#define LIGHTS_NUM 16
-#define MATERIALS_NUM 64
 static const float PI = 3.14159265359;
-
-struct ModelViewProjection
-{
-    matrix mx;
-};
-
-struct Material {
-    float metal;
-    float rough;
-    float2 padding;
-};
-
-struct CameraPos
-{
-    float3 vec;
-};
 
 SamplerState pointWrap  : register(s0);
 SamplerState pointClamp  : register(s1);

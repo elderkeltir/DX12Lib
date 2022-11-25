@@ -33,7 +33,7 @@ bool ResourceDescriptor::Create_DSV(std::weak_ptr<HeapBuffer> buff, const D3D12_
     return false;
 }
 
-bool ResourceDescriptor::Create_SRV(std::weak_ptr<HeapBuffer> buff, const D3D12_SHADER_RESOURCE_VIEW_DESC &desc, bool gpu_visible){
+bool ResourceDescriptor::Create_SRV(std::weak_ptr<HeapBuffer> buff, const D3D12_SHADER_RESOURCE_VIEW_DESC &desc){
     if (std::shared_ptr<DescriptorHeapCollection> descriptorHeapCollection = gD3DApp->GetDescriptorHeapCollection().lock()){
         descriptorHeapCollection->ReserveSRVUAVCBVhandle(m_cpu_handle, m_gpu_handle);
         if (std::shared_ptr<HeapBuffer> buffer = buff.lock()){
@@ -46,8 +46,7 @@ bool ResourceDescriptor::Create_SRV(std::weak_ptr<HeapBuffer> buff, const D3D12_
     return false;
 }
 
-bool ResourceDescriptor::Create_UAV(std::weak_ptr<HeapBuffer> buff, const D3D12_UNORDERED_ACCESS_VIEW_DESC &desc, bool gpu_visible){
-    assert(gpu_visible);
+bool ResourceDescriptor::Create_UAV(std::weak_ptr<HeapBuffer> buff, const D3D12_UNORDERED_ACCESS_VIEW_DESC &desc){
     if (std::shared_ptr<DescriptorHeapCollection> descriptorHeapCollection = gD3DApp->GetDescriptorHeapCollection().lock()){
         descriptorHeapCollection->ReserveSRVUAVCBVhandle(m_cpu_handle, m_gpu_handle);
         if (std::shared_ptr<HeapBuffer> buffer = buff.lock()){
@@ -60,8 +59,7 @@ bool ResourceDescriptor::Create_UAV(std::weak_ptr<HeapBuffer> buff, const D3D12_
     return false;
 }
 
-bool ResourceDescriptor::Create_CBV(std::weak_ptr<HeapBuffer> buff, const D3D12_CONSTANT_BUFFER_VIEW_DESC &desc, bool gpu_visible) {
-    assert(gpu_visible);
+bool ResourceDescriptor::Create_CBV(std::weak_ptr<HeapBuffer> buff, const D3D12_CONSTANT_BUFFER_VIEW_DESC &desc) {
     if (std::shared_ptr<DescriptorHeapCollection> descriptorHeapCollection = gD3DApp->GetDescriptorHeapCollection().lock()){
         descriptorHeapCollection->ReserveSRVUAVCBVhandle(m_cpu_handle, m_gpu_handle);
         if (std::shared_ptr<HeapBuffer> buffer = buff.lock()){

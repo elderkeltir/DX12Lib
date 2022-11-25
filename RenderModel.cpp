@@ -6,13 +6,14 @@
 #include "ResourceDescriptor.h"
 #include "VertexFormats.h"
 #include "GfxCommandQueue.h"
+#include "DynamicGpuHeap.h"
 
 extern DXAppImplementation *gD3DApp;
 
 RenderModel::RenderModel() :
     m_transformations(std::make_unique<Transformations>())
 {
-
+    m_dirty |= db_rt_cbv;
 }
 
 RenderModel::~RenderModel() = default;
@@ -144,29 +145,34 @@ void RenderModel::Render(ComPtr<ID3D12GraphicsCommandList6> &command_list, const
         }
         command_list->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
         
-        gD3DApp->SetMatrix4Constant(Constants::cM, parent_xform_mx, command_list);
+        
         if (m_diffuse_tex){
             if (std::shared_ptr<ResourceDescriptor> srv = m_diffuse_tex->GetSRV().lock()){
-                command_list->SetGraphicsRootDescriptorTable(5, srv->GetGPUhandle());
+                gD3DApp->GetGpuHeap()->StageDesctriptor(bi_g_buffer_tex_table, tto_albedo, srv->GetCPUhandle());
             }
         }
 
-        if (m_constant_buffer){
-            if (std::shared_ptr<HeapBuffer> buff = m_constant_buffer->GetBuffer().lock()){
-                if (std::shared_ptr<GfxCommandQueue> queue = gD3DApp->GetGfxQueue().lock()){
-                    queue->ResourceBarrier(*m_constant_buffer.get(), D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER, D3D12_RESOURCE_STATE_COPY_DEST);
-                }
-                uint32_t cb_size = (sizeof(uint32_t) + 255) & ~255;
-                buff->Load(command_list, 1, cb_size, &m_material_id);
-                if (std::shared_ptr<GfxCommandQueue> queue = gD3DApp->GetGfxQueue().lock()){
-                    queue->ResourceBarrier(*m_constant_buffer.get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER);
-                }
-            }
-            if (std::shared_ptr<ResourceDescriptor> srv = m_constant_buffer->GetCBV().lock()){
-                command_list->SetGraphicsRootDescriptorTable(4, srv->GetGPUhandle());
-            }
+        if (m_normals_tex) {
+			if (std::shared_ptr<ResourceDescriptor> srv = m_normals_tex->GetSRV().lock()) {
+				gD3DApp->GetGpuHeap()->StageDesctriptor(bi_g_buffer_tex_table, tto_normals, srv->GetCPUhandle());
+			}
         }
 
+		if (m_specular_tex) {
+			if (std::shared_ptr<ResourceDescriptor> srv = m_specular_tex->GetSRV().lock()) {
+				gD3DApp->GetGpuHeap()->StageDesctriptor(bi_g_buffer_tex_table, tto_metallic, srv->GetCPUhandle());
+			}
+		}
+
+        gD3DApp->GetGpuHeap()->CommitRootSignature(command_list);
+
+        
+        if (m_constant_buffer) {
+            gD3DApp->SetModelCB(m_constant_buffer.get());
+            gD3DApp->SetMatrix4Constant(Constants::cM, parent_xform_mx);
+            gD3DApp->SetUint32(Constants::cMat, m_material_id);
+            gD3DApp->CommitCB(command_list, 0);
+        }
 
         TODO("Major! DrawIndexed should be at upper level where you know there are few such meshes to render")
         command_list->DrawIndexedInstanced(m_mesh->GetIndicesNum(), 1, 0, 0, 0);
@@ -214,11 +220,14 @@ void RenderModel::SetTexture(TextureData * texture_data, TextureType type){
 void RenderModel::LoadConstantData(ComPtr<ID3D12GraphicsCommandList6> &command_list){
     if (m_dirty & db_rt_cbv){
         m_constant_buffer = std::make_unique<GpuResource>();
-        uint32_t cb_size = (sizeof(uint32_t) + 255) & ~255;
-        m_constant_buffer->CreateBuffer(HeapBuffer::BufferType::bt_default, cb_size, HeapBuffer::UseFlag::uf_none, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER, std::wstring(L"models_cbv_").append(m_name));
+        uint32_t cb_size = calc_cb_size(sizeof(ConstantBufferManager::ModelCB));
+        m_constant_buffer->CreateBuffer(HeapBuffer::BufferType::bt_upload, cb_size, HeapBuffer::UseFlag::uf_none, D3D12_RESOURCE_STATE_GENERIC_READ, std::wstring(L"models_cbv_").append(m_name));
         D3D12_CONSTANT_BUFFER_VIEW_DESC desc;
         desc.SizeInBytes = cb_size;
         m_constant_buffer->Create_CBV(desc);
+		if (std::shared_ptr<HeapBuffer> buff = m_constant_buffer->GetBuffer().lock()) {
+			buff->Map();
+		}
         m_dirty &= (~db_rt_cbv);
     }
 }

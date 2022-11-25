@@ -1,15 +1,5 @@
 #include "shader_defs.ihlsl"
 
-cbuffer Model_cb : register(b4)
-{
-    uint material_id;
-};
-
-cbuffer materials_cb : register(b5)
-{
-    Material materials[MATERIALS_NUM];
-}
-
 struct ps_output
 {
 	float4 albedo : SV_TARGET0;

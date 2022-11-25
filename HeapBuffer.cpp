@@ -48,7 +48,7 @@ void HeapBuffer::Create(BufferType type, uint32_t bufferSize, UseFlag flags, D3D
         nullptr,
         IID_PPV_ARGS(&m_resourse)));
     SetName(m_resourse, dbg_name.value_or(L"").append(L"_buffer").c_str());
-    
+
     m_recreate_intermediate_res = true;
 }
 
@@ -140,11 +140,13 @@ void HeapBuffer::Load(ComPtr<ID3D12GraphicsCommandList6> &commandList, uint32_t 
 BYTE* HeapBuffer::Map(){
     BYTE* pData;
     ThrowIfFailed(m_resourse->Map(0, nullptr, reinterpret_cast<void**>(&pData)));
+    m_cpu_data = pData;
 
     return pData;
 }
 
 void HeapBuffer::Unmap(){
+    m_cpu_data = nullptr;
     m_resourse->Unmap(0, nullptr);
 }
 

@@ -47,19 +47,19 @@ void GpuResource::Create_DSV(const D3D12_DEPTH_STENCIL_VIEW_DESC &desc){
     m_dsv->Create_DSV(m_buffer, desc);
 }
 
-void GpuResource::Create_SRV(const D3D12_SHADER_RESOURCE_VIEW_DESC &desc, bool gpu_visible){
+void GpuResource::Create_SRV(const D3D12_SHADER_RESOURCE_VIEW_DESC &desc){
     m_srv = std::make_shared<ResourceDescriptor>();
-    m_srv->Create_SRV(m_buffer, desc, gpu_visible);
+    m_srv->Create_SRV(m_buffer, desc);
 }
 
-void GpuResource::Create_UAV(const D3D12_UNORDERED_ACCESS_VIEW_DESC &desc, bool gpu_visible){
+void GpuResource::Create_UAV(const D3D12_UNORDERED_ACCESS_VIEW_DESC &desc){
     m_uav = std::make_shared<ResourceDescriptor>();
-    m_uav->Create_UAV(m_buffer, desc, gpu_visible);
+    m_uav->Create_UAV(m_buffer, desc);
 }
 
-void GpuResource::Create_CBV(const D3D12_CONSTANT_BUFFER_VIEW_DESC &desc, bool gpu_visible) {
+void GpuResource::Create_CBV(const D3D12_CONSTANT_BUFFER_VIEW_DESC &desc) {
     m_cbv = std::make_shared<ResourceDescriptor>();
-    m_cbv->Create_CBV(m_buffer, desc, gpu_visible);
+    m_cbv->Create_CBV(m_buffer, desc);
 }
 
 void GpuResource::Create_Vertex_View(uint32_t sizSizeInBytese, uint32_t StrideInBytes){

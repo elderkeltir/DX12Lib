@@ -14,26 +14,31 @@ namespace pro_game_containers {
         auto end() noexcept {
             return m_pool.begin() + m_size;
         }
-        uint32_t push_back(T element) {
-            const uint32_t idx = GetNextFree(m_last_occupied);
+        uint32_t push_back(const T &element) {
+            const uint32_t idx = get_next_free(m_last_occupied);
             m_pool[idx] = std::move(element);
             return m_size++;
         }
+		uint32_t push_back(T &&element) {
+			const uint32_t idx = get_next_free(m_last_occupied);
+			m_pool[idx] = std::move(element);
+			return m_size++;
+		}
         uint32_t push_back() {
-            const uint32_t idx = GetNextFree(m_last_occupied);
+            const uint32_t idx = get_next_free(m_last_occupied);
             m_size++;
             return idx;
         }
         T& operator[](uint32_t idx) {
-            if (idx > m_size){
-                assert(false);
-            }
+            assert(idx < m_size);
+            assert(!m_flags[idx]);
+
             return m_pool[idx];
         }
         const T& operator[](uint32_t idx) const {
-            if (idx > m_size){
-                assert(false);
-            }
+            assert(idx < m_size);
+            assert(!m_flags[idx]);
+
             return m_pool[idx];
         }
         uint32_t size() const noexcept {
@@ -43,7 +48,7 @@ namespace pro_game_containers {
             return m_pool.data();
         }
     private:
-        uint32_t GetNextFree(uint32_t start) {
+        uint32_t get_next_free(uint32_t start) {
             assert(m_size < m_capacity);
             while(!m_flags[start]){
                 if (++start >= m_capacity){

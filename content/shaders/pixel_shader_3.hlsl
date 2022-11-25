@@ -1,26 +1,10 @@
 #include "shader_defs.ihlsl"
+#include "constant_buffers.ihlsl"
 
 struct PixelShaderInput
 {
     float2 TexC : TEXCOORD;
 };
-
-struct Light
-{
-    float3 Position;
-    uint type;
-    float3 Direction;
-    uint id;
-    float3 Color;
-    uint padding;
-};
-
-cbuffer lights_cb : register(b1)
-{
-    Light lights[LIGHTS_NUM];
-}
-
-ConstantBuffer<CameraPos> CamPos : register(b0);
 
 Texture2D    albedo_tx : register(t0);
 Texture2D    normals : register(t1);
@@ -44,7 +28,7 @@ float4 main(PixelShaderInput IN ) : SV_Target
     float3 WorldPos = positions.Sample(linearClamp, IN.TexC).xyz;
     float3 normal = normals.Sample(linearClamp, IN.TexC).xyz;
     float3 N = normalize(normal);
-    float3 V = normalize(CamPos.vec.xyz - WorldPos);
+    float3 V = normalize(CamPos.xyz - WorldPos);
 
     if (positions.Sample(linearClamp, IN.TexC).w == 0) {
         return float4(albedo.xyz, 1);

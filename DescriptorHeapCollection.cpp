@@ -6,7 +6,6 @@
 extern DXAppImplementation *gD3DApp;
 
 void DescriptorHeapCollection::Initialize(std::optional<std::wstring> dbg_name){
-    TODO("Normal! make some intelegent mechanism to take care of descriptors allocations. later.")
     // Describe and create a render target view (RTV) descriptor heap.
     D3D12_DESCRIPTOR_HEAP_DESC rtvHeapDesc = {};
     rtvHeapDesc.NumDescriptors = rtvHeap_size;
@@ -25,11 +24,10 @@ void DescriptorHeapCollection::Initialize(std::optional<std::wstring> dbg_name){
     
     // Describe and create a shader resource view (SRV) and unordered
     // access view (UAV) descriptor heap.
-    TODO("Critical! Create separate heap with shader visibility and copy there")
     D3D12_DESCRIPTOR_HEAP_DESC srvUavCbvHeapDesc = {};
     srvUavCbvHeapDesc.NumDescriptors = srvUavCbvHeap_size;
     srvUavCbvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
-    srvUavCbvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+    srvUavCbvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
     ThrowIfFailed(gD3DApp->GetDevice()->CreateDescriptorHeap(&srvUavCbvHeapDesc, IID_PPV_ARGS(&m_srvUavCbvHeap)));
     SetName(m_srvUavCbvHeap, dbg_name.value_or(L"").append(L"_srv_heap, shader_visibility=").append(std::to_wstring(uint32_t((srvUavCbvHeapDesc.Flags & D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE) != 0))).c_str());
     

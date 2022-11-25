@@ -14,6 +14,7 @@ class GpuResource;
 class GfxCommandQueue;
 class FreeCamera;
 class RenderQuad;
+class DynamicGpuHeap;
 
 class DXAppImplementation : public DXApp, public ResourceManager, public ConstantBufferManager, public Techniques
 {
@@ -29,6 +30,7 @@ public:
     std::weak_ptr<Level> GetLevel() { return m_level; }
     std::weak_ptr<DescriptorHeapCollection> GetDescriptorHeapCollection() {return m_descriptor_heap_collection; }
     ComPtr<ID3D12Device2>& GetDevice() { return m_device; }
+    DynamicGpuHeap* GetGpuHeap();
 
     const std::chrono::duration<float>& TotalTime() const { return m_total_time; }
     const std::chrono::duration<float>& FrameTime() const { return m_dt; }
@@ -51,6 +53,7 @@ private:
     void RenderPostProcessQuad(ComPtr<ID3D12GraphicsCommandList6>& command_list);
     void RenderDeferredShadingQuad(ComPtr<ID3D12GraphicsCommandList6>& command_list);
     void RenderSSAOquad(ComPtr<ID3D12GraphicsCommandList6>& command_list);
+    void ResetGpuHeap();
 
     void UpdateCamera(std::shared_ptr<FreeCamera> &camera, float dt);
 
@@ -60,6 +63,8 @@ private:
     ComPtr<IDXGIFactory4> m_factory;
     ComPtr<ID3D12Device2> m_device;
     ComPtr<IDXGISwapChain4> m_swapChain;
+
+    std::unique_ptr<DynamicGpuHeap[]> m_dynamic_gpu_heaps;
     
     std::shared_ptr<GfxCommandQueue> m_commandQueueGfx;
     std::unique_ptr<GpuResource[]> m_renderTargets;

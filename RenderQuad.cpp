@@ -65,16 +65,10 @@ void RenderQuad::CreateQuadTexture(uint32_t width, uint32_t height, const std::v
                 srv_desc.Texture2D.MostDetailedMip = 0;
                 srv_desc.Texture2D.MipLevels = 1;
                 srv_desc.Texture2D.ResourceMinLODClamp = 0.0f;
-                res->Create_SRV(srv_desc, true);
+                res->Create_SRV(srv_desc);
             }
         }
         m_dirty &= (~db_rt_tx);
-    }
-}
-
-void RenderQuad::SetSrv(ComPtr<ID3D12GraphicsCommandList6> &command_list, uint32_t set_idx, uint32_t root_idx, uint32_t idx_in_set) {
-    if (std::shared_ptr<ResourceDescriptor> srv = m_textures.at(set_idx).at(idx_in_set)->GetSRV().lock()){
-        command_list->SetGraphicsRootDescriptorTable(root_idx, srv->GetGPUhandle());
     }
 }
 

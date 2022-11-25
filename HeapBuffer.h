@@ -20,6 +20,7 @@ public:
     
     BYTE* Map();
     void Unmap();
+    void* GetCpuData() { return m_cpu_data; }
     void Copy(ComPtr<ID3D12GraphicsCommandList> &commandList, HeapBuffer &dest, uint64_t dstOffset, uint64_t srcOffset, uint64_t size);
 
     void Set(ComPtr<ID3D12Resource> resourse) { m_resourse = resourse; }
@@ -28,5 +29,6 @@ public:
 private:
     ComPtr<ID3D12Resource> m_resourse;
     ComPtr<ID3D12Resource> pIntermediateResource;
+    void* m_cpu_data{nullptr};
     bool m_recreate_intermediate_res{false};
 };

@@ -67,11 +67,12 @@ std::array<const CD3DX12_STATIC_SAMPLER_DESC, 6> GetStaticSamplers()
 
 TODO("Minor. Implement PSO composition and serialization later. maybe.")
 // g-buffer color
-static Techniques::Technique CreateTechnique_0(ComPtr<ID3D12Device2> &device, std::optional<std::wstring> dbg_name = std::nullopt){
+static Techniques::Technique CreateTechnique_0(ComPtr<ID3D12Device2> &device, RootSignature& root_sign, std::optional<std::wstring> dbg_name = std::nullopt){
     Techniques::Technique tech;
     tech.vs = L"vertex_shader_0.hlsl";
     tech.ps = L"pixel_shader_0.hlsl";
     tech.vertex_type = 0;
+    tech.root_signature = root_sign.id;
 
     // Create the vertex input layout
     D3D12_INPUT_ELEMENT_DESC inputLayout[] = {
@@ -79,55 +80,6 @@ static Techniques::Technique CreateTechnique_0(ComPtr<ID3D12Device2> &device, st
         { "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
         { "COLOR", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
     };
-
-    // Create a root signature.
-    D3D12_FEATURE_DATA_ROOT_SIGNATURE featureData = {};
-    featureData.HighestVersion = D3D_ROOT_SIGNATURE_VERSION_1_1;
-    ThrowIfFailed(device->CheckFeatureSupport(D3D12_FEATURE_ROOT_SIGNATURE, &featureData, sizeof(featureData)));
-
-    // Allow input layout and deny unnecessary access to certain pipeline stages.
-    D3D12_ROOT_SIGNATURE_FLAGS rootSignatureFlags =
-        D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT |
-        D3D12_ROOT_SIGNATURE_FLAG_DENY_HULL_SHADER_ROOT_ACCESS |
-        D3D12_ROOT_SIGNATURE_FLAG_DENY_DOMAIN_SHADER_ROOT_ACCESS |
-        D3D12_ROOT_SIGNATURE_FLAG_DENY_GEOMETRY_SHADER_ROOT_ACCESS;
-
-    // A single 32-bit constant root parameter that is used by the vertex shader.
-    CD3DX12_DESCRIPTOR_RANGE1 tex_table_srv;
-	tex_table_srv.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0);
-    CD3DX12_DESCRIPTOR_RANGE1 tex_table_cbv;
-    tex_table_cbv.Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 1, 4);
-    CD3DX12_DESCRIPTOR_RANGE1 tex_table_cbv2;
-    tex_table_cbv2.Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 1, 5);
-
-    auto staticSamplers = GetStaticSamplers();
-
-    const uint32_t rootParameters_cnt = 7;
-    CD3DX12_ROOT_PARAMETER1 rootParameters[rootParameters_cnt];
-    rootParameters[0].InitAsConstants(sizeof(DirectX::XMFLOAT3) / 4, 0, 0, D3D12_SHADER_VISIBILITY_PIXEL); // CamPos
-    rootParameters[1].InitAsConstants(sizeof(DirectX::XMMATRIX) / 4, 1, 0, D3D12_SHADER_VISIBILITY_VERTEX); // M
-    rootParameters[2].InitAsConstants(sizeof(DirectX::XMMATRIX) / 4, 2, 0, D3D12_SHADER_VISIBILITY_VERTEX); // V
-    rootParameters[3].InitAsConstants(sizeof(DirectX::XMMATRIX) / 4, 3, 0, D3D12_SHADER_VISIBILITY_VERTEX); // P
-    rootParameters[4].InitAsDescriptorTable(1, &tex_table_cbv, D3D12_SHADER_VISIBILITY_PIXEL); // model cbv
-    rootParameters[5].InitAsDescriptorTable(1, &tex_table_srv, D3D12_SHADER_VISIBILITY_PIXEL); // Texture
-    rootParameters[6].InitAsDescriptorTable(1, &tex_table_cbv2, D3D12_SHADER_VISIBILITY_PIXEL); // scene cbv
-    
-
-    CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC rootSignatureDescription;
-    rootSignatureDescription.Init_1_1(_countof(rootParameters), rootParameters, 0, nullptr, rootSignatureFlags);
-
-    // Serialize the root signature.
-    ComPtr<ID3DBlob> rootSignatureBlob;
-    ComPtr<ID3DBlob> errorBlob;
-    ThrowIfFailed(D3DX12SerializeVersionedRootSignature(&rootSignatureDescription,
-        featureData.HighestVersion, &rootSignatureBlob, &errorBlob));
-        if (errorBlob.Get()){
-            assert(false);
-        }
-    // Create the root signature.
-    ThrowIfFailed(device->CreateRootSignature(0, rootSignatureBlob->GetBufferPointer(),
-        rootSignatureBlob->GetBufferSize(), IID_PPV_ARGS(&tech.root_signature)));
-    SetName(tech.root_signature, dbg_name.value_or(L"").append(L"_root_signature_0").c_str());
 
     struct PipelineStateStream
     {
@@ -155,7 +107,7 @@ static Techniques::Technique CreateTechnique_0(ComPtr<ID3D12Device2> &device, st
         assert(false);
     }
 
-    pipelineStateStream.pRootSignature = tech.root_signature.Get();
+    pipelineStateStream.pRootSignature = root_sign.GetRootSignature().Get();
     pipelineStateStream.InputLayout = { inputLayout, _countof(inputLayout) };
     pipelineStateStream.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
     pipelineStateStream.VS = vs;
@@ -172,11 +124,12 @@ static Techniques::Technique CreateTechnique_0(ComPtr<ID3D12Device2> &device, st
     return tech;
 }
 // g-buffer texture
-static Techniques::Technique CreateTechnique_1(ComPtr<ID3D12Device2> &device, std::optional<std::wstring> dbg_name = std::nullopt){
+static Techniques::Technique CreateTechnique_1(ComPtr<ID3D12Device2> &device, RootSignature& root_sign, std::optional<std::wstring> dbg_name = std::nullopt){
     Techniques::Technique tech;
     tech.vs = L"vertex_shader_1.hlsl";
     tech.ps = L"pixel_shader_1.hlsl";
     tech.vertex_type = 1;
+    tech.root_signature = root_sign.id;
 
     // Create the vertex input layout
     D3D12_INPUT_ELEMENT_DESC inputLayout[] = {
@@ -186,55 +139,6 @@ static Techniques::Technique CreateTechnique_1(ComPtr<ID3D12Device2> &device, st
         { "BITANGENTS", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
 		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
     };
-
-    // Create a root signature.
-    D3D12_FEATURE_DATA_ROOT_SIGNATURE featureData = {};
-    featureData.HighestVersion = D3D_ROOT_SIGNATURE_VERSION_1_1;
-    ThrowIfFailed(device->CheckFeatureSupport(D3D12_FEATURE_ROOT_SIGNATURE, &featureData, sizeof(featureData)));
-
-    // Allow input layout and deny unnecessary access to certain pipeline stages.
-    D3D12_ROOT_SIGNATURE_FLAGS rootSignatureFlags =
-        D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT |
-        D3D12_ROOT_SIGNATURE_FLAG_DENY_HULL_SHADER_ROOT_ACCESS |
-        D3D12_ROOT_SIGNATURE_FLAG_DENY_DOMAIN_SHADER_ROOT_ACCESS |
-        D3D12_ROOT_SIGNATURE_FLAG_DENY_GEOMETRY_SHADER_ROOT_ACCESS;
-
-    // A single 32-bit constant root parameter that is used by the vertex shader.
-    CD3DX12_DESCRIPTOR_RANGE1 tex_table_srv;
-	tex_table_srv.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 2, 0);
-    CD3DX12_DESCRIPTOR_RANGE1 tex_table_cbv;
-    tex_table_cbv.Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 1, 4);
-    CD3DX12_DESCRIPTOR_RANGE1 tex_table_cbv2;
-    tex_table_cbv2.Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 1, 5);
-
-    auto staticSamplers = GetStaticSamplers();
-
-    const uint32_t rootParameters_cnt = 7;
-    CD3DX12_ROOT_PARAMETER1 rootParameters[rootParameters_cnt];
-    rootParameters[0].InitAsConstants(sizeof(DirectX::XMFLOAT3) / 4, 0, 0, D3D12_SHADER_VISIBILITY_PIXEL); // CamPos
-    rootParameters[1].InitAsConstants(sizeof(DirectX::XMMATRIX) / 4, 1, 0, D3D12_SHADER_VISIBILITY_VERTEX); // M
-    rootParameters[2].InitAsConstants(sizeof(DirectX::XMMATRIX) / 4, 2, 0, D3D12_SHADER_VISIBILITY_VERTEX); // V
-    rootParameters[3].InitAsConstants(sizeof(DirectX::XMMATRIX) / 4, 3, 0, D3D12_SHADER_VISIBILITY_VERTEX); // P
-    rootParameters[4].InitAsDescriptorTable(1, &tex_table_cbv, D3D12_SHADER_VISIBILITY_PIXEL); // model cbv
-    rootParameters[5].InitAsDescriptorTable(1, &tex_table_srv, D3D12_SHADER_VISIBILITY_PIXEL); // Texture
-    rootParameters[6].InitAsDescriptorTable(1, &tex_table_cbv2, D3D12_SHADER_VISIBILITY_PIXEL); // scene cbv
-    
-
-    CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC rootSignatureDescription;
-    rootSignatureDescription.Init_1_1(_countof(rootParameters), rootParameters, (uint32_t)staticSamplers.size(), staticSamplers.data(), rootSignatureFlags);
-
-    // Serialize the root signature.
-    ComPtr<ID3DBlob> rootSignatureBlob;
-    ComPtr<ID3DBlob> errorBlob;
-    ThrowIfFailed(D3DX12SerializeVersionedRootSignature(&rootSignatureDescription,
-        featureData.HighestVersion, &rootSignatureBlob, &errorBlob));
-        if (errorBlob.Get()){
-            assert(false);
-        }
-    // Create the root signature.
-    ThrowIfFailed(device->CreateRootSignature(0, rootSignatureBlob->GetBufferPointer(),
-        rootSignatureBlob->GetBufferSize(), IID_PPV_ARGS(&tech.root_signature)));
-        SetName(tech.root_signature, dbg_name.value_or(L"").append(L"_root_signature_1").c_str());
 
     struct PipelineStateStream
     {
@@ -262,7 +166,7 @@ static Techniques::Technique CreateTechnique_1(ComPtr<ID3D12Device2> &device, st
         assert(false);
     }
 
-    pipelineStateStream.pRootSignature = tech.root_signature.Get();
+    pipelineStateStream.pRootSignature = root_sign.GetRootSignature().Get();
     pipelineStateStream.InputLayout = { inputLayout, _countof(inputLayout) };
     pipelineStateStream.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
     pipelineStateStream.VS = vs;
@@ -278,57 +182,18 @@ static Techniques::Technique CreateTechnique_1(ComPtr<ID3D12Device2> &device, st
     return tech;
 }
 // post-processing
-static Techniques::Technique CreateTechnique_2(ComPtr<ID3D12Device2> &device, std::optional<std::wstring> dbg_name = std::nullopt){
+static Techniques::Technique CreateTechnique_2(ComPtr<ID3D12Device2> &device, RootSignature& root_sign, std::optional<std::wstring> dbg_name = std::nullopt){
     Techniques::Technique tech;
     tech.vs = L"vertex_shader_2.hlsl";
     tech.ps = L"pixel_shader_2.hlsl";
     tech.vertex_type = 2;
+    tech.root_signature = root_sign.id;
 
     // Create the vertex input layout
     D3D12_INPUT_ELEMENT_DESC inputLayout[] = {
         { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
         { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
     };
-
-    // Create a root signature.
-    D3D12_FEATURE_DATA_ROOT_SIGNATURE featureData = {};
-    featureData.HighestVersion = D3D_ROOT_SIGNATURE_VERSION_1_1;
-    ThrowIfFailed(device->CheckFeatureSupport(D3D12_FEATURE_ROOT_SIGNATURE, &featureData, sizeof(featureData)));
-
-    // Allow input layout and deny unnecessary access to certain pipeline stages.
-    D3D12_ROOT_SIGNATURE_FLAGS rootSignatureFlags =
-        D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT |
-        D3D12_ROOT_SIGNATURE_FLAG_DENY_HULL_SHADER_ROOT_ACCESS |
-        D3D12_ROOT_SIGNATURE_FLAG_DENY_DOMAIN_SHADER_ROOT_ACCESS |
-        D3D12_ROOT_SIGNATURE_FLAG_DENY_GEOMETRY_SHADER_ROOT_ACCESS |
-        D3D12_ROOT_SIGNATURE_FLAG_DENY_VERTEX_SHADER_ROOT_ACCESS;
-
-    // A single 32-bit constant root parameter that is used by the vertex shader.
-    CD3DX12_DESCRIPTOR_RANGE1 texTable;
-	texTable.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0);
-
-    auto staticSamplers = GetStaticSamplers();
-
-    const uint32_t rootParameters_cnt = 1;
-    CD3DX12_ROOT_PARAMETER1 rootParameters[rootParameters_cnt];
-    rootParameters[0].InitAsDescriptorTable(1, &texTable, D3D12_SHADER_VISIBILITY_PIXEL); // Texture
-    
-
-    CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC rootSignatureDescription;
-    rootSignatureDescription.Init_1_1(_countof(rootParameters), rootParameters, (uint32_t)staticSamplers.size(), staticSamplers.data(), rootSignatureFlags);
-
-    // Serialize the root signature.
-    ComPtr<ID3DBlob> rootSignatureBlob;
-    ComPtr<ID3DBlob> errorBlob;
-    ThrowIfFailed(D3DX12SerializeVersionedRootSignature(&rootSignatureDescription,
-        featureData.HighestVersion, &rootSignatureBlob, &errorBlob));
-        if (errorBlob.Get()){
-            assert(false);
-        }
-    // Create the root signature.
-    ThrowIfFailed(device->CreateRootSignature(0, rootSignatureBlob->GetBufferPointer(),
-        rootSignatureBlob->GetBufferSize(), IID_PPV_ARGS(&tech.root_signature)));
-    SetName(tech.root_signature, dbg_name.value_or(L"").append(L"_root_signature_2").c_str());
 
     struct PipelineStateStream
     {
@@ -357,7 +222,7 @@ static Techniques::Technique CreateTechnique_2(ComPtr<ID3D12Device2> &device, st
         assert(false);
     }
 
-    pipelineStateStream.pRootSignature = tech.root_signature.Get();
+    pipelineStateStream.pRootSignature = root_sign.GetRootSignature().Get();
     pipelineStateStream.InputLayout = { inputLayout, _countof(inputLayout) };
     pipelineStateStream.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
     pipelineStateStream.VS = vs;
@@ -374,61 +239,18 @@ static Techniques::Technique CreateTechnique_2(ComPtr<ID3D12Device2> &device, st
     return tech;
 }
 // def shading
-static Techniques::Technique CreateTechnique_3(ComPtr<ID3D12Device2> &device, std::optional<std::wstring> dbg_name = std::nullopt){
+static Techniques::Technique CreateTechnique_3(ComPtr<ID3D12Device2> &device, RootSignature& root_sign, std::optional<std::wstring> dbg_name = std::nullopt){
     Techniques::Technique tech;
     tech.vs = L"vertex_shader_2.hlsl";
     tech.ps = L"pixel_shader_3.hlsl";
     tech.vertex_type = 2;
+    tech.root_signature = root_sign.id;
 
     // Create the vertex input layout
     D3D12_INPUT_ELEMENT_DESC inputLayout[] = {
         { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
         { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
     };
-
-    // Create a root signature.
-    D3D12_FEATURE_DATA_ROOT_SIGNATURE featureData = {};
-    featureData.HighestVersion = D3D_ROOT_SIGNATURE_VERSION_1_1;
-    ThrowIfFailed(device->CheckFeatureSupport(D3D12_FEATURE_ROOT_SIGNATURE, &featureData, sizeof(featureData)));
-
-    // Allow input layout and deny unnecessary access to certain pipeline stages.
-    D3D12_ROOT_SIGNATURE_FLAGS rootSignatureFlags =
-        D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT |
-        D3D12_ROOT_SIGNATURE_FLAG_DENY_HULL_SHADER_ROOT_ACCESS |
-        D3D12_ROOT_SIGNATURE_FLAG_DENY_DOMAIN_SHADER_ROOT_ACCESS |
-        D3D12_ROOT_SIGNATURE_FLAG_DENY_GEOMETRY_SHADER_ROOT_ACCESS |
-        D3D12_ROOT_SIGNATURE_FLAG_DENY_VERTEX_SHADER_ROOT_ACCESS;
-
-    // A single 32-bit constant root parameter that is used by the vertex shader.
-    CD3DX12_DESCRIPTOR_RANGE1 texTable;
-	texTable.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 5, 0);
-    CD3DX12_DESCRIPTOR_RANGE1 tex_table_cbv2;
-    tex_table_cbv2.Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 1, 1);
-
-    auto staticSamplers = GetStaticSamplers();
-
-    const uint32_t rootParameters_cnt = 3;
-    CD3DX12_ROOT_PARAMETER1 rootParameters[rootParameters_cnt];
-    rootParameters[0].InitAsConstants(sizeof(DirectX::XMFLOAT3) / 4, 0, 0, D3D12_SHADER_VISIBILITY_PIXEL); // CamPos
-    rootParameters[1].InitAsDescriptorTable(1, &texTable, D3D12_SHADER_VISIBILITY_PIXEL); // Texture
-    rootParameters[2].InitAsDescriptorTable(1, &tex_table_cbv2, D3D12_SHADER_VISIBILITY_PIXEL); // scene cbv
-    
-
-    CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC rootSignatureDescription;
-    rootSignatureDescription.Init_1_1(_countof(rootParameters), rootParameters, (uint32_t)staticSamplers.size(), staticSamplers.data(), rootSignatureFlags);
-
-    // Serialize the root signature.
-    ComPtr<ID3DBlob> rootSignatureBlob;
-    ComPtr<ID3DBlob> errorBlob;
-    ThrowIfFailed(D3DX12SerializeVersionedRootSignature(&rootSignatureDescription,
-        featureData.HighestVersion, &rootSignatureBlob, &errorBlob));
-        if (errorBlob.Get()){
-            assert(false);
-        }
-    // Create the root signature.
-    ThrowIfFailed(device->CreateRootSignature(0, rootSignatureBlob->GetBufferPointer(),
-        rootSignatureBlob->GetBufferSize(), IID_PPV_ARGS(&tech.root_signature)));
-    SetName(tech.root_signature, dbg_name.value_or(L"").append(L"_root_signature_3").c_str());
 
     struct PipelineStateStream
     {
@@ -456,7 +278,7 @@ static Techniques::Technique CreateTechnique_3(ComPtr<ID3D12Device2> &device, st
         assert(false);
     }
 
-    pipelineStateStream.pRootSignature = tech.root_signature.Get();
+    pipelineStateStream.pRootSignature = root_sign.GetRootSignature().Get();
     pipelineStateStream.InputLayout = { inputLayout, _countof(inputLayout) };
     pipelineStateStream.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
     pipelineStateStream.VS = vs;
@@ -473,65 +295,17 @@ static Techniques::Technique CreateTechnique_3(ComPtr<ID3D12Device2> &device, st
     return tech;
 }
 // skybox
-static Techniques::Technique CreateTechnique_4(ComPtr<ID3D12Device2> &device, std::optional<std::wstring> dbg_name = std::nullopt){
+static Techniques::Technique CreateTechnique_4(ComPtr<ID3D12Device2> &device, RootSignature& root_sign, std::optional<std::wstring> dbg_name = std::nullopt){
     Techniques::Technique tech;
     tech.vs = L"vertex_shader_4.hlsl";
     tech.ps = L"pixel_shader_4.hlsl";
     tech.vertex_type = 3;
+    tech.root_signature = root_sign.id;
 
     // Create the vertex input layout
     D3D12_INPUT_ELEMENT_DESC inputLayout[] = {
         { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
     };
-
-    // Create a root signature.
-    D3D12_FEATURE_DATA_ROOT_SIGNATURE featureData = {};
-    featureData.HighestVersion = D3D_ROOT_SIGNATURE_VERSION_1_1;
-    ThrowIfFailed(device->CheckFeatureSupport(D3D12_FEATURE_ROOT_SIGNATURE, &featureData, sizeof(featureData)));
-
-    // Allow input layout and deny unnecessary access to certain pipeline stages.
-    D3D12_ROOT_SIGNATURE_FLAGS rootSignatureFlags =
-        D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT |
-        D3D12_ROOT_SIGNATURE_FLAG_DENY_HULL_SHADER_ROOT_ACCESS |
-        D3D12_ROOT_SIGNATURE_FLAG_DENY_DOMAIN_SHADER_ROOT_ACCESS |
-        D3D12_ROOT_SIGNATURE_FLAG_DENY_GEOMETRY_SHADER_ROOT_ACCESS;
-
-    // A single 32-bit constant root parameter that is used by the vertex shader.
-    CD3DX12_DESCRIPTOR_RANGE1 texTable;
-	texTable.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0);
-    CD3DX12_DESCRIPTOR_RANGE1 tex_table_cbv;
-    tex_table_cbv.Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 1, 4);
-    CD3DX12_DESCRIPTOR_RANGE1 tex_table_cbv2;
-    tex_table_cbv2.Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 1, 5);
-
-    auto staticSamplers = GetStaticSamplers();
-
-    const uint32_t rootParameters_cnt = 7;
-    CD3DX12_ROOT_PARAMETER1 rootParameters[rootParameters_cnt];
-    rootParameters[0].InitAsConstants(sizeof(DirectX::XMFLOAT3) / 4, 0, 0, D3D12_SHADER_VISIBILITY_VERTEX); // CamPos
-    rootParameters[1].InitAsConstants(sizeof(DirectX::XMMATRIX) / 4, 1, 0, D3D12_SHADER_VISIBILITY_VERTEX); // M
-    rootParameters[2].InitAsConstants(sizeof(DirectX::XMMATRIX) / 4, 2, 0, D3D12_SHADER_VISIBILITY_VERTEX); // V
-    rootParameters[3].InitAsConstants(sizeof(DirectX::XMMATRIX) / 4, 3, 0, D3D12_SHADER_VISIBILITY_VERTEX); // P
-    rootParameters[4].InitAsDescriptorTable(1, &tex_table_cbv, D3D12_SHADER_VISIBILITY_PIXEL); // CBV model
-    rootParameters[5].InitAsDescriptorTable(1, &texTable, D3D12_SHADER_VISIBILITY_PIXEL); // Texture
-    rootParameters[6].InitAsDescriptorTable(1, &tex_table_cbv2, D3D12_SHADER_VISIBILITY_PIXEL); // scene cbv
-    
-
-    CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC rootSignatureDescription;
-    rootSignatureDescription.Init_1_1(_countof(rootParameters), rootParameters, (uint32_t)staticSamplers.size(), staticSamplers.data(), rootSignatureFlags);
-
-    // Serialize the root signature.
-    ComPtr<ID3DBlob> rootSignatureBlob;
-    ComPtr<ID3DBlob> errorBlob;
-    ThrowIfFailed(D3DX12SerializeVersionedRootSignature(&rootSignatureDescription,
-        featureData.HighestVersion, &rootSignatureBlob, &errorBlob));
-        if (errorBlob.Get()){
-            assert(false);
-        }
-    // Create the root signature.
-    ThrowIfFailed(device->CreateRootSignature(0, rootSignatureBlob->GetBufferPointer(),
-        rootSignatureBlob->GetBufferSize(), IID_PPV_ARGS(&tech.root_signature)));
-    SetName(tech.root_signature, dbg_name.value_or(L"").append(L"_root_signature_4").c_str());
 
     struct PipelineStateStream
     {
@@ -567,7 +341,7 @@ static Techniques::Technique CreateTechnique_4(ComPtr<ID3D12Device2> &device, st
     CD3DX12_RASTERIZER_DESC rd(CD3DX12_DEFAULT{});
     rd.CullMode = D3D12_CULL_MODE_NONE;
 
-    pipelineStateStream.pRootSignature = tech.root_signature.Get();
+    pipelineStateStream.pRootSignature = root_sign.GetRootSignature().Get();
     pipelineStateStream.InputLayout = { inputLayout, _countof(inputLayout) };
     pipelineStateStream.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
     pipelineStateStream.VS = vs;
@@ -586,31 +360,167 @@ static Techniques::Technique CreateTechnique_4(ComPtr<ID3D12Device2> &device, st
     return tech;
 }
 
+// root sign for gbuffer
+void Techniques::CreateRootSignature_0(ComPtr<ID3D12Device2> &device, RootSignature* root_sign, std::optional<std::wstring> dbg_name){
+    // Create a root signature.
+    D3D12_FEATURE_DATA_ROOT_SIGNATURE featureData = {};
+    featureData.HighestVersion = D3D_ROOT_SIGNATURE_VERSION_1_1;
+    ThrowIfFailed(device->CheckFeatureSupport(D3D12_FEATURE_ROOT_SIGNATURE, &featureData, sizeof(featureData)));
+
+    // Allow input layout and deny unnecessary access to certain pipeline stages.
+    D3D12_ROOT_SIGNATURE_FLAGS rootSignatureFlags =
+        D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT |
+        D3D12_ROOT_SIGNATURE_FLAG_DENY_HULL_SHADER_ROOT_ACCESS |
+        D3D12_ROOT_SIGNATURE_FLAG_DENY_DOMAIN_SHADER_ROOT_ACCESS |
+        D3D12_ROOT_SIGNATURE_FLAG_DENY_GEOMETRY_SHADER_ROOT_ACCESS;
+
+    // A single 32-bit constant root parameter that is used by the vertex shader.
+    CD3DX12_DESCRIPTOR_RANGE1 &tex_table_srv = m_desc_ranges[m_desc_ranges.push_back()];
+	tex_table_srv.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 5, 0, 0, D3D12_DESCRIPTOR_RANGE_FLAG_DESCRIPTORS_VOLATILE);
+
+    auto staticSamplers = GetStaticSamplers();
+
+    auto &root_params_vec = root_sign->GetRootParams();
+    root_params_vec.resize(4);
+    root_params_vec[0].InitAsConstantBufferView     (0, 0, D3D12_ROOT_DESCRIPTOR_FLAG_NONE, D3D12_SHADER_VISIBILITY_VERTEX);
+    root_params_vec[1].InitAsDescriptorTable        (1, &tex_table_srv, D3D12_SHADER_VISIBILITY_PIXEL);
+    root_params_vec[2].InitAsConstantBufferView     (1, 0, D3D12_ROOT_DESCRIPTOR_FLAG_NONE, D3D12_SHADER_VISIBILITY_VERTEX);
+    root_params_vec[3].InitAsConstantBufferView     (3, 0, D3D12_ROOT_DESCRIPTOR_FLAG_NONE, D3D12_SHADER_VISIBILITY_VERTEX);
+    
+
+    CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC rootSignatureDescription;
+    rootSignatureDescription.Init_1_1((uint32_t)root_params_vec.size(), root_params_vec.data(), (uint32_t)staticSamplers.size(), staticSamplers.data(), rootSignatureFlags);
+
+        // Serialize the root signature.
+    ComPtr<ID3DBlob> rootSignatureBlob;
+    ComPtr<ID3DBlob> errorBlob;
+    ThrowIfFailed(D3DX12SerializeVersionedRootSignature(&rootSignatureDescription,
+        featureData.HighestVersion, &rootSignatureBlob, &errorBlob));
+        if (errorBlob.Get()){
+            assert(false);
+        }
+    // Create the root signature.
+    ThrowIfFailed(device->CreateRootSignature(0, rootSignatureBlob->GetBufferPointer(),
+        rootSignatureBlob->GetBufferSize(), IID_PPV_ARGS(root_sign->GetRootSignature().GetAddressOf())));
+    SetName(root_sign->GetRootSignature(), dbg_name.value_or(L"").append(L"_root_signature_0").c_str());
+}
+
+// root sign for post-process
+void Techniques::CreateRootSignature_1(ComPtr<ID3D12Device2> &device, RootSignature* root_sign, std::optional<std::wstring> dbg_name){
+    // Create a root signature.
+    D3D12_FEATURE_DATA_ROOT_SIGNATURE featureData = {};
+    featureData.HighestVersion = D3D_ROOT_SIGNATURE_VERSION_1_1;
+    ThrowIfFailed(device->CheckFeatureSupport(D3D12_FEATURE_ROOT_SIGNATURE, &featureData, sizeof(featureData)));
+
+    // Allow input layout and deny unnecessary access to certain pipeline stages.
+    D3D12_ROOT_SIGNATURE_FLAGS rootSignatureFlags =
+        D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT |
+        D3D12_ROOT_SIGNATURE_FLAG_DENY_HULL_SHADER_ROOT_ACCESS |
+        D3D12_ROOT_SIGNATURE_FLAG_DENY_DOMAIN_SHADER_ROOT_ACCESS |
+        D3D12_ROOT_SIGNATURE_FLAG_DENY_GEOMETRY_SHADER_ROOT_ACCESS;
+
+    // A single 32-bit constant root parameter that is used by the vertex shader.
+    CD3DX12_DESCRIPTOR_RANGE1 &texTable = m_desc_ranges[m_desc_ranges.push_back()];
+	texTable.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0, 0, D3D12_DESCRIPTOR_RANGE_FLAG_DESCRIPTORS_VOLATILE);
+
+    auto staticSamplers = GetStaticSamplers();
+
+    auto &root_params_vec = root_sign->GetRootParams();
+    root_params_vec.resize(1);
+    root_params_vec[0].InitAsDescriptorTable        (1, &texTable, D3D12_SHADER_VISIBILITY_PIXEL);
+
+    CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC rootSignatureDescription;
+    rootSignatureDescription.Init_1_1((uint32_t)root_params_vec.size(), root_params_vec.data(), (uint32_t)staticSamplers.size(), staticSamplers.data(), rootSignatureFlags);
+
+        // Serialize the root signature.
+    ComPtr<ID3DBlob> rootSignatureBlob;
+    ComPtr<ID3DBlob> errorBlob;
+    ThrowIfFailed(D3DX12SerializeVersionedRootSignature(&rootSignatureDescription,
+        featureData.HighestVersion, &rootSignatureBlob, &errorBlob));
+        if (errorBlob.Get()){
+            assert(false);
+        }
+    // Create the root signature.
+    ThrowIfFailed(device->CreateRootSignature(0, rootSignatureBlob->GetBufferPointer(),
+        rootSignatureBlob->GetBufferSize(), IID_PPV_ARGS(root_sign->GetRootSignature().GetAddressOf())));
+    SetName(root_sign->GetRootSignature(), dbg_name.value_or(L"").append(L"_root_signature_1").c_str());
+}
+
+// root sign for shading
+void Techniques::CreateRootSignature_2(ComPtr<ID3D12Device2> &device, RootSignature* root_sign, std::optional<std::wstring> dbg_name){
+    // Create a root signature.
+    D3D12_FEATURE_DATA_ROOT_SIGNATURE featureData = {};
+    featureData.HighestVersion = D3D_ROOT_SIGNATURE_VERSION_1_1;
+    ThrowIfFailed(device->CheckFeatureSupport(D3D12_FEATURE_ROOT_SIGNATURE, &featureData, sizeof(featureData)));
+
+    // Allow input layout and deny unnecessary access to certain pipeline stages.
+    D3D12_ROOT_SIGNATURE_FLAGS rootSignatureFlags =
+        D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT |
+        D3D12_ROOT_SIGNATURE_FLAG_DENY_HULL_SHADER_ROOT_ACCESS |
+        D3D12_ROOT_SIGNATURE_FLAG_DENY_DOMAIN_SHADER_ROOT_ACCESS |
+        D3D12_ROOT_SIGNATURE_FLAG_DENY_GEOMETRY_SHADER_ROOT_ACCESS;
+
+    // A single 32-bit constant root parameter that is used by the vertex shader.
+    CD3DX12_DESCRIPTOR_RANGE1 &texTable = m_desc_ranges[m_desc_ranges.push_back()];
+	texTable.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 5, 0, 0, D3D12_DESCRIPTOR_RANGE_FLAG_DESCRIPTORS_VOLATILE);
+
+    auto staticSamplers = GetStaticSamplers();
+
+    auto &root_params_vec = root_sign->GetRootParams();
+    root_params_vec.resize(3);
+
+    root_params_vec[0].InitAsConstantBufferView(2, 0, D3D12_ROOT_DESCRIPTOR_FLAG_NONE, D3D12_SHADER_VISIBILITY_PIXEL); // lights
+    root_params_vec[1].InitAsDescriptorTable(1, &texTable, D3D12_SHADER_VISIBILITY_PIXEL); // Texture
+    root_params_vec[2].InitAsConstantBufferView(1, 0, D3D12_ROOT_DESCRIPTOR_FLAG_NONE, D3D12_SHADER_VISIBILITY_PIXEL); // sceneCB
+
+    CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC rootSignatureDescription;
+    rootSignatureDescription.Init_1_1((uint32_t)root_params_vec.size(), root_params_vec.data(), (uint32_t)staticSamplers.size(), staticSamplers.data(), rootSignatureFlags);
+
+        // Serialize the root signature.
+    ComPtr<ID3DBlob> rootSignatureBlob;
+    ComPtr<ID3DBlob> errorBlob;
+    ThrowIfFailed(D3DX12SerializeVersionedRootSignature(&rootSignatureDescription,
+        featureData.HighestVersion, &rootSignatureBlob, &errorBlob));
+        if (errorBlob.Get()){
+            assert(false);
+        }
+    // Create the root signature.
+    ThrowIfFailed(device->CreateRootSignature(0, rootSignatureBlob->GetBufferPointer(),
+        rootSignatureBlob->GetBufferSize(), IID_PPV_ARGS(root_sign->GetRootSignature().GetAddressOf())));
+    SetName(root_sign->GetRootSignature(), dbg_name.value_or(L"").append(L"_root_signature_2").c_str());
+}
+
 void Techniques::OnInit(ComPtr<ID3D12Device2> &device, std::optional<std::wstring> dbg_name){
-    uint32_t id = 0;
-    id = m_techniques.push_back(CreateTechnique_0(device, dbg_name));
-    m_techniques[id].id = id;
-    id = m_techniques.push_back(CreateTechnique_1(device, dbg_name));
-    m_techniques[id].id = id;
-    id = m_techniques.push_back(CreateTechnique_2(device, dbg_name));
-    m_techniques[id].id = id;
-    id = m_techniques.push_back(CreateTechnique_3(device, dbg_name));
-    m_techniques[id].id = id;
-    id = m_techniques.push_back(CreateTechnique_4(device, dbg_name));
-    m_techniques[id].id = id;
+    {
+        uint32_t id = 0;
+        id = m_root_signatures.push_back();
+        CreateRootSignature_0(device, &m_root_signatures[id], dbg_name);
+        m_root_signatures[id].id = id;
+        id = m_root_signatures.push_back();
+        CreateRootSignature_1(device, &m_root_signatures[id], dbg_name);
+        m_root_signatures[id].id = id;
+        id = m_root_signatures.push_back();
+        CreateRootSignature_2(device, &m_root_signatures[id], dbg_name);
+        m_root_signatures[id].id = id;
+    }
+
+    {
+        uint32_t id = 0;
+        id = m_techniques.push_back(CreateTechnique_0(device, m_root_signatures[0], dbg_name));
+        m_techniques[id].id = id;
+        id = m_techniques.push_back(CreateTechnique_1(device, m_root_signatures[0], dbg_name));
+        m_techniques[id].id = id;
+        id = m_techniques.push_back(CreateTechnique_2(device, m_root_signatures[1], dbg_name));
+        m_techniques[id].id = id;
+        id = m_techniques.push_back(CreateTechnique_3(device, m_root_signatures[2], dbg_name));
+        m_techniques[id].id = id;
+        id = m_techniques.push_back(CreateTechnique_4(device, m_root_signatures[0], dbg_name));
+        m_techniques[id].id = id;
+    }
 }
 
 bool Techniques::TechHasColor(uint32_t tech_id) {
     if (tech_id == 0) {
-        return true;
-    }
-    else {
-        return false;
-    }
-}
-
-bool Techniques::ShouldMapHeap(uint32_t tech_id) {
-    if (tech_id == 0 || tech_id == 1 || tech_id == 4) {
         return true;
     }
     else {

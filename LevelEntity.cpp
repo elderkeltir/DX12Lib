@@ -60,16 +60,16 @@ void LevelEntity::Load(const std::wstring &name){
             const Value &color_val = d["color"];
             const DirectX::XMFLOAT3 color(color_val[0].GetFloat(), color_val[1].GetFloat(), color_val[2].GetFloat());
             m_model->SetColor(color);
-        }
-    }
 
-    // load material
-    const Value &material = d["material"];
-    const Value &metallic = material["metallic"];
-    const Value &roughness = material["roughness"];
-    if (std::shared_ptr<MaterialManager> mat_mgr = gD3DApp->GetMaterialManager().lock()){
-        uint32_t mat_id = mat_mgr->CreateMaterial(metallic.GetFloat(), roughness.GetFloat());
-        m_model->SetMaterial(mat_id);
+            // load material
+			const Value& material = d["material"];
+			const Value& metallic = material["metallic"];
+			const Value& roughness = material["roughness"];
+			if (std::shared_ptr<MaterialManager> mat_mgr = gD3DApp->GetMaterialManager().lock()) {
+				uint32_t mat_id = mat_mgr->CreateMaterial(metallic.GetFloat(), roughness.GetFloat());
+				m_model->SetMaterial(mat_id);
+			}
+        }
     }
 }
 

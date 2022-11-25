@@ -1,4 +1,5 @@
-#include "shader_defs.ihlsl"
+#include "constant_buffers.ihlsl"
+
 struct VertexPosColor
 {
     float3 Position : POSITION;
@@ -10,24 +11,19 @@ struct VertexShaderOutput
     float3 tex_coord    : TEXCOORD;
 };
 
-ConstantBuffer<ModelViewProjection> ModelCB : register(b1);
-ConstantBuffer<ModelViewProjection> ViewCB : register(b2);
-ConstantBuffer<ModelViewProjection> ProjectionCB : register(b3);
-ConstantBuffer<CameraPos> CamPos : register(b0);
-
 VertexShaderOutput main(VertexPosColor IN)
 {
     VertexShaderOutput OUT;
     OUT.tex_coord = IN.Position;
 
     // proj pos
-    float4 posW = mul(ModelCB.mx, float4(IN.Position, 1.0f));
+    float4 posW = mul(M, float4(IN.Position, 1.0f));
 
     // Always center sky about camera.
-    posW.xyz += CamPos.vec.xyz;
+    posW.xyz += CamPos.xyz;
 
     // Set z = w so that z/w = 1 (i.e., skydome always on far plane).
-    matrix viewProj = mul(ProjectionCB.mx, ViewCB.mx);
+    matrix viewProj = mul(P, V);
     OUT.Position = mul(viewProj, posW).xyww;
  
     return OUT;

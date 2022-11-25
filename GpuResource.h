@@ -16,9 +16,9 @@ public:
     
     void CreateRTV();
     void Create_DSV(const D3D12_DEPTH_STENCIL_VIEW_DESC &desc);
-    void Create_SRV(const D3D12_SHADER_RESOURCE_VIEW_DESC &desc, bool gpu_visible = true);
-    void Create_UAV(const D3D12_UNORDERED_ACCESS_VIEW_DESC &desc, bool gpu_visible = true);
-    void Create_CBV(const D3D12_CONSTANT_BUFFER_VIEW_DESC &desc, bool gpu_visible = true);
+    void Create_SRV(const D3D12_SHADER_RESOURCE_VIEW_DESC &desc);
+    void Create_UAV(const D3D12_UNORDERED_ACCESS_VIEW_DESC &desc);
+    void Create_CBV(const D3D12_CONSTANT_BUFFER_VIEW_DESC &desc);
     void Create_Vertex_View(uint32_t sizSizeInBytese, uint32_t StrideInBytes);
     void Create_Index_View(DXGI_FORMAT format, uint32_t SizeInBytes);
 

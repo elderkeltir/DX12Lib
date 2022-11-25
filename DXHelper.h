@@ -9,6 +9,10 @@ using Microsoft::WRL::ComPtr;
 #define TODO(x) __pragma(message("TODO: "_STR(x) "::" __FILE__ ":" STR(__LINE__)))
 #define CHECK(x) __pragma(message("CHECK: "_STR(x) "::" __FILE__ ":" STR(__LINE__)))
 
+inline uint32_t calc_cb_size(uint32_t size) {
+    return (size + 255) & ~255;
+}
+
 inline bool cmpf(float A, float B, float epsilon = 0.00001f)
 {
     return (fabs(A - B) < epsilon);

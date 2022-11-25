@@ -68,7 +68,7 @@ void RenderObject::Loadtexture(ComPtr<ID3D12GraphicsCommandList6> & commandList,
         srv_desc.TextureCube.ResourceMinLODClamp = 0.0f;
     }
 
-    res->Create_SRV(srv_desc, true);
+    res->Create_SRV(srv_desc);
 }
 
 void RenderObject::AllocateVertexBuffer(uint32_t size) {

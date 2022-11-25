@@ -21,7 +21,7 @@ uint32_t MaterialManager::CreateMaterial(float metallic, float roughness) {
 
 void MaterialManager::LoadMaterials() {
     m_materials_res = std::make_unique<GpuResource>();
-    uint32_t cb_size = (materials_num * sizeof(Material) + 255) & ~255;
+    uint32_t cb_size = calc_cb_size(materials_num * sizeof(Material));
     m_materials_res->CreateBuffer(HeapBuffer::BufferType::bt_default, cb_size, HeapBuffer::UseFlag::uf_none, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER, std::wstring(L"materials_buffer"));
     D3D12_CONSTANT_BUFFER_VIEW_DESC desc;
     desc.SizeInBytes = cb_size;
@@ -33,14 +33,14 @@ void MaterialManager::SyncGpuData(ComPtr<ID3D12GraphicsCommandList6>& command_li
         queue->ResourceBarrier(*m_materials_res.get(), D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER, D3D12_RESOURCE_STATE_COPY_DEST);
     }
     if (std::shared_ptr<HeapBuffer> buff = m_materials_res->GetBuffer().lock()){
-        uint32_t cb_size = (materials_num * sizeof(Material) + 255) & ~255;
+        uint32_t cb_size = calc_cb_size(materials_num * sizeof(Material));
         buff->Load(command_list, 1, cb_size, m_materials.data());
     }
     if (std::shared_ptr<GfxCommandQueue> queue = gD3DApp->GetGfxQueue().lock()){
         queue->ResourceBarrier(*m_materials_res.get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER);
     }
 
-    if (std::shared_ptr<ResourceDescriptor> srv = m_materials_res->GetCBV().lock()){
-        command_list->SetGraphicsRootDescriptorTable(6, srv->GetGPUhandle());
+    if (std::shared_ptr<HeapBuffer> buff = m_materials_res->GetBuffer().lock()){
+        command_list->SetGraphicsRootConstantBufferView(bi_materials_cb, buff->GetResource()->GetGPUVirtualAddress());
     }
 }
