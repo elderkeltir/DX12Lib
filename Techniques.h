@@ -32,6 +32,7 @@ public:
     const Techniques::Technique * GetTechniqueById(uint32_t id) const { return &m_techniques[id]; }
     const RootSignature * GetRootSignById(uint32_t id) const { return &m_root_signatures[id]; }
     bool TechHasColor(uint32_t tech_id);
+    virtual void RebuildShaders(std::optional<std::wstring> dbg_name = std::nullopt);
 private:
     void CreateRootSignature_0(ComPtr<ID3D12Device2>& device, RootSignature* root_sign, std::optional<std::wstring> dbg_name = std::nullopt);
     void CreateRootSignature_1(ComPtr<ID3D12Device2>& device, RootSignature* root_sign, std::optional<std::wstring> dbg_name = std::nullopt);

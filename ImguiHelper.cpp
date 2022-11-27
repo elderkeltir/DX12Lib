@@ -12,13 +12,19 @@
 #include "DescriptorHeapCollection.h"
 #include "ResourceDescriptor.h"
 #include "DXAppImplementation.h"
+#include "Console.h"
 
 extern DXAppImplementation* gD3DApp;
+
+static void AddToConsoleLogCallback(const std::string &line) {
+	gD3DApp->GetUiHelper()->AddToConsoleLog(line);
+}
 
 
 ImguiHelper::ImguiHelper() :
 	m_commandQueueGfx(std::make_unique<GfxCommandQueue>()),
-	m_rt(std::make_unique<RenderQuad>())
+	m_rt(std::make_unique<RenderQuad>()),
+	m_console(std::make_unique< AppConsole>())
 {
 
 }
@@ -45,7 +51,7 @@ void ImguiHelper::Initialize(ComPtr<ID3D12Device2>& device, uint32_t frames_num)
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
 	ImGuiIO& io = ImGui::GetIO(); (void)io;
-	//io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
+	io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
 	//io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
 
 	// Setup Dear ImGui style
@@ -59,22 +65,9 @@ void ImguiHelper::Initialize(ComPtr<ID3D12Device2>& device, uint32_t frames_num)
 		srvuacbvHandle,
 		srvuacbvHandle_gpu);
 
-
-	// Load Fonts
-	// - If no fonts are loaded, dear imgui will use the default font. You can also load multiple fonts and use ImGui::PushFont()/PopFont() to select them.
-	// - AddFontFromFileTTF() will return the ImFont* so you can store it if you need to select the font among multiple.
-	// - If the file cannot be loaded, the function will return NULL. Please handle those errors in your application (e.g. use an assertion, or display an error and quit).
-	// - The fonts will be rasterized at a given size (w/ oversampling) and stored into a texture when calling ImFontAtlas::Build()/GetTexDataAsXXXX(), which ImGui_ImplXXXX_NewFrame below will call.
-	// - Use '#define IMGUI_ENABLE_FREETYPE' in your imconfig file to use Freetype for higher quality font rendering.
-	// - Read 'docs/FONTS.md' for more instructions and details.
-	// - Remember that in C/C++ if you want to include a backslash \ in a string literal you need to write a double backslash \\ !
-	//io.Fonts->AddFontDefault();
-	//io.Fonts->AddFontFromFileTTF("c:\\Windows\\Fonts\\segoeui.ttf", 18.0f);
-	//io.Fonts->AddFontFromFileTTF("../../misc/fonts/DroidSans.ttf", 16.0f);
-	//io.Fonts->AddFontFromFileTTF("../../misc/fonts/Roboto-Medium.ttf", 16.0f);
-	//io.Fonts->AddFontFromFileTTF("../../misc/fonts/Cousine-Regular.ttf", 15.0f);
-	//ImFont* font = io.Fonts->AddFontFromFileTTF("c:\\Windows\\Fonts\\ArialUni.ttf", 18.0f, NULL, io.Fonts->GetGlyphRangesJapanese());
-	//IM_ASSERT(font != NULL);
+	// connect log to console
+	FuncPtrVoidStr cb = AddToConsoleLogCallback;
+	gD3DApp->GetLogger()->SetConsoleCb(cb);
 }
 
 
@@ -96,80 +89,11 @@ void ImguiHelper::Render(uint32_t frame_id)
 	ImGui::NewFrame();
 	//
 
-	//// draw UI
-	//	// 1. Show the big demo window (Most of the sample code is in ImGui::ShowDemoWindow()! You can browse its code to learn more about Dear ImGui!).
-	//if (show_demo_window)
-	//	ImGui::ShowDemoWindow(&show_demo_window);
-	//float clear_color[3];
-	//// 2. Show a simple window that we create ourselves. We use a Begin/End pair to create a named window.
-	//{
-	//	static float f = 0.0f;
-	//	static int counter = 0;
-
-	//	ImGui::Begin("Hello, world!");                          // Create a window called "Hello, world!" and append into it.
-
-	//	ImGui::Text("This is some useful text.");               // Display some text (you can use a format strings too)
-	//	ImGui::Checkbox("Demo Window", &show_demo_window);      // Edit bools storing our window open/close state
-	//	ImGui::Checkbox("Another Window", &show_another_window);
-
-	//	ImGui::SliderFloat("float", &f, 0.0f, 1.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
-	//	ImGui::ColorEdit3("clear color", (float*)&clear_color); // Edit 3 floats representing a color
-
-	//	if (ImGui::Button("Button"))                            // Buttons return true when clicked (most widgets return true when edited/activated)
-	//		counter++;
-	//	ImGui::SameLine();
-	//	ImGui::Text("counter = %d", counter);
-
-	//	ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
-	//	ImGui::End();
-	//}
-
-	//// 3. Show another simple window.
-	//if (show_another_window)
-	//{
-	//	ImGui::Begin("Another Window", &show_another_window);   // Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
-	//	ImGui::Text("Hello from another window!");
-	//	if (ImGui::Button("Close Me"))
-	//		show_another_window = false;
-	//	ImGui::End();
-	//}
-
-	 // Create a window called "My First Tool", with a menu bar.
-	ImGui::Begin("My First Tool", &my_tool_active, ImGuiWindowFlags_MenuBar);
-	if (ImGui::BeginMenuBar())
-	{
-		if (ImGui::BeginMenu("File"))
-		{
-			if (ImGui::MenuItem("Open..", "Ctrl+O")) { /* Do stuff */ }
-			if (ImGui::MenuItem("Save", "Ctrl+S")) { /* Do stuff */ }
-			if (ImGui::MenuItem("Close", "Ctrl+W")) { my_tool_active = false; }
-			ImGui::EndMenu();
-		}
-		ImGui::EndMenuBar();
+	if (m_console && m_console->Active()) {
+		m_console->Draw("Console");
 	}
 
-	// Edit a color stored as 4 floats
-	ImGui::ColorEdit4("Color", my_color);
-
-	// Generate samples and plot them
-	float samples[100];
-	for (int n = 0; n < 100; n++)
-		samples[n] = sinf(n * 0.2f + ImGui::GetTime() * 1.5f);
-	ImGui::PlotLines("Samples", samples, 100);
-
-	// Display contents in a scrolling region
-	ImGui::TextColored(ImVec4(1, 1, 0, 1), "Important Stuff");
-	ImGui::BeginChild("Scrolling");
-	for (int n = 0; n < 50; n++)
-		ImGui::Text("%04d: Some text", n);
-	ImGui::EndChild();
-	ImGui::End();
-
 	ComPtr<ID3D12GraphicsCommandList6>& command_list = m_commandQueueGfx->ResetActiveCL();
-
-	// Set default settings
-	//command_list->RSSetViewports(1, &m_viewport);
-	//command_list->RSSetScissorRects(1, &m_scissorRect);
 
 	// set gpu heap
 	ID3D12DescriptorHeap* descriptorHeaps[] = { m_gpu_visible_heap.Get() };
@@ -200,3 +124,31 @@ void ImguiHelper::Render(uint32_t frame_id)
 	ImGui::EndFrame();
 }
 
+bool ImguiHelper::WantCapture(CaptureInput_type type) const
+{
+	if (m_rt->IsInitialized()) {
+		ImGuiIO& io = ImGui::GetIO();
+
+		switch (type) {
+		case CaptureInput_type::cit_keyboard:
+			if (io.WantCaptureKeyboard)
+				return true;
+			break;
+		}
+	}
+
+	return false;
+}
+
+void ImguiHelper::ShowConsole()
+{
+	bool& active = m_console->Active();
+	active = !active;
+}
+
+void ImguiHelper::AddToConsoleLog(const std::string& line)
+{
+	m_console->AddToLog(line);
+}
+
+ImguiHelper::~ImguiHelper() = default;

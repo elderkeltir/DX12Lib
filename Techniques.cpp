@@ -644,3 +644,25 @@ bool Techniques::TechHasColor(uint32_t tech_id) {
         return false;
     }
 }
+
+void Techniques::RebuildShaders(std::optional<std::wstring> dbg_name)
+{
+    if (std::shared_ptr<ShaderManager> shader_mgr = gD3DApp->GetShaderManager().lock()) {
+        shader_mgr->ResetCache();
+    }
+
+    auto device = gD3DApp->GetDevice();
+
+    m_techniques[0] = CreateTechnique_0(device, m_root_signatures[0], dbg_name);
+    m_techniques[0].id = 0;
+	m_techniques[1] = CreateTechnique_1(device, m_root_signatures[0], dbg_name);
+	m_techniques[1].id = 1;
+	m_techniques[2] = CreateTechnique_2(device, m_root_signatures[1], dbg_name);
+	m_techniques[2].id = 2;
+	m_techniques[3] = CreateTechnique_3(device, m_root_signatures[2], dbg_name);
+	m_techniques[3].id = 3;
+	m_techniques[4] = CreateTechnique_4(device, m_root_signatures[0], dbg_name);
+	m_techniques[4].id = 4;
+	m_techniques[5] = CreateTechnique_5(device, m_root_signatures[3], dbg_name);
+	m_techniques[5].id = 5;
+}

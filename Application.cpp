@@ -11,6 +11,7 @@
 #endif
 
 HWND Application::m_hwnd = nullptr;
+bool Application::m_force_close = false;
 
 int Application::Run(DXApp* pApp, HINSTANCE hInstance, int nCmdShow)
 {
@@ -54,7 +55,7 @@ int Application::Run(DXApp* pApp, HINSTANCE hInstance, int nCmdShow)
 
     // Main sample loop.
     MSG msg = {};
-    while (msg.message != WM_QUIT)
+    while (msg.message != WM_QUIT && !m_force_close)
     {
         // Process any messages in the queue.
         if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
@@ -78,7 +79,7 @@ LRESULT CALLBACK Application::WindowProc(HWND hWnd, uint32_t message, WPARAM wPa
 {
 	if (ImGui_ImplWin32_WndProcHandler(hWnd, message, wParam, lParam))
 		return true;
-
+    
     DXApp* pApp = reinterpret_cast<DXApp*>(GetWindowLongPtr(hWnd, GWLP_USERDATA));
 
     switch (message)

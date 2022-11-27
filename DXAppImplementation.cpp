@@ -15,6 +15,7 @@
 #include "DynamicGpuHeap.h"
 #include "SSAO.h"
 #include "ImguiHelper.h"
+#include "Logger.h"
 
 #include "WinPixEventRuntime/pix3.h"
 
@@ -37,7 +38,8 @@ DXAppImplementation::DXAppImplementation(uint32_t width, uint32_t height, std::w
     m_deferred_shading_quad(std::make_unique<RenderQuad>()),
     m_dynamic_gpu_heaps(std::make_unique<DynamicGpuHeap[]>(FrameCount)),
     m_ssao(std::make_unique<SSAO>()),
-    m_gui(std::make_unique<ImguiHelper>())
+    m_gui(std::make_unique<ImguiHelper>()),
+    m_logger(std::make_unique<logger>("app.log", logger::log_level::ll_INFO))
 {
 }
 
@@ -66,6 +68,8 @@ void DXAppImplementation::OnInit()
     m_ssao->Initialize();
 
     m_gui->Initialize(m_device, FrameCount);
+
+    LOG_INFO("Initialized finieshed");
 }
 
 void DXAppImplementation::CreateDevice(std::optional<std::wstring> dbg_name){
@@ -244,6 +248,10 @@ void DXAppImplementation::OnUpdate()
     m_time = t;
     m_total_time = t - m_start_time;
 
+    if (m_frame_id % 60) {
+        LOG_INFO("Ping %d", m_frame_id);
+    }
+
     if (std::shared_ptr<FreeCamera> camera = m_level->GetCamera().lock()){
         UpdateCamera(camera, m_dt.count());
     }
@@ -254,6 +262,11 @@ void DXAppImplementation::OnUpdate()
 // Render the scene.
 void DXAppImplementation::OnRender()
 {
+    if (m_rebuild_shaders) {
+        m_commandQueueGfx->Flush();
+        Techniques::RebuildShaders(L"Rebuilt techniques");
+        m_rebuild_shaders = false;
+    }
     // Gui
     m_gui->Render(m_frameIndex);
 
@@ -541,6 +554,9 @@ void DXAppImplementation::OnMouseMoved(WPARAM btnState, int x, int y){
 }
 
 void DXAppImplementation::OnKeyDown(UINT8 key) {
+    if (key != VK_OEM_3 && m_gui && m_gui->WantCapture(ImguiHelper::CaptureInput_type::cit_keyboard)) {
+        return;
+    }
     switch(key){
         case 'W':
             m_camera_movement.camera_movement_state |= m_camera_movement.cm_fwd;
@@ -554,10 +570,16 @@ void DXAppImplementation::OnKeyDown(UINT8 key) {
         case 'D':
             m_camera_movement.camera_movement_state |= m_camera_movement.cm_right;
             break;
+        case VK_OEM_3:
+            m_gui->ShowConsole();
+            break;
     }
 }
 
 void DXAppImplementation::OnKeyUp(UINT8 key) {
+	if (m_gui && m_gui->WantCapture(ImguiHelper::CaptureInput_type::cit_keyboard)) {
+		return;
+	}
     switch(key){
         case 'W':
             m_camera_movement.camera_movement_state &= (~m_camera_movement.cm_fwd);
@@ -572,6 +594,11 @@ void DXAppImplementation::OnKeyUp(UINT8 key) {
             m_camera_movement.camera_movement_state &= (~m_camera_movement.cm_right);
             break;
     }
+}
+
+void DXAppImplementation::RebuildShaders(std::optional<std::wstring> dbg_name /*= std::nullopt*/)
+{
+    m_rebuild_shaders = true;
 }
 
 void DXAppImplementation::UpdateCamera(std::shared_ptr<FreeCamera> &camera, float dt){

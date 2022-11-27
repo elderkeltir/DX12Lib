@@ -47,6 +47,10 @@ namespace pro_game_containers {
         T* data() {
             return m_pool.data();
         }
+        void clear() {
+            m_flags.fill(true);
+            m_last_occupied = m_size = 0;
+        }
     private:
         uint32_t get_next_free(uint32_t start) {
             assert(m_size < m_capacity);

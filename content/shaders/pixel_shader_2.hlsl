@@ -20,9 +20,8 @@ float4 main(PS_INPUT input) : SV_TARGET
     //return color;
 
 	// grayscale //
-	
-	//float intensity = dot(color.rgb, GrayScaleIntensity);
-	//return float4(intensity.rrr, color.a);
+    float intensity = dot(pix_color.rgb, GrayScaleIntensity);
+	//pix_color.rgb =  intensity.rrr;
 
 	// iverse color //
 	// return float4(1 - color.rgb, color.a);

@@ -51,7 +51,6 @@ add_subdirectory(${THIRD_PARTY_DIR}/DirectXTex)
 add_executable(DX12Lib WIN32 main.cpp
     # imgui
     ${THIRD_PARTY_IMGUI_DIR}/imgui.cpp
-    ${THIRD_PARTY_IMGUI_DIR}/imgui_demo.cpp # TODO: remove later
     ${THIRD_PARTY_IMGUI_DIR}/imgui_draw.cpp
     ${THIRD_PARTY_IMGUI_DIR}/imgui_tables.cpp
     ${THIRD_PARTY_IMGUI_DIR}/imgui_widgets.cpp
@@ -85,7 +84,9 @@ add_executable(DX12Lib WIN32 main.cpp
     SkyBox.cpp
     DynamicGpuHeap.cpp
     SSAO.cpp
-    ImguiHelper.cpp)
+    ImguiHelper.cpp
+    Console.cpp
+    ConsoleCommands.cpp)
 
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})

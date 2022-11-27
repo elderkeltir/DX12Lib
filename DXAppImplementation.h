@@ -3,6 +3,7 @@
 #include "ResourceManager.h"
 #include "ConstantBufferManager.h"
 #include "Techniques.h"
+#include "Logger.h"
 
 #include <optional>
 #include <chrono>
@@ -17,6 +18,7 @@ class RenderQuad;
 class DynamicGpuHeap;
 class SSAO;
 class ImguiHelper;
+
 
 class DXAppImplementation : public DXApp, public ResourceManager, public ConstantBufferManager, public Techniques
 {
@@ -44,6 +46,9 @@ public:
     virtual void OnMouseMoved(WPARAM btnState, int x, int y) override;
     virtual void OnKeyDown(UINT8 key) override;
     virtual void OnKeyUp(UINT8 key) override;
+    virtual void RebuildShaders(std::optional<std::wstring> dbg_name = std::nullopt) override;
+    logger* GetLogger() { return m_logger.get(); }
+    ImguiHelper* GetUiHelper() { return m_gui.get(); }
 private:
     static constexpr uint32_t FrameCount = 2;
     
@@ -74,8 +79,8 @@ private:
     std::unique_ptr<RenderQuad> m_post_process_quad;
     std::unique_ptr<RenderQuad> m_deferred_shading_quad;
     std::unique_ptr<SSAO> m_ssao;
-
     std::unique_ptr<ImguiHelper> m_gui;
+    std::unique_ptr<logger> m_logger;
 
     uint32_t m_frameIndex;
     uint64_t m_fenceValues[FrameCount]{0};
@@ -101,4 +106,12 @@ private:
         int32_t camera_x_delta{0};
         int32_t camera_y_delta{0};
     } m_camera_movement;
+
+    bool m_rebuild_shaders{ false };
 };
+
+#define LOG_CRITICAL(msg, ...) gD3DApp->GetLogger()->hlog(logger::log_level::ll_CRITICAL, msg, __VA_ARGS__)
+#define LOG_ERROR(msg, ...) gD3DApp->GetLogger()->hlog(logger::log_level::ll_ERROR, msg, __VA_ARGS__)
+#define LOG_WARNING(msg, ...) gD3DApp->GetLogger()->hlog(logger::log_level::ll_WARNING, msg, __VA_ARGS__)
+#define LOG_DEBUG(msg, ...) gD3DApp->GetLogger()->hlog(logger::log_level::ll_DEBUG, msg, __VA_ARGS__)
+#define LOG_INFO(msg, ...) gD3DApp->GetLogger()->hlog(logger::log_level::ll_INFO, msg, __VA_ARGS__)
