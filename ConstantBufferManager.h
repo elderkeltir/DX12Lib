@@ -47,6 +47,14 @@ enum TextureTableOffset {
     tto_ssao_random_vals            = 2,
 };
 
+enum ConstantBuffers {
+    cb_model                        = 0,
+    cb_scene                        = 1,
+    cb_lights                       = 2,
+    cb_materials                    = 3,
+    cb_ssao                         = 4,
+};
+
 class ConstantBufferManager {
 public:
     void OnInit();
