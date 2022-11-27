@@ -15,7 +15,7 @@ class GpuResource;
 
 class RenderObject {
 public:
-    enum TextureType { DiffuseTexture = 0, NormalTexture, SpecularTexture, TextureCount };
+    enum TextureType { DiffuseTexture = 0, NormalTexture, MetallicTexture, RoughTexture, TextureCount };
 public:
     virtual ~RenderObject();
     virtual void SetId(uint32_t id) { m_id = id; }
@@ -39,9 +39,10 @@ protected:
         db_index        = 1 << 1,
         db_diffuse_tx   = 1 << 2,
         db_normals_tx   = 1 << 3,
-        db_specular_tx  = 1 << 4,
-        db_rt_tx        = 1 << 5,
-        db_rt_cbv       = 1<< 6
+        db_metallic_tx  = 1 << 4,
+        db_rough_tx     = 1 << 5,
+        db_rt_tx        = 1 << 6,
+        db_rt_cbv       = 1 << 7
     };
 
     RenderMesh* m_mesh {nullptr};

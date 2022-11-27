@@ -64,7 +64,7 @@ void RenderModel::FormVertexes(){
 }
 
 void RenderModel::LoadTextures(ComPtr<ID3D12GraphicsCommandList6> & command_list){
-    if (!(m_dirty & (db_diffuse_tx | db_normals_tx | db_specular_tx))){
+    if (!(m_dirty & (db_diffuse_tx | db_normals_tx | db_metallic_tx | db_rough_tx))){
         return;
     }
 
@@ -87,13 +87,20 @@ void RenderModel::LoadTextures(ComPtr<ID3D12GraphicsCommandList6> & command_list
                     res = m_normals_tex.get();
                 }
                 break;
-            case TextureType::SpecularTexture:
-                flag = db_specular_tx;
+            case TextureType::MetallicTexture:
+                flag = db_metallic_tx;
                 if(m_dirty & flag){
-                    m_specular_tex = std::make_unique<GpuResource>();
-                    res = m_specular_tex.get();
+                    m_metallic_tex = std::make_unique<GpuResource>();
+                    res = m_metallic_tex.get();
                 }
                 break;
+			case TextureType::RoughTexture:
+				flag = db_rough_tx;
+				if (m_dirty & flag) {
+                    m_roughness_tex = std::make_unique<GpuResource>();
+					res = m_roughness_tex.get();
+				}
+				break;
         }
 
         if (res && m_dirty & flag){
@@ -158,9 +165,15 @@ void RenderModel::Render(ComPtr<ID3D12GraphicsCommandList6> &command_list, const
 			}
         }
 
-		if (m_specular_tex) {
-			if (std::shared_ptr<ResourceDescriptor> srv = m_specular_tex->GetSRV().lock()) {
+		if (m_metallic_tex) {
+			if (std::shared_ptr<ResourceDescriptor> srv = m_metallic_tex->GetSRV().lock()) {
 				gD3DApp->GetGpuHeap()->StageDesctriptor(bi_g_buffer_tex_table, tto_metallic, srv->GetCPUhandle());
+			}
+		}
+
+		if (m_roughness_tex) {
+			if (std::shared_ptr<ResourceDescriptor> srv = m_roughness_tex->GetSRV().lock()) {
+				gD3DApp->GetGpuHeap()->StageDesctriptor(bi_g_buffer_tex_table, tto_roughness, srv->GetCPUhandle());
 			}
 		}
 
@@ -211,8 +224,11 @@ void RenderModel::SetTexture(TextureData * texture_data, TextureType type){
         case TextureType::NormalTexture:
             m_dirty |= db_normals_tx;
             break;
-        case TextureType::SpecularTexture:
-            //m_dirty |= db_specular_tx;
+        case TextureType::MetallicTexture:
+            m_dirty |= db_metallic_tx;
+            break;
+        case TextureType::RoughTexture:
+            m_dirty |= db_rough_tx;
             break;
     }
 }

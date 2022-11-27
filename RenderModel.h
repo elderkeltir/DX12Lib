@@ -33,9 +33,10 @@ private:
     inline void LoadConstantData(ComPtr<ID3D12GraphicsCommandList6> &command_list);
 
     std::unique_ptr<GpuResource> m_constant_buffer;
-    std::unique_ptr<GpuResource> m_diffuse_tex;
+
     std::unique_ptr<GpuResource> m_normals_tex;
-    std::unique_ptr<GpuResource> m_specular_tex;
+    std::unique_ptr<GpuResource> m_metallic_tex;
+    std::unique_ptr<GpuResource> m_roughness_tex;
     std::array<TextureData*, TextureCount> m_textures_data;
     std::unique_ptr<Transformations> m_transformations;
     std::vector<RenderModel*> m_children;

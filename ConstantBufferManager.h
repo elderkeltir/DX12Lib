@@ -35,6 +35,7 @@ enum TextureTableOffset {
     tto_albedo                      = 0,
     tto_normals                     = 1,
     tto_metallic                    = 2,
+    tto_roughness                   = 3,
     tto_gbuff_albedo                = 0,
     tto_gbuff_normals               = 1,
     tto_gbuff_positions             = 2,

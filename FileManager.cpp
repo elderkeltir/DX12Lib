@@ -298,11 +298,11 @@ void FileManager::InitializeModel(const aiScene* scene, const aiNode* rootNode, 
 						}
 					}
 				}
-				for (unsigned int k = 0; k < material->GetTextureCount(aiTextureType_SPECULAR); k++)
+				for (unsigned int k = 0; k < material->GetTextureCount(aiTextureType_METALNESS); k++)
 				{
 					assert(k == 0);
 					aiString texturePath;
-					if (material->GetTexture(aiTextureType_SPECULAR, k, &texturePath) == aiReturn_SUCCESS)
+					if (material->GetTexture(aiTextureType_METALNESS, k, &texturePath) == aiReturn_SUCCESS)
 					{
 						if (auto texture_embeded = scene->GetEmbeddedTexture(texturePath.C_Str()))
 						{
@@ -311,9 +311,29 @@ void FileManager::InitializeModel(const aiScene* scene, const aiNode* rootNode, 
 						else
 						{
 							const std::wstring texture_path(&texturePath.C_Str()[0], &texturePath.C_Str()[strlen(texturePath.C_Str())]);
-							TextureData *texture_data = LoadTexture(texture_path, aiTextureType_SPECULAR);
+							TextureData *texture_data = LoadTexture(texture_path, aiTextureType_METALNESS);
 							assert(texture_data);
-							outModel->SetTexture(texture_data, RenderModel::TextureType::SpecularTexture);
+							outModel->SetTexture(texture_data, RenderModel::TextureType::MetallicTexture);
+						}
+					}
+				}
+				aiTextureType roughness_tex = material->GetTextureCount(aiTextureType_SHININESS) ? aiTextureType_SHININESS : aiTextureType_DIFFUSE_ROUGHNESS;
+				for (unsigned int k = 0; k < material->GetTextureCount(roughness_tex); k++)
+				{
+					assert(k == 0);
+					aiString texturePath;
+					if (material->GetTexture(roughness_tex, k, &texturePath) == aiReturn_SUCCESS)
+					{
+						if (auto texture_embeded = scene->GetEmbeddedTexture(texturePath.C_Str()))
+						{
+							assert(false);
+						}
+						else
+						{
+							const std::wstring texture_path(&texturePath.C_Str()[0], &texturePath.C_Str()[strlen(texturePath.C_Str())]);
+							TextureData* texture_data = LoadTexture(texture_path, roughness_tex);
+							assert(texture_data);
+							outModel->SetTexture(texture_data, RenderModel::TextureType::RoughTexture);
 						}
 					}
 				}

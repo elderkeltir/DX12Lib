@@ -18,6 +18,8 @@ struct ps_output
 
 Texture2D    gDiffuseMap : register(t0);
 Texture2D    gNormalMap : register(t1);
+Texture2D    metallicness : register(t2);
+Texture2D    roughness : register(t3);
 
 ps_output main( PixelShaderInput IN )
 {
@@ -32,7 +34,10 @@ ps_output main( PixelShaderInput IN )
     normal = normalize(mul(IN.TBN, normal)); 
     output.normal = float4(normal, 0);
     output.pos = float4(IN.Pos, 1 - IN.Position.z / IN.Position.w);
-    output.material = float4(0.4, 0.2, 1, 0);
+    
+    float met = metallicness.Sample(linearClamp, IN.TexC).r;
+    float rough = roughness.Sample(linearClamp, IN.TexC).r;
+    output.material = float4(met, rough, 1, 0);
 
     return output;
 }
