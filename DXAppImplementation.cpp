@@ -14,6 +14,7 @@
 #include "MaterialManager.h"
 #include "DynamicGpuHeap.h"
 #include "SSAO.h"
+#include "ImguiHelper.h"
 
 #include "WinPixEventRuntime/pix3.h"
 
@@ -35,7 +36,8 @@ DXAppImplementation::DXAppImplementation(uint32_t width, uint32_t height, std::w
     m_post_process_quad(std::make_unique<RenderQuad>()),
     m_deferred_shading_quad(std::make_unique<RenderQuad>()),
     m_dynamic_gpu_heaps(std::make_unique<DynamicGpuHeap[]>(FrameCount)),
-    m_ssao(std::make_unique<SSAO>())
+    m_ssao(std::make_unique<SSAO>()),
+    m_gui(std::make_unique<ImguiHelper>())
 {
 }
 
@@ -62,6 +64,8 @@ void DXAppImplementation::OnInit()
     m_post_process_quad->Initialize();
     m_deferred_shading_quad->Initialize();
     m_ssao->Initialize();
+
+    m_gui->Initialize(m_device, FrameCount);
 }
 
 void DXAppImplementation::CreateDevice(std::optional<std::wstring> dbg_name){
@@ -250,6 +254,9 @@ void DXAppImplementation::OnUpdate()
 // Render the scene.
 void DXAppImplementation::OnRender()
 {
+    // Gui
+    m_gui->Render(m_frameIndex);
+
     // Record all the commands we need to render the scene into the command list.
     ComPtr<ID3D12GraphicsCommandList6>& command_list = m_commandQueueGfx->ResetActiveCL();
 
@@ -357,6 +364,7 @@ void DXAppImplementation::OnRender()
 
 void DXAppImplementation::OnDestroy()
 {
+    m_gui->Destroy();
     m_commandQueueGfx->OnDestroy();
     gD3DApp = nullptr;
 }
@@ -440,12 +448,18 @@ void DXAppImplementation::RenderPostProcessQuad(ComPtr<ID3D12GraphicsCommandList
         GetGpuHeap()->CacheRootSignature(gD3DApp->GetRootSignById(tech->root_signature));
     }
 
+	if (std::shared_ptr<GpuResource> rt = m_post_process_quad->GetRt(m_frameIndex).lock()) {
+		if (std::shared_ptr<ResourceDescriptor> srv = rt->GetSRV().lock()) {
+			GetGpuHeap()->StageDesctriptor(bi_post_proc_input_tex_table, tto_postp_input, srv->GetCPUhandle());
+		}
+	}
     m_post_process_quad->LoadDataToGpu(command_list);
-    if (std::shared_ptr<GpuResource> rt = m_post_process_quad->GetRt(m_frameIndex).lock()) {
+    if (std::shared_ptr<GpuResource> rt = m_gui->GetGuiQuad()->GetRt(m_frameIndex).lock()) {
         if (std::shared_ptr<ResourceDescriptor> srv = rt->GetSRV().lock()) {
-            GetGpuHeap()->StageDesctriptor(bi_post_proc_input_tex_table, tto_postp_input, srv->GetCPUhandle());
+            GetGpuHeap()->StageDesctriptor(bi_post_proc_input_tex_table, tto_postp_gui, srv->GetCPUhandle());
         }
     }
+
     GetGpuHeap()->CommitRootSignature(command_list);
     
     m_post_process_quad->Render(command_list);

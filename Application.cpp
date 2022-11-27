@@ -1,6 +1,7 @@
 //#include "win_mini_header.h"
 
 #include "Application.h"
+#include "backends/imgui_impl_win32.h"
 
 #ifndef GET_X_LPARAM
 #define GET_X_LPARAM(lp)                        ((int)(short)LOWORD(lp))
@@ -69,9 +70,15 @@ int Application::Run(DXApp* pApp, HINSTANCE hInstance, int nCmdShow)
     return static_cast<char>(msg.wParam);
 }
 
+// Forward declare message handler from imgui_impl_win32.cpp
+extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
+
 // Main message handler for the sample.
 LRESULT CALLBACK Application::WindowProc(HWND hWnd, uint32_t message, WPARAM wParam, LPARAM lParam)
 {
+	if (ImGui_ImplWin32_WndProcHandler(hWnd, message, wParam, lParam))
+		return true;
+
     DXApp* pApp = reinterpret_cast<DXApp*>(GetWindowLongPtr(hWnd, GWLP_USERDATA));
 
     switch (message)

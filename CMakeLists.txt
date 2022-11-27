@@ -19,6 +19,7 @@ set(CMAKE_CXX_STANDARD 17) # no need to manually adjust the CXXFLAGS
 set(CMAKE_CXX_STANDARD_REQUIRED on)
 set(ROOT_FOLDER ${PROJECT_SOURCE_DIR})
 set(THIRD_PARTY_DIR ${ROOT_FOLDER}/thirdParty)
+set(THIRD_PARTY_IMGUI_DIR ${THIRD_PARTY_DIR}/imgui)
 
 # include directories
 include_directories(${PROJECT_SOURCE_DIR})
@@ -29,6 +30,7 @@ include_directories(${CMAKE_BINARY_DIR}/thirdParty/assimp/include)
 include_directories(${THIRD_PARTY_DIR}/DirectXShaderCompiler/inc)
 include_directories(${THIRD_PARTY_DIR}/rapidjson/include)
 include_directories(${THIRD_PARTY_DIR}/winpixeventruntime/Include)
+include_directories(${THIRD_PARTY_DIR}/imgui)
 
 # message(STATUS "foo include dir: ${THIRD_PARTY_DIR}/assimp/include")
 # include_directories("C:\\code\\DX12Lib\\thirdParty\\assimp\\include")
@@ -47,6 +49,15 @@ add_subdirectory(${THIRD_PARTY_DIR}/DirectXTex)
 
 # source files
 add_executable(DX12Lib WIN32 main.cpp
+    # imgui
+    ${THIRD_PARTY_IMGUI_DIR}/imgui.cpp
+    ${THIRD_PARTY_IMGUI_DIR}/imgui_demo.cpp # TODO: remove later
+    ${THIRD_PARTY_IMGUI_DIR}/imgui_draw.cpp
+    ${THIRD_PARTY_IMGUI_DIR}/imgui_tables.cpp
+    ${THIRD_PARTY_IMGUI_DIR}/imgui_widgets.cpp
+    ${THIRD_PARTY_IMGUI_DIR}/backends/imgui_impl_dx12.cpp
+    ${THIRD_PARTY_IMGUI_DIR}/backends/imgui_impl_win32.cpp
+    #
     Application.cpp
     DXApp.cpp
     DXAppImplementation.cpp
@@ -73,7 +84,8 @@ add_executable(DX12Lib WIN32 main.cpp
     RenderMesh.cpp
     SkyBox.cpp
     DynamicGpuHeap.cpp
-    SSAO.cpp)
+    SSAO.cpp
+    ImguiHelper.cpp)
 
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})

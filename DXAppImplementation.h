@@ -16,6 +16,7 @@ class FreeCamera;
 class RenderQuad;
 class DynamicGpuHeap;
 class SSAO;
+class ImguiHelper;
 
 class DXAppImplementation : public DXApp, public ResourceManager, public ConstantBufferManager, public Techniques
 {
@@ -73,6 +74,8 @@ private:
     std::unique_ptr<RenderQuad> m_post_process_quad;
     std::unique_ptr<RenderQuad> m_deferred_shading_quad;
     std::unique_ptr<SSAO> m_ssao;
+
+    std::unique_ptr<ImguiHelper> m_gui;
 
     uint32_t m_frameIndex;
     uint64_t m_fenceValues[FrameCount]{0};
