@@ -427,7 +427,7 @@ static Techniques::Technique CreateTechnique_5(ComPtr<ID3D12Device2>& device, Ro
 	return tech;
 }
 
-// root sign for gbuffer
+// root sign for g-buffer
 void Techniques::CreateRootSignature_0(ComPtr<ID3D12Device2> &device, RootSignature* root_sign, std::optional<std::wstring> dbg_name){
     // Create a root signature.
     D3D12_FEATURE_DATA_ROOT_SIGNATURE featureData = {};
@@ -449,10 +449,10 @@ void Techniques::CreateRootSignature_0(ComPtr<ID3D12Device2> &device, RootSignat
 
     auto &root_params_vec = root_sign->GetRootParams();
     root_params_vec.resize(4);
-    root_params_vec[0].InitAsConstantBufferView     (cb_model, 0, D3D12_ROOT_DESCRIPTOR_FLAG_NONE, D3D12_SHADER_VISIBILITY_ALL);
-    root_params_vec[1].InitAsDescriptorTable        (1, &tex_table_srv, D3D12_SHADER_VISIBILITY_PIXEL);
-    root_params_vec[2].InitAsConstantBufferView     (cb_scene, 0, D3D12_ROOT_DESCRIPTOR_FLAG_NONE, D3D12_SHADER_VISIBILITY_VERTEX);
-    root_params_vec[3].InitAsConstantBufferView     (cb_materials, 0, D3D12_ROOT_DESCRIPTOR_FLAG_NONE, D3D12_SHADER_VISIBILITY_PIXEL);
+    root_params_vec[bi_model_cb].InitAsConstantBufferView     (cb_model, 0, D3D12_ROOT_DESCRIPTOR_FLAG_NONE, D3D12_SHADER_VISIBILITY_ALL);
+    root_params_vec[bi_g_buffer_tex_table].InitAsDescriptorTable        (1, &tex_table_srv, D3D12_SHADER_VISIBILITY_PIXEL);
+    root_params_vec[bi_scene_cb].InitAsConstantBufferView     (cb_scene, 0, D3D12_ROOT_DESCRIPTOR_FLAG_NONE, D3D12_SHADER_VISIBILITY_VERTEX);
+    root_params_vec[bi_materials_cb].InitAsConstantBufferView     (cb_materials, 0, D3D12_ROOT_DESCRIPTOR_FLAG_NONE, D3D12_SHADER_VISIBILITY_PIXEL);
     
 
     CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC rootSignatureDescription;
@@ -496,7 +496,7 @@ void Techniques::CreateRootSignature_1(ComPtr<ID3D12Device2> &device, RootSignat
 
     auto &root_params_vec = root_sign->GetRootParams();
     root_params_vec.resize(1);
-    root_params_vec[0].InitAsDescriptorTable        (1, &texTable, D3D12_SHADER_VISIBILITY_PIXEL);
+    root_params_vec[bi_post_proc_input_tex_table].InitAsDescriptorTable        (1, &texTable, D3D12_SHADER_VISIBILITY_PIXEL);
 
     CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC rootSignatureDescription;
     rootSignatureDescription.Init_1_1((uint32_t)root_params_vec.size(), root_params_vec.data(), (uint32_t)staticSamplers.size(), staticSamplers.data(), rootSignatureFlags);
@@ -538,9 +538,9 @@ void Techniques::CreateRootSignature_2(ComPtr<ID3D12Device2> &device, RootSignat
     auto &root_params_vec = root_sign->GetRootParams();
     root_params_vec.resize(3);
 
-    root_params_vec[0].InitAsConstantBufferView(cb_lights, 0, D3D12_ROOT_DESCRIPTOR_FLAG_NONE, D3D12_SHADER_VISIBILITY_PIXEL); // lights
-    root_params_vec[1].InitAsDescriptorTable(1, &texTable, D3D12_SHADER_VISIBILITY_PIXEL); // Texture
-    root_params_vec[2].InitAsConstantBufferView(cb_scene, 0, D3D12_ROOT_DESCRIPTOR_FLAG_NONE, D3D12_SHADER_VISIBILITY_PIXEL); // sceneCB
+    root_params_vec[bi_lights_cb].InitAsConstantBufferView(cb_lights, 0, D3D12_ROOT_DESCRIPTOR_FLAG_NONE, D3D12_SHADER_VISIBILITY_PIXEL); // lights
+    root_params_vec[bi_deferred_shading_tex_table].InitAsDescriptorTable(1, &texTable, D3D12_SHADER_VISIBILITY_PIXEL); // Texture
+    root_params_vec[bi_scene_cb].InitAsConstantBufferView(cb_scene, 0, D3D12_ROOT_DESCRIPTOR_FLAG_NONE, D3D12_SHADER_VISIBILITY_PIXEL); // sceneCB
 
     CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC rootSignatureDescription;
     rootSignatureDescription.Init_1_1((uint32_t)root_params_vec.size(), root_params_vec.data(), (uint32_t)staticSamplers.size(), staticSamplers.data(), rootSignatureFlags);
@@ -581,9 +581,9 @@ void Techniques::CreateRootSignature_3(ComPtr<ID3D12Device2>& device, RootSignat
 	auto& root_params_vec = root_sign->GetRootParams();
 	root_params_vec.resize(3);
 
-	root_params_vec[0].InitAsConstantBufferView(cb_ssao, 0, D3D12_ROOT_DESCRIPTOR_FLAG_NONE, D3D12_SHADER_VISIBILITY_PIXEL); // ssao cb
-	root_params_vec[1].InitAsDescriptorTable(1, &texTable, D3D12_SHADER_VISIBILITY_PIXEL); // Texture
-	root_params_vec[2].InitAsConstantBufferView(cb_scene, 0, D3D12_ROOT_DESCRIPTOR_FLAG_NONE, D3D12_SHADER_VISIBILITY_PIXEL); // sceneCB
+	root_params_vec[bi_ssao_cb].InitAsConstantBufferView(cb_ssao, 0, D3D12_ROOT_DESCRIPTOR_FLAG_NONE, D3D12_SHADER_VISIBILITY_PIXEL); // ssao cb
+	root_params_vec[bi_ssao_input_tex].InitAsDescriptorTable(1, &texTable, D3D12_SHADER_VISIBILITY_PIXEL); // Texture
+	root_params_vec[bi_scene_cb].InitAsConstantBufferView(cb_scene, 0, D3D12_ROOT_DESCRIPTOR_FLAG_NONE, D3D12_SHADER_VISIBILITY_PIXEL); // sceneCB
 
 	CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC rootSignatureDescription;
 	rootSignatureDescription.Init_1_1((uint32_t)root_params_vec.size(), root_params_vec.data(), (uint32_t)staticSamplers.size(), staticSamplers.data(), rootSignatureFlags);
