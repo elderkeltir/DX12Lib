@@ -87,6 +87,9 @@ private:
 		case log_level::ll_INFO:
 			return "INFO";
 			break;
+		default:
+			return "";
+			break;
 		}
 	}
 	static const uint32_t LINE_SIZE = 512;

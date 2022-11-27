@@ -248,10 +248,6 @@ void DXAppImplementation::OnUpdate()
     m_time = t;
     m_total_time = t - m_start_time;
 
-    if (m_frame_id % 60) {
-        LOG_INFO("Ping %d", m_frame_id);
-    }
-
     if (std::shared_ptr<FreeCamera> camera = m_level->GetCamera().lock()){
         UpdateCamera(camera, m_dt.count());
     }

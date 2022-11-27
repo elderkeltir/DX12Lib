@@ -3,6 +3,9 @@
 
 #include "ConsoleCommands.h"
 
+#include "DXAppImplementation.h"
+
+extern DXAppImplementation* gD3DApp;
 
 static int   Stricmp(const char* s1, const char* s2) { int d; while ((d = toupper(*s2) - toupper(*s1)) == 0 && *s1) { s1++; s2++; } return d; }
 static int   Strnicmp(const char* s1, const char* s2, int n) { int d = 0; while (n > 0 && (d = toupper(*s2) - toupper(*s1)) == 0 && *s1) { s1++; s2++; n--; } return d; }
@@ -28,7 +31,6 @@ AppConsole::AppConsole()
 		Commands.push_back(name.c_str());
 	}
 	
-	AutoScroll = true;
 	ScrollToBottom = false;
 	AddLog("Welcome to Dear ImGui!");
 }
@@ -61,45 +63,12 @@ void AppConsole::AddLog(const char* fmt, ...) IM_FMTARGS(2)
 
 void AppConsole::Draw(const char* title)
 {
-	ImGui::SetNextWindowSize(ImVec2(1280, 600), ImGuiCond_FirstUseEver);
-	if (!ImGui::Begin(title, &isActive))
+	ImGui::SetNextWindowSize(ImVec2((float)gD3DApp->GetWidth(), (float)gD3DApp->GetHeight() * 0.7f), ImGuiCond_FirstUseEver);
+	if (!ImGui::Begin(title, &isActive, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove))
 	{
 		ImGui::End();
 		return;
 	}
-
-	// As a specific feature guaranteed by the library, after calling Begin() the last Item represent the title bar.
-	// So e.g. IsItemHovered() will return true when hovering the title bar.
-	// Here we create a context menu only available from the title bar.
-	if (ImGui::BeginPopupContextItem())
-	{
-		if (ImGui::MenuItem("Close Console"))
-			isActive = false;
-		ImGui::EndPopup();
-	}
-
-	// TODO: display items starting from the bottom
-
-	if (ImGui::SmallButton("Clear")) { ClearLog(); }
-	ImGui::SameLine();
-	bool copy_to_clipboard = ImGui::SmallButton("Copy");
-	//static float t = 0.0f; if (ImGui::GetTime() - t > 0.02f) { t = ImGui::GetTime();  deLog("Spam %f", t); }
-
-	ImGui::Separator();
-
-	// Options menu
-	if (ImGui::BeginPopup("Options"))
-	{
-		ImGui::Checkbox("Auto-scroll", &AutoScroll);
-		ImGui::EndPopup();
-	}
-
-	// Options, Filter
-	if (ImGui::Button("Options"))
-		ImGui::OpenPopup("Options");
-	ImGui::SameLine();
-	Filter.Draw("Filter (\"incl,-excl\") (\"error\")", 180);
-	ImGui::Separator();
 
 	// Reserve enough left-over height for 1 separator + 1 input text
 	const float footer_height_to_reserve = ImGui::GetStyle().ItemSpacing.y + ImGui::GetFrameHeightWithSpacing();
@@ -136,13 +105,9 @@ void AppConsole::Draw(const char* title)
 		// - Split them into same height items would be simpler and facilitate random-seeking into your list.
 		// - Consider using manual call to IsRectVisible() and skipping extraneous decoration from your items.
 		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(4, 1)); // Tighten spacing
-		if (copy_to_clipboard)
-			ImGui::LogToClipboard();
 		for (int i = 0; i < Items.Size; i++)
 		{
 			const char* item = Items[i];
-			if (!Filter.PassFilter(item))
-				continue;
 
 			// Normally you would store more information in your item than just a string.
 			// (e.g. make Items[] an array of structure, store color/type etc.)
@@ -156,12 +121,10 @@ void AppConsole::Draw(const char* title)
 			if (has_color)
 				ImGui::PopStyleColor();
 		}
-		if (copy_to_clipboard)
-			ImGui::LogFinish();
 
 		// Keep up at the bottom of the scroll region if we were already at the bottom at the beginning of the frame.
 		// Using a scrollbar or mouse-wheel will take away from the bottom edge.
-		if (ScrollToBottom || (AutoScroll && ImGui::GetScrollY() >= ImGui::GetScrollMaxY()))
+		if (ScrollToBottom || (ImGui::GetScrollY() >= ImGui::GetScrollMaxY()))
 			ImGui::SetScrollHereY(1.0f);
 		ScrollToBottom = false;
 
@@ -173,7 +136,7 @@ void AppConsole::Draw(const char* title)
 	// Command-line
 	bool reclaim_focus = true;
 	ImGuiInputTextFlags input_text_flags = ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_EscapeClearsAll | ImGuiInputTextFlags_CallbackCompletion | ImGuiInputTextFlags_CallbackHistory;
-	if (ImGui::InputText("Input", InputBuf, IM_ARRAYSIZE(InputBuf), input_text_flags, &TextEditCallbackStub, (void*)this))
+	if (ImGui::InputText("Log", InputBuf, IM_ARRAYSIZE(InputBuf), input_text_flags, &TextEditCallbackStub, (void*)this))
 	{
 		char* s = InputBuf;
 		Strtrim(s);
