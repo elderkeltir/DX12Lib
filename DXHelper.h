@@ -18,6 +18,21 @@ inline bool cmpf(float A, float B, float epsilon = 0.00001f)
     return (fabs(A - B) < epsilon);
 }
 
+static float rand_fp_unorm()
+{
+	return (float)(rand()) / (float)RAND_MAX;
+}
+
+static float rand_fp(float a, float b)
+{
+	return a + rand_fp_unorm() * (b - a);
+}
+
+inline float lerp(float a, float b, float f)
+{
+	return a + f * (b - a);
+}
+
 inline std::string HrToString(HRESULT hr)
 {
     char s_str[64] = {};

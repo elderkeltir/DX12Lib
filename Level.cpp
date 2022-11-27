@@ -186,12 +186,20 @@ void Level::RenderEntity(ComPtr<ID3D12GraphicsCommandList6>& command_list, Level
         gD3DApp->SetMatrix4Constant(Constants::cV, m_ViewMatrix);
         gD3DApp->SetMatrix4Constant(Constants::cP, m_ProjectionMatrix);
 
+        DirectX::XMMATRIX Pinv = DirectX::XMMatrixInverse(nullptr, m_ProjectionMatrix);
+        gD3DApp->SetMatrix4Constant(Constants::cPinv, Pinv);
+
         DirectX::XMFLOAT4 cam_pos(m_camera->GetPosition().x, m_camera->GetPosition().y, m_camera->GetPosition().z, 1);
         gD3DApp->SetVector4Constant(Constants::cCP, cam_pos);
+
+        float w = (float)gD3DApp->GetWidth();
+        float h = (float)gD3DApp->GetHeight();
+        DirectX::XMFLOAT4 rt_dim(w, h, 1.f / w, 1.f / h);
+        gD3DApp->SetVector4Constant(Constants::cRTdim, rt_dim);
 		
         // update material CBs
 		if (std::shared_ptr<MaterialManager> mat_mgr = gD3DApp->GetMaterialManager().lock()) {
-			mat_mgr->SyncGpuData(command_list);
+			mat_mgr->BindMaterials(command_list);
 		}
 
         is_scene_constants_set = !is_scene_constants_set;
@@ -201,20 +209,7 @@ void Level::RenderEntity(ComPtr<ID3D12GraphicsCommandList6>& command_list, Level
 }
 
 void Level::BindLights(ComPtr<ID3D12GraphicsCommandList6>& command_list){
-    if (std::shared_ptr<HeapBuffer> buff = m_lights_res->GetBuffer().lock()){
-        if (std::shared_ptr<GfxCommandQueue> queue = gD3DApp->GetGfxQueue().lock()){
-            queue->ResourceBarrier(*m_lights_res.get(), D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER, D3D12_RESOURCE_STATE_COPY_DEST);
-        }
-        uint32_t cb_size = calc_cb_size(LightsNum * sizeof(LevelLight));
-        buff->Load(command_list, 1, cb_size, m_lights.data());
-        if (std::shared_ptr<GfxCommandQueue> queue = gD3DApp->GetGfxQueue().lock()){
-            queue->ResourceBarrier(*m_lights_res.get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER);
-        }
-    }
-
-    if (std::shared_ptr<HeapBuffer> buff = m_lights_res->GetBuffer().lock()){
-        command_list->SetGraphicsRootConstantBufferView(bi_lights_cb, buff->GetResource()->GetGPUVirtualAddress());
-    }
+    ConstantBufferManager::SyncCpuDataToCB(command_list, m_lights_res.get(), m_lights.data(), (LightsNum * sizeof(LevelLight)), bi_lights_cb);
 }
 
 const std::filesystem::path& Level::GetLevelsDir() const{

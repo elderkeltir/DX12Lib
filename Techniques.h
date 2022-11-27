@@ -23,8 +23,9 @@ public:
         uint32_t id;
     };
     enum TecnhinueType {
-        tt_post_processing = 2,
-        tt_deferred_shading = 3
+        tt_post_processing                  = 2,
+        tt_deferred_shading                 = 3,
+        tt_ssao                             = 5,
     };
 public:
     virtual void OnInit(ComPtr<ID3D12Device2> &device, std::optional<std::wstring> dbg_name = std::nullopt);
@@ -35,6 +36,7 @@ private:
     void CreateRootSignature_0(ComPtr<ID3D12Device2>& device, RootSignature* root_sign, std::optional<std::wstring> dbg_name = std::nullopt);
     void CreateRootSignature_1(ComPtr<ID3D12Device2>& device, RootSignature* root_sign, std::optional<std::wstring> dbg_name = std::nullopt);
     void CreateRootSignature_2(ComPtr<ID3D12Device2>& device, RootSignature* root_sign, std::optional<std::wstring> dbg_name = std::nullopt);
+    void CreateRootSignature_3(ComPtr<ID3D12Device2>& device, RootSignature* root_sign, std::optional<std::wstring> dbg_name = std::nullopt);
 
     void LoadTechniques();
     static constexpr uint32_t TechniquesCount = 16;

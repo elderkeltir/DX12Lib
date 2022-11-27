@@ -15,6 +15,7 @@ class GfxCommandQueue;
 class FreeCamera;
 class RenderQuad;
 class DynamicGpuHeap;
+class SSAO;
 
 class DXAppImplementation : public DXApp, public ResourceManager, public ConstantBufferManager, public Techniques
 {
@@ -71,8 +72,7 @@ private:
     std::unique_ptr<GpuResource> m_depthStencil;
     std::unique_ptr<RenderQuad> m_post_process_quad;
     std::unique_ptr<RenderQuad> m_deferred_shading_quad;
-    std::unique_ptr<RenderQuad> m_ssao_quad;
-    std::unique_ptr<GpuResource> m_ssao_quad_random_vals;
+    std::unique_ptr<SSAO> m_ssao;
 
     uint32_t m_frameIndex;
     uint64_t m_fenceValues[FrameCount]{0};

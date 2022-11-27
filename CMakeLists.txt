@@ -72,7 +72,8 @@ add_executable(DX12Lib WIN32 main.cpp
     MaterialManager.cpp
     RenderMesh.cpp
     SkyBox.cpp
-    DynamicGpuHeap.cpp)
+    DynamicGpuHeap.cpp
+    SSAO.cpp)
 
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})

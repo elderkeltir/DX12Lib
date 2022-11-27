@@ -30,6 +30,8 @@ cbuffer SceneCB : register(b1){
     float4x4 V;
     float4x4 P;
     float4 CamPos;
+    float4x4 Pinv;
+    float4 RTdim;
 };
 
 // 3 x 256
@@ -43,3 +45,12 @@ cbuffer MaterialsCB : register(b3)
 {
     Material materials[MATERIALS_NUM];
 }
+
+cbuffer SsaoCb : register(b4)
+{
+	float4   gOffsetVectors[64];
+    uint     kernelSize;
+    float    radius;
+    float    bias;
+    float    noise_dim;
+};

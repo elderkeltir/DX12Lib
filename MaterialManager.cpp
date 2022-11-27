@@ -28,19 +28,6 @@ void MaterialManager::LoadMaterials() {
     m_materials_res->Create_CBV(desc);
 }
 
-void MaterialManager::SyncGpuData(ComPtr<ID3D12GraphicsCommandList6>& command_list) {
-    if (std::shared_ptr<GfxCommandQueue> queue = gD3DApp->GetGfxQueue().lock()){
-        queue->ResourceBarrier(*m_materials_res.get(), D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER, D3D12_RESOURCE_STATE_COPY_DEST);
-    }
-    if (std::shared_ptr<HeapBuffer> buff = m_materials_res->GetBuffer().lock()){
-        uint32_t cb_size = calc_cb_size(materials_num * sizeof(Material));
-        buff->Load(command_list, 1, cb_size, m_materials.data());
-    }
-    if (std::shared_ptr<GfxCommandQueue> queue = gD3DApp->GetGfxQueue().lock()){
-        queue->ResourceBarrier(*m_materials_res.get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER);
-    }
-
-    if (std::shared_ptr<HeapBuffer> buff = m_materials_res->GetBuffer().lock()){
-        command_list->SetGraphicsRootConstantBufferView(bi_materials_cb, buff->GetResource()->GetGPUVirtualAddress());
-    }
+void MaterialManager::BindMaterials(ComPtr<ID3D12GraphicsCommandList6>& command_list) {
+    ConstantBufferManager::SyncCpuDataToCB(command_list, m_materials_res.get(), m_materials.data(), (materials_num * sizeof(Material)), bi_materials_cb);
 }

@@ -1,10 +1,10 @@
 #include "ConstantBufferManager.h"
 #include "GpuResource.h"
 #include "DXHelper.h"
+#include "GfxCommandQueue.h"
+#include "DXAppImplementation.h"
 
-// #include "DXAppImplementation.h"
-
-// extern DXAppImplementation *gD3DApp;
+extern DXAppImplementation* gD3DApp;
 
 
 void ConstantBufferManager::OnInit() {
@@ -45,6 +45,12 @@ void ConstantBufferManager::SetMatrix4Constant(Constants id, const DirectX::XMMA
             DirectX::XMStoreFloat4x4(&scene_cb->P, matrix);
         }
     }
+	else if (id == Constants::cPinv) {
+		if (std::shared_ptr<HeapBuffer> buff = m_scene_cb->GetBuffer().lock()) {
+			SceneCB* scene_cb = (SceneCB*)buff->GetCpuData();
+			DirectX::XMStoreFloat4x4(&scene_cb->VPinv, matrix);
+		}
+	}
 }
 
 void ConstantBufferManager::SetMatrix4Constant(Constants id, const DirectX::XMFLOAT4X4 & matrix){
@@ -66,15 +72,27 @@ void ConstantBufferManager::SetMatrix4Constant(Constants id, const DirectX::XMFL
             scene_cb->P = matrix;
         }
     }
+    else if (id == Constants::cPinv) {
+		if (std::shared_ptr<HeapBuffer> buff = m_scene_cb->GetBuffer().lock()) {
+			SceneCB* scene_cb = (SceneCB*)buff->GetCpuData();
+			scene_cb->VPinv = matrix;
+		}
+    }
 }
 
 void ConstantBufferManager::SetVector4Constant(Constants id, const DirectX::XMVECTOR & vec){
-        if (id == Constants::cCP){
+    if (id == Constants::cCP){
         if (std::shared_ptr<HeapBuffer> buff = m_scene_cb->GetBuffer().lock()){
             SceneCB* scene_cb = (SceneCB*) buff->GetCpuData();
             DirectX::XMStoreFloat4(&scene_cb->CamPos, vec);
         }
     }
+	else if (id == Constants::cRTdim) {
+		if (std::shared_ptr<HeapBuffer> buff = m_scene_cb->GetBuffer().lock()) {
+			SceneCB* scene_cb = (SceneCB*)buff->GetCpuData();
+			DirectX::XMStoreFloat4(&scene_cb->RTdim, vec);
+		}
+	}
 }
 
 void ConstantBufferManager::SetVector4Constant(Constants id, const DirectX::XMFLOAT4 & vec){
@@ -84,6 +102,12 @@ void ConstantBufferManager::SetVector4Constant(Constants id, const DirectX::XMFL
             scene_cb->CamPos = vec;
         }
     }
+	else if (id == Constants::cRTdim) {
+		if (std::shared_ptr<HeapBuffer> buff = m_scene_cb->GetBuffer().lock()) {
+			SceneCB* scene_cb = (SceneCB*)buff->GetCpuData();
+            scene_cb->RTdim = vec;
+		}
+	}
 }
 
 void ConstantBufferManager::SetUint32(Constants id, uint32_t val)
@@ -108,4 +132,21 @@ void ConstantBufferManager::CommitCB(ComPtr<ID3D12GraphicsCommandList6>& command
             command_list->SetGraphicsRootConstantBufferView(bi_scene_cb, buff->GetResource()->GetGPUVirtualAddress());
         }
     }
+}
+
+void ConstantBufferManager::SyncCpuDataToCB(ComPtr<ID3D12GraphicsCommandList6>& command_list, GpuResource* res, void* cpu_data, uint32_t size, BindingId bind_point) {
+	if (std::shared_ptr<GfxCommandQueue> queue = gD3DApp->GetGfxQueue().lock()) {
+		queue->ResourceBarrier(*res, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER, D3D12_RESOURCE_STATE_COPY_DEST);
+	}
+	if (std::shared_ptr<HeapBuffer> buff = res->GetBuffer().lock()) {
+		uint32_t cb_size = calc_cb_size(size);
+		buff->Load(command_list, 1, cb_size, cpu_data);
+	}
+	if (std::shared_ptr<GfxCommandQueue> queue = gD3DApp->GetGfxQueue().lock()) {
+		queue->ResourceBarrier(*res, D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER);
+	}
+
+	if (std::shared_ptr<HeapBuffer> buff = res->GetBuffer().lock()) {
+		command_list->SetGraphicsRootConstantBufferView(bind_point, buff->GetResource()->GetGPUVirtualAddress());
+	}
 }

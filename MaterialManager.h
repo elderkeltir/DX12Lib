@@ -19,7 +19,7 @@ public:
     uint32_t CreateMaterial(float metallic, float roughness);
     Material& GetMaterial(uint32_t id) { return m_materials[id]; }
     void LoadMaterials();
-    void SyncGpuData(ComPtr<ID3D12GraphicsCommandList6>& command_list);
+    void BindMaterials(ComPtr<ID3D12GraphicsCommandList6>& command_list);
 
 private:
     static const uint32_t materials_num = 64;

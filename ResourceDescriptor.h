@@ -15,11 +15,9 @@ public:
     bool Create_CBV(std::weak_ptr<HeapBuffer> buff, const D3D12_CONSTANT_BUFFER_VIEW_DESC &desc);
 
     CD3DX12_CPU_DESCRIPTOR_HANDLE GetCPUhandle() const { return m_cpu_handle; }
-    //CD3DX12_GPU_DESCRIPTOR_HANDLE GetGPUhandle() const { return m_gpu_handle; }
     ResourceDescriptorType GetType() const { return m_type; }
 private:
     CD3DX12_CPU_DESCRIPTOR_HANDLE m_cpu_handle;
-    CD3DX12_GPU_DESCRIPTOR_HANDLE m_gpu_handle;
 
     ResourceDescriptorType m_type;
 };

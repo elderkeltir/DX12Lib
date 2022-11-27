@@ -10,8 +10,7 @@ Texture2D    albedo_tx : register(t0);
 Texture2D    normals : register(t1);
 Texture2D    positions : register(t2);
 Texture2D    material : register(t3);
-
-static float ao = 1;
+Texture2D    ssao : register(t4);
   
 float DistributionGGX(float3 N, float3 H, float roughness);
 float GeometrySchlickGGX(float NdotV, float roughness);
@@ -23,8 +22,9 @@ float4 main(PixelShaderInput IN ) : SV_Target
 
     float metallic = material.Sample(linearClamp, IN.TexC).x;
     float roughness = material.Sample(linearClamp, IN.TexC).y;
+    float ao = ssao.Sample(linearClamp, IN.TexC).r;
 
-    float3 albedo = albedo_tx.Sample(linearClamp, IN.TexC).xyz;
+    float3 albedo = albedo_tx.Sample(anisotropicClamp, IN.TexC).xyz;
     float3 WorldPos = positions.Sample(linearClamp, IN.TexC).xyz;
     float3 normal = normals.Sample(linearClamp, IN.TexC).xyz;
     float3 N = normalize(normal);

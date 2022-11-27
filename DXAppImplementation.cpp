@@ -13,6 +13,7 @@
 #include "RenderQuad.h"
 #include "MaterialManager.h"
 #include "DynamicGpuHeap.h"
+#include "SSAO.h"
 
 #include "WinPixEventRuntime/pix3.h"
 
@@ -33,8 +34,8 @@ DXAppImplementation::DXAppImplementation(uint32_t width, uint32_t height, std::w
     m_commandQueueGfx(std::make_shared<GfxCommandQueue>()),
     m_post_process_quad(std::make_unique<RenderQuad>()),
     m_deferred_shading_quad(std::make_unique<RenderQuad>()),
-    m_ssao_quad(std::make_unique<RenderQuad>()),
-    m_dynamic_gpu_heaps(std::make_unique<DynamicGpuHeap[]>(FrameCount))
+    m_dynamic_gpu_heaps(std::make_unique<DynamicGpuHeap[]>(FrameCount)),
+    m_ssao(std::make_unique<SSAO>())
 {
 }
 
@@ -60,7 +61,7 @@ void DXAppImplementation::OnInit()
 
     m_post_process_quad->Initialize();
     m_deferred_shading_quad->Initialize();
-    m_ssao_quad->Initialize();
+    m_ssao->Initialize();
 }
 
 void DXAppImplementation::CreateDevice(std::optional<std::wstring> dbg_name){
@@ -276,23 +277,22 @@ void DXAppImplementation::OnRender()
     RenderLevel(command_list);
     END_EVENT(command_list);
 
-    // ssao
+    // SSAO
     BEGIN_EVENT(command_list, "SSAO");
     // init quad + rt, ds states
     std::vector<DXGI_FORMAT> formats = { DXGI_FORMAT_R8_UNORM };
-    m_ssao_quad->CreateQuadTexture(m_width, m_height, formats, FrameCount, L"m_ssao_quad_");
-    if (std::shared_ptr<GpuResource> rt = m_ssao_quad->GetRt(m_frameIndex).lock()){
+    m_ssao->GetRenderQuad()->CreateQuadTexture(m_width, m_height, formats, FrameCount, L"m_ssao_quad_");
+    if (std::shared_ptr<GpuResource> rt = m_ssao->GetRenderQuad()->GetRt(m_frameIndex).lock()){
             m_commandQueueGfx->ResourceBarrier(rt, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET);
-            PrepareRenderTarget(command_list, m_ssao_quad->GetRts(m_frameIndex));
+            PrepareRenderTarget(command_list, *rt, false);
         }
         else {
             assert(false);
     }
     std::vector< std::shared_ptr<GpuResource>>& rts = m_deferred_shading_quad->GetRts(m_frameIndex);
     m_commandQueueGfx->ResourceBarrier(rts, D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
-    m_commandQueueGfx->ResourceBarrier(*m_depthStencil, D3D12_RESOURCE_STATE_DEPTH_WRITE, D3D12_RESOURCE_STATE_DEPTH_READ | D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
     
-    // render ssao to quad
+    // render SSAO to quad
     RenderSSAOquad(command_list);
 
 
@@ -301,13 +301,12 @@ void DXAppImplementation::OnRender()
     // deferred shading setup rts
     BEGIN_EVENT(command_list, "Deferred Shading");
     {
-        if (std::shared_ptr<GpuResource> rt = m_ssao_quad->GetRt(m_frameIndex).lock()){
+        if (std::shared_ptr<GpuResource> rt = m_ssao->GetRenderQuad()->GetRt(m_frameIndex).lock()){
             m_commandQueueGfx->ResourceBarrier(rt, D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
         }
         else {
             assert(false);
         }
-        m_commandQueueGfx->ResourceBarrier(*m_depthStencil, D3D12_RESOURCE_STATE_DEPTH_READ | D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_DEPTH_WRITE);
         std::vector<DXGI_FORMAT> formats = { DXGI_FORMAT_R16G16B16A16_FLOAT };
         m_post_process_quad->CreateQuadTexture(m_width, m_height, formats, FrameCount, L"m_post_process_quad_");
         if (std::shared_ptr<GpuResource> rt = m_post_process_quad->GetRt(m_frameIndex).lock()){
@@ -474,16 +473,47 @@ void DXAppImplementation::RenderDeferredShadingQuad(ComPtr<ID3D12GraphicsCommand
             GetGpuHeap()->StageDesctriptor(bi_deferred_shading_tex_table, TextureTableOffset(i), srv->GetCPUhandle());
         }
     }
+    if (std::shared_ptr<GpuResource> rt = m_ssao->GetRenderQuad()->GetRt(m_frameIndex).lock()) {
+        if (std::shared_ptr<ResourceDescriptor> srv = rt->GetSRV().lock()) {
+            GetGpuHeap()->StageDesctriptor(bi_deferred_shading_tex_table, tto_gbuff_ssao, srv->GetCPUhandle());
+        }
+    }
 	GetGpuHeap()->CommitRootSignature(command_list);
     
     m_deferred_shading_quad->Render(command_list);
 }
 
 void DXAppImplementation::RenderSSAOquad(ComPtr<ID3D12GraphicsCommandList6>& command_list) {
-    // random values texture should be generated
-    // render ssao
+	const Techniques::Technique* tech = GetTechniqueById(tt_ssao);
+	if (m_commandQueueGfx->GetPSO() != tt_ssao) {
+		m_commandQueueGfx->SetPSO(tt_ssao);
+	}
+	if (m_commandQueueGfx->GetRootSign() != tech->root_signature) {
+		m_commandQueueGfx->SetRootSign(tech->root_signature);
+		GetGpuHeap()->CacheRootSignature(gD3DApp->GetRootSignById(tech->root_signature));
+	}
 
-    // blur ssao
+	m_ssao->GetRenderQuad()->LoadDataToGpu(command_list);
+	if (std::shared_ptr<GpuResource> rt = m_deferred_shading_quad->GetRt(m_frameIndex, 2).lock()) {
+		if (std::shared_ptr<ResourceDescriptor> srv = rt->GetSRV().lock()) {
+			GetGpuHeap()->StageDesctriptor(bi_ssao_input_tex, tto_ssao_positions, srv->GetCPUhandle());
+		}
+	}
+	if (std::shared_ptr<GpuResource> rt = m_deferred_shading_quad->GetRt(m_frameIndex, 1).lock()) {
+		if (std::shared_ptr<ResourceDescriptor> srv = rt->GetSRV().lock()) {
+			GetGpuHeap()->StageDesctriptor(bi_ssao_input_tex, tto_ssao_normals, srv->GetCPUhandle());
+		}
+	}
+	if (std::shared_ptr<ResourceDescriptor> srv = m_ssao->GetRandomVals()->GetSRV().lock()) {
+		GetGpuHeap()->StageDesctriptor(bi_ssao_input_tex, tto_ssao_random_vals, srv->GetCPUhandle());
+	}
+    gD3DApp->CommitCB(command_list, 1);
+    // bind ssao cb
+    m_ssao->GenerateSSAO(command_list);
+
+	GetGpuHeap()->CommitRootSignature(command_list);
+
+    m_ssao->GetRenderQuad()->Render(command_list);
 }
 
 void DXAppImplementation::OnMouseMoved(WPARAM btnState, int x, int y){

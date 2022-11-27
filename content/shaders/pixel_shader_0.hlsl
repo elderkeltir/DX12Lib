@@ -6,6 +6,7 @@ struct PixelShaderInput
     float4 Normal : NORMAL;
     float4 WorldPos : POSITION;
     float4 material : COLOR1;
+    float4 Position : SV_Position;
 };
 
 struct ps_output
@@ -23,9 +24,10 @@ ps_output main( PixelShaderInput IN )
     output.albedo = IN.Color;
 
     // normal mapping
-    output.normal = IN.Normal;
+    output.normal = normalize(IN.Normal);
     output.pos = IN.WorldPos;
     output.material = IN.material;
+    output.pos.w = 1 - IN.Position.z / IN.Position.w;
 
     return output;
 }

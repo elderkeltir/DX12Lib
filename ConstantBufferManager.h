@@ -14,7 +14,9 @@ enum class Constants {
     cM,             // model matrix
     cV,             // view matrix
     cP,             // projection matrix
-    cMat            // material id
+    cMat,           // material id
+    cPinv,          // ViewProj inverted
+    cRTdim,         // rt size
 };
 
 enum BindingId {
@@ -24,7 +26,9 @@ enum BindingId {
     bi_materials_cb                 = 3,
     bi_lights_cb                    = 0,
     bi_deferred_shading_tex_table   = 1,
-    bi_post_proc_input_tex_table    = 0
+    bi_post_proc_input_tex_table    = 0,
+    bi_ssao_cb                      = 0,
+    bi_ssao_input_tex               = 1,
 };
 
 enum TextureTableOffset {
@@ -35,7 +39,11 @@ enum TextureTableOffset {
     tto_gbuff_normals               = 1,
     tto_gbuff_positions             = 2,
     tto_gbuff_materials             = 3,
-    tto_postp_input                 = 0
+    tto_gbuff_ssao                  = 4,
+    tto_postp_input                 = 0,
+    tto_ssao_positions              = 0,
+    tto_ssao_normals                = 1,
+    tto_ssao_random_vals            = 2,
 };
 
 class ConstantBufferManager {
@@ -50,6 +58,8 @@ public:
     void SetModelCB(GpuResource* res) { m_model_cb = res; }
     void CommitCB(ComPtr<ID3D12GraphicsCommandList6>& command_list, uint32_t id);
 
+    static void SyncCpuDataToCB(ComPtr<ID3D12GraphicsCommandList6>& command_list, GpuResource* res, void* cpu_data, uint32_t size, BindingId bind_point);
+
 public:
     // 1 x 256
     struct ModelCB {
@@ -63,6 +73,8 @@ public:
         DirectX::XMFLOAT4X4 V;
         DirectX::XMFLOAT4X4 P;
         DirectX::XMFLOAT4 CamPos;
+        DirectX::XMFLOAT4X4 VPinv;
+        DirectX::XMFLOAT4 RTdim; // x=width, y=height, z=1/wisth, w=1/height
     };
 
     GpuResource* m_model_cb;
