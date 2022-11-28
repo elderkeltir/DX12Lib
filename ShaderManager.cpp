@@ -8,9 +8,9 @@
 extern DXAppImplementation *gD3DApp;
 
 const wchar_t *targets[] = {
-    L"vs_6_0",
-    L"ps_6_0",
-    L"cs_6_0",
+    L"vs_6_5",
+    L"ps_6_5",
+    L"cs_6_5",
 };
 
 ShaderManager::ShaderManager()

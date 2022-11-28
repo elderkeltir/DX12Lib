@@ -152,39 +152,40 @@ void RenderModel::Render(ComPtr<ID3D12GraphicsCommandList6> &command_list, const
         }
         command_list->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
         
-        
-        if (m_diffuse_tex){
-            if (std::shared_ptr<ResourceDescriptor> srv = m_diffuse_tex->GetSRV().lock()){
-                gD3DApp->GetGpuHeap()->StageDesctriptor(bi_g_buffer_tex_table, tto_albedo, srv->GetCPUhandle());
+        if (std::shared_ptr<GfxCommandQueue> gfx_queue = gD3DApp->GetGfxQueue().lock()) {
+            if (m_diffuse_tex) {
+                if (std::shared_ptr<ResourceDescriptor> srv = m_diffuse_tex->GetSRV().lock()) {
+                    gfx_queue->GetGpuHeap().StageDesctriptor(bi_g_buffer_tex_table, tto_albedo, srv->GetCPUhandle());
+                }
             }
+
+            if (m_normals_tex) {
+                if (std::shared_ptr<ResourceDescriptor> srv = m_normals_tex->GetSRV().lock()) {
+                    gfx_queue->GetGpuHeap().StageDesctriptor(bi_g_buffer_tex_table, tto_normals, srv->GetCPUhandle());
+                }
+            }
+
+            if (m_metallic_tex) {
+                if (std::shared_ptr<ResourceDescriptor> srv = m_metallic_tex->GetSRV().lock()) {
+                    gfx_queue->GetGpuHeap().StageDesctriptor(bi_g_buffer_tex_table, tto_metallic, srv->GetCPUhandle());
+                }
+            }
+
+            if (m_roughness_tex) {
+                if (std::shared_ptr<ResourceDescriptor> srv = m_roughness_tex->GetSRV().lock()) {
+                    gfx_queue->GetGpuHeap().StageDesctriptor(bi_g_buffer_tex_table, tto_roughness, srv->GetCPUhandle());
+                }
+            }
+
+            gfx_queue->GetGpuHeap().CommitRootSignature(command_list);
         }
-
-        if (m_normals_tex) {
-			if (std::shared_ptr<ResourceDescriptor> srv = m_normals_tex->GetSRV().lock()) {
-				gD3DApp->GetGpuHeap()->StageDesctriptor(bi_g_buffer_tex_table, tto_normals, srv->GetCPUhandle());
-			}
-        }
-
-		if (m_metallic_tex) {
-			if (std::shared_ptr<ResourceDescriptor> srv = m_metallic_tex->GetSRV().lock()) {
-				gD3DApp->GetGpuHeap()->StageDesctriptor(bi_g_buffer_tex_table, tto_metallic, srv->GetCPUhandle());
-			}
-		}
-
-		if (m_roughness_tex) {
-			if (std::shared_ptr<ResourceDescriptor> srv = m_roughness_tex->GetSRV().lock()) {
-				gD3DApp->GetGpuHeap()->StageDesctriptor(bi_g_buffer_tex_table, tto_roughness, srv->GetCPUhandle());
-			}
-		}
-
-        gD3DApp->GetGpuHeap()->CommitRootSignature(command_list);
 
         
         if (m_constant_buffer) {
             gD3DApp->SetModelCB(m_constant_buffer.get());
             gD3DApp->SetMatrix4Constant(Constants::cM, parent_xform_mx);
             gD3DApp->SetUint32(Constants::cMat, m_material_id);
-            gD3DApp->CommitCB(command_list, 0);
+            gD3DApp->CommitCB(command_list, cb_model);
         }
 
         TODO("Major! DrawIndexed should be at upper level where you know there are few such meshes to render")

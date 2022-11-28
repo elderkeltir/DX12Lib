@@ -36,7 +36,7 @@ void ImguiHelper::Initialize(ComPtr<ID3D12Device2>& device, uint32_t frames_num)
 	auto hwnd = Application::GetHwnd();
 	m_rt->Initialize();
 	std::vector<DXGI_FORMAT> formats{ DXGI_FORMAT_R8G8B8A8_UNORM };
-	m_rt->CreateQuadTexture(gD3DApp->GetWidth(), gD3DApp->GetHeight(), formats, m_frames_num, L"imgui_quad");
+	m_rt->CreateQuadTexture(gD3DApp->GetWidth(), gD3DApp->GetHeight(), formats, m_frames_num, 0, L"imgui_quad");
 	CD3DX12_CPU_DESCRIPTOR_HANDLE srvuacbvHandle;
 	CD3DX12_GPU_DESCRIPTOR_HANDLE srvuacbvHandle_gpu;
 
@@ -45,7 +45,7 @@ void ImguiHelper::Initialize(ComPtr<ID3D12Device2>& device, uint32_t frames_num)
 		m_gpu_visible_heap = heap_collection->GetGpuVisibleHeap();
 	}
 
-	m_commandQueueGfx->OnInit(m_device, D3D12_COMMAND_LIST_TYPE_DIRECT, L"GUI");
+	m_commandQueueGfx->OnInit(m_device, D3D12_COMMAND_LIST_TYPE_DIRECT, m_frames_num, L"GUI");
 
 	// Setup Dear ImGui context
 	IMGUI_CHECKVERSION();

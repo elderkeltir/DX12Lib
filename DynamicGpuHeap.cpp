@@ -54,7 +54,7 @@ void DynamicGpuHeap::StageDesctriptor(uint32_t root_id, uint32_t offset, CD3DX12
 	m_dirty_table_mask[root_id] |= (1ull << offset);
 }
 
-void DynamicGpuHeap::CommitRootSignature(ComPtr<ID3D12GraphicsCommandList6>& command_list) {
+void DynamicGpuHeap::CommitRootSignature(ComPtr<ID3D12GraphicsCommandList6>& command_list, bool gfx) {
     for (uint32_t root_id = 0; root_id < MaxTableSize; root_id++) {
         if (m_tables_mask & (1ull << root_id)) {
             for (uint32_t i = 0; i < m_root_sig_cache[root_id].num; i++) {
@@ -67,8 +67,13 @@ void DynamicGpuHeap::CommitRootSignature(ComPtr<ID3D12GraphicsCommandList6>& com
 				}
             }
 
-		CD3DX12_GPU_DESCRIPTOR_HANDLE begin_handle = (CD3DX12_GPU_DESCRIPTOR_HANDLE)m_root_sig_cache[root_id].base_gpu;
-        command_list->SetGraphicsRootDescriptorTable(root_id, begin_handle);
+		    CD3DX12_GPU_DESCRIPTOR_HANDLE begin_handle = (CD3DX12_GPU_DESCRIPTOR_HANDLE)m_root_sig_cache[root_id].base_gpu;
+            if (gfx) {
+                command_list->SetGraphicsRootDescriptorTable(root_id, begin_handle);
+            }
+            else {
+                command_list->SetComputeRootDescriptorTable(root_id, begin_handle);
+            }
         }
     }
 }

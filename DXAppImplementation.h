@@ -34,13 +34,13 @@ public:
     std::weak_ptr<Level> GetLevel() { return m_level; }
     std::weak_ptr<DescriptorHeapCollection> GetDescriptorHeapCollection() {return m_descriptor_heap_collection; }
     ComPtr<ID3D12Device2>& GetDevice() { return m_device; }
-    DynamicGpuHeap* GetGpuHeap();
 
     const std::chrono::duration<float>& TotalTime() const { return m_total_time; }
     const std::chrono::duration<float>& FrameTime() const { return m_dt; }
     uint64_t FrameNumber() const { return m_frame_id; }
     float GetAspectRatio() const { return m_width/(float)m_height; }
     std::weak_ptr<GfxCommandQueue> GetGfxQueue() { return m_commandQueueGfx; }
+    std::weak_ptr<GfxCommandQueue> GetComputeQueue() { return m_commandQueueCompute; }
 
     // Events
     virtual void OnMouseMoved(WPARAM btnState, int x, int y) override;
@@ -51,6 +51,8 @@ public:
     ImguiHelper* GetUiHelper() { return m_gui.get(); }
 private:
     static constexpr uint32_t FrameCount = 2;
+    static constexpr uint32_t GfxQueueCmdList_num = 6;
+    static constexpr uint32_t ComputeQueueCmdList_num = 6;
     
     void CreateDevice(std::optional<std::wstring> dbg_name = std::nullopt);
     void CreateSwapChain(std::optional<std::wstring> dbg_name = std::nullopt);
@@ -60,7 +62,7 @@ private:
     void RenderPostProcessQuad(ComPtr<ID3D12GraphicsCommandList6>& command_list);
     void RenderDeferredShadingQuad(ComPtr<ID3D12GraphicsCommandList6>& command_list);
     void RenderSSAOquad(ComPtr<ID3D12GraphicsCommandList6>& command_list);
-    void ResetGpuHeap();
+    void BlurSSAO(ComPtr<ID3D12GraphicsCommandList6>& command_list);
 
     void UpdateCamera(std::shared_ptr<FreeCamera> &camera, float dt);
 
@@ -71,9 +73,11 @@ private:
     ComPtr<ID3D12Device2> m_device;
     ComPtr<IDXGISwapChain4> m_swapChain;
 
-    std::unique_ptr<DynamicGpuHeap[]> m_dynamic_gpu_heaps;
+    ComPtr<ID3D12Fence> m_fence_inter_queue;
+    uint64_t m_fence_inter_queue_val{ 0 };
     
     std::shared_ptr<GfxCommandQueue> m_commandQueueGfx;
+    std::shared_ptr<GfxCommandQueue> m_commandQueueCompute;
     std::unique_ptr<GpuResource[]> m_renderTargets;
     std::unique_ptr<GpuResource> m_depthStencil;
     std::unique_ptr<RenderQuad> m_post_process_quad;

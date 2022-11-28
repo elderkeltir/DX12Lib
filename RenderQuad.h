@@ -9,7 +9,7 @@ public:
     void Initialize();
 
     virtual void LoadDataToGpu(ComPtr<ID3D12GraphicsCommandList6> &command_list) override;
-    void CreateQuadTexture(uint32_t width, uint32_t height, const std::vector<DXGI_FORMAT> &formats, uint32_t texture_num, std::optional<std::wstring> dbg_name = std::nullopt);
+    bool CreateQuadTexture(uint32_t width, uint32_t height, const std::vector<DXGI_FORMAT> &formats, uint32_t texture_num, uint32_t uavs, std::optional<std::wstring> dbg_name = std::nullopt);
 
     std::weak_ptr<GpuResource> GetRt(uint32_t set_idx, uint32_t idx_in_set = 0u);
     std::vector< std::shared_ptr<GpuResource>>& GetRts(uint32_t set_idx) { return m_textures.at(set_idx); }

@@ -120,33 +120,64 @@ void ConstantBufferManager::SetUint32(Constants id, uint32_t val)
     }
 }
 
-void ConstantBufferManager::CommitCB(ComPtr<ID3D12GraphicsCommandList6>& command_list, uint32_t id)
+void ConstantBufferManager::CommitCB(ComPtr<ID3D12GraphicsCommandList6>& command_list, ConstantBuffers id, bool gfx)
 {
-    if (id == 0) {
+    if (id == cb_model) {
         if (std::shared_ptr<HeapBuffer> buff = m_model_cb->GetBuffer().lock()) {
-            command_list->SetGraphicsRootConstantBufferView(bi_model_cb, buff->GetResource()->GetGPUVirtualAddress());
+            if (gfx) {
+                command_list->SetGraphicsRootConstantBufferView(bi_model_cb, buff->GetResource()->GetGPUVirtualAddress());
+            }
+            else {
+                command_list->SetComputeRootConstantBufferView(bi_model_cb, buff->GetResource()->GetGPUVirtualAddress());
+            }
         }
     }
-    else if (id == 1) {
+    else if (id == cb_scene) {
         if (std::shared_ptr<HeapBuffer> buff = m_scene_cb->GetBuffer().lock()) {
-            command_list->SetGraphicsRootConstantBufferView(bi_scene_cb, buff->GetResource()->GetGPUVirtualAddress());
+            if (gfx) {
+                command_list->SetGraphicsRootConstantBufferView(bi_scene_cb, buff->GetResource()->GetGPUVirtualAddress());
+            }
+            else {
+                command_list->SetComputeRootConstantBufferView(bi_scene_cb, buff->GetResource()->GetGPUVirtualAddress());
+            }
         }
     }
 }
 
-void ConstantBufferManager::SyncCpuDataToCB(ComPtr<ID3D12GraphicsCommandList6>& command_list, GpuResource* res, void* cpu_data, uint32_t size, BindingId bind_point) {
-	if (std::shared_ptr<GfxCommandQueue> queue = gD3DApp->GetGfxQueue().lock()) {
-		queue->ResourceBarrier(*res, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER, D3D12_RESOURCE_STATE_COPY_DEST);
-	}
+void ConstantBufferManager::SyncCpuDataToCB(ComPtr<ID3D12GraphicsCommandList6>& command_list, GpuResource* res, void* cpu_data, uint32_t size, BindingId bind_point, bool gfx) {
+    if (gfx) {
+        if (std::shared_ptr<GfxCommandQueue> queue = gD3DApp->GetGfxQueue().lock()) {
+            queue->ResourceBarrier(*res, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER, D3D12_RESOURCE_STATE_COPY_DEST);
+        }
+    }
+    else {
+		if (std::shared_ptr<GfxCommandQueue> queue = gD3DApp->GetComputeQueue().lock()) {
+			queue->ResourceBarrier(*res, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER, D3D12_RESOURCE_STATE_COPY_DEST);
+		}
+    }
+
 	if (std::shared_ptr<HeapBuffer> buff = res->GetBuffer().lock()) {
 		uint32_t cb_size = calc_cb_size(size);
 		buff->Load(command_list, 1, cb_size, cpu_data);
 	}
-	if (std::shared_ptr<GfxCommandQueue> queue = gD3DApp->GetGfxQueue().lock()) {
-		queue->ResourceBarrier(*res, D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER);
-	}
+
+    if (gfx) {
+        if (std::shared_ptr<GfxCommandQueue> queue = gD3DApp->GetGfxQueue().lock()) {
+            queue->ResourceBarrier(*res, D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER);
+        }
+    }
+    else {
+		if (std::shared_ptr<GfxCommandQueue> queue = gD3DApp->GetComputeQueue().lock()) {
+			queue->ResourceBarrier(*res, D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER);
+		}
+    }
 
 	if (std::shared_ptr<HeapBuffer> buff = res->GetBuffer().lock()) {
-		command_list->SetGraphicsRootConstantBufferView(bind_point, buff->GetResource()->GetGPUVirtualAddress());
+        if (gfx) {
+            command_list->SetGraphicsRootConstantBufferView(bind_point, buff->GetResource()->GetGPUVirtualAddress());
+        }
+        else {
+            command_list->SetComputeRootConstantBufferView(bind_point, buff->GetResource()->GetGPUVirtualAddress());
+        }
 	}
 }

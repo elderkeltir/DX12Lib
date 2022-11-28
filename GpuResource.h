@@ -26,6 +26,7 @@ public:
     std::weak_ptr<ResourceDescriptor> GetRTV() { return m_rtv; }
     std::weak_ptr<ResourceDescriptor> GetDSV() { return m_dsv; }
     std::weak_ptr<ResourceDescriptor> GetSRV() { return m_srv; }
+    std::weak_ptr<ResourceDescriptor> GetUAV() { return m_uav; }
     std::weak_ptr<ResourceDescriptor> GetCBV() { return m_cbv; }
     std::weak_ptr<D3D12_VERTEX_BUFFER_VIEW> Get_Vertex_View() { return m_vertex_view; }
     std::weak_ptr<D3D12_INDEX_BUFFER_VIEW> Get_Index_View() { return m_index_view; }

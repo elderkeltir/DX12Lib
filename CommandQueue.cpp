@@ -4,7 +4,7 @@
 void CommandQueue::Flush()
 {
     const uint64_t fence_value = Signal();
-    Wait(fence_value);
+    WaitOnCPU(fence_value);
 }
 
 uint64_t CommandQueue::Signal(){
@@ -14,9 +14,21 @@ uint64_t CommandQueue::Signal(){
     return fenceValueForSignal;
 }
 
-void CommandQueue::Wait(uint64_t fence_value){
+void CommandQueue::Signal(ComPtr<ID3D12Fence>& fence, uint64_t fence_value)
+{
+    m_commandQueue->Signal(fence.Get(), fence_value);
+}
+
+void CommandQueue::WaitOnCPU(uint64_t fence_value){
     if (m_fence->GetCompletedValue() < fence_value) {
         ThrowIfFailed(m_fence->SetEventOnCompletion(fence_value, m_fenceEvent));
         WaitForSingleObject(m_fenceEvent, INFINITE);
     }
+}
+
+void CommandQueue::WaitOnGPU(ComPtr<ID3D12Fence> &fence, uint64_t fence_value)
+{
+	if (m_fence->GetCompletedValue() < fence_value) {
+        ThrowIfFailed(m_commandQueue->Wait(fence.Get(), fence_value));
+	}
 }

@@ -16,7 +16,8 @@ SSAO::SSAO() :
     m_ssao_quad(std::make_unique<RenderQuad>()),
     m_ssao_quad_random_vals(std::make_unique<GpuResource>()),
 	m_ssao_cb(std::make_unique<GpuResource>()),
-	m_cbuffer_cpu(std::make_unique<SsaoConstants>())
+	m_cbuffer_cpu(std::make_unique<SsaoConstants>()),
+	m_blur_cbuffer(std::make_unique<BlurConstants>())
 {
 
 }
@@ -37,6 +38,12 @@ void SSAO::GenerateSSAO(ComPtr<ID3D12GraphicsCommandList6>& command_list)
 	UpdateSsaoCB(m_dirty);
 	GenerateRandomValuesTex(command_list);
 	ConstantBufferManager::SyncCpuDataToCB(command_list, m_ssao_cb.get(), m_cbuffer_cpu.get(), sizeof(SsaoConstants), bi_ssao_cb);
+}
+
+void SSAO::BindBluerConstants(ComPtr<ID3D12GraphicsCommandList6>& command_list, uint32_t pass_type)
+{
+	m_blur_cbuffer->pass_type = pass_type;
+	command_list->SetComputeRoot32BitConstants(bo_ssao_blur_constants, sizeof(BlurConstants) / 4, m_blur_cbuffer.get(), 0);
 }
 
 void SSAO::GenerateRandomValuesTex(ComPtr<ID3D12GraphicsCommandList6>& command_list)
@@ -95,6 +102,9 @@ void SSAO::UpdateSsaoCB(bool m_dirty, UINT k_size, float r, float bs, float nois
 	if (m_dirty)
 		m_cbuffer_cpu->BuildOffsetVectors();
 
+	if (m_dirty)
+		m_blur_cbuffer->ComputeWeights();
+
 	m_cbuffer_cpu->kernelSize = k_size;
 	m_cbuffer_cpu->radius = r;
 	m_cbuffer_cpu->bias = bs;
@@ -117,4 +127,25 @@ void SSAO::SsaoConstants::BuildOffsetVectors()
 		
 		DirectX::XMStoreFloat4(&OffsetVectors[i], v);
 	}
+}
+
+void SSAO::BlurConstants::ComputeWeights(float sigma)
+{
+	float twoSigma2 = 2.0f * sigma * sigma;
+	int blurRadius = (int)ceil(2.0f * sigma);
+	float weightSum = 0.0f;
+
+	for (int i = -blurRadius; i <= blurRadius; ++i)
+	{
+		float x = (float)i;
+		weights[i + blurRadius] = expf(-x * x / twoSigma2);
+		weightSum += weights[i + blurRadius];
+	}
+
+	for (int i = 0; i < 11; ++i)
+	{
+		weights[i] /= weightSum;
+	}
+	
+	pass_type = 1;
 }

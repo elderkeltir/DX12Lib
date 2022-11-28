@@ -86,7 +86,8 @@ add_executable(DX12Lib WIN32 main.cpp
     SSAO.cpp
     ImguiHelper.cpp
     Console.cpp
-    ConsoleCommands.cpp)
+    ConsoleCommands.cpp
+    )
 
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})

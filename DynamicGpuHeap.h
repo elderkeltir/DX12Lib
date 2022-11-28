@@ -18,7 +18,7 @@ public:
     void CacheRootSignature(const RootSignature * root_sig);
     void StageDesctriptor(uint32_t root_id, uint32_t offset, CD3DX12_CPU_DESCRIPTOR_HANDLE& desc_handle);
 
-    void CommitRootSignature(ComPtr<ID3D12GraphicsCommandList6>& command_list);
+    void CommitRootSignature(ComPtr<ID3D12GraphicsCommandList6>& command_list, bool gfx = true);
     ComPtr<ID3D12DescriptorHeap>& GetVisibleHeap() { return m_visible_heap; }
     void Reset() { 
         m_actual_heap_size = 0;

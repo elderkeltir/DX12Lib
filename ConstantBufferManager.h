@@ -29,6 +29,8 @@ enum BindingId {
     bi_post_proc_input_tex_table    = 0,
     bi_ssao_cb                      = 0,
     bi_ssao_input_tex               = 1,
+    bi_ssao_uav_tex                 = 2,
+    bo_ssao_blur_constants          = 0,
 };
 
 enum TextureTableOffset {
@@ -46,6 +48,8 @@ enum TextureTableOffset {
     tto_ssao_positions              = 0,
     tto_ssao_normals                = 1,
     tto_ssao_random_vals            = 2,
+    tto_ssao_blur_srv               = 0,
+    tto_ssao_blur_uav               = 0,
 };
 
 enum ConstantBuffers {
@@ -66,9 +70,9 @@ public:
     void SetVector4Constant(Constants id, const DirectX::XMFLOAT4 & vec);
     void SetUint32(Constants id, uint32_t val);
     void SetModelCB(GpuResource* res) { m_model_cb = res; }
-    void CommitCB(ComPtr<ID3D12GraphicsCommandList6>& command_list, uint32_t id);
+    void CommitCB(ComPtr<ID3D12GraphicsCommandList6>& command_list, ConstantBuffers id, bool gfx = true);
 
-    static void SyncCpuDataToCB(ComPtr<ID3D12GraphicsCommandList6>& command_list, GpuResource* res, void* cpu_data, uint32_t size, BindingId bind_point);
+    static void SyncCpuDataToCB(ComPtr<ID3D12GraphicsCommandList6>& command_list, GpuResource* res, void* cpu_data, uint32_t size, BindingId bind_point, bool gfx = true);
 
 public:
     // 1 x 256

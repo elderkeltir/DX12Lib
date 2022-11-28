@@ -175,11 +175,11 @@ void Level::RenderEntity(ComPtr<ID3D12GraphicsCommandList6>& command_list, Level
         if (gfx_queue->GetRootSign() != tech->root_signature){
             gfx_queue->SetRootSign(tech->root_signature);
         }
-        gD3DApp->GetGpuHeap()->CacheRootSignature(gD3DApp->GetRootSignById(tech->root_signature));
+        gfx_queue->GetGpuHeap().CacheRootSignature(gD3DApp->GetRootSignById(tech->root_signature));
     }
 
     if (!is_scene_constants_set){
-        gD3DApp->CommitCB(command_list, 1);
+        gD3DApp->CommitCB(command_list, cb_scene);
         DirectX::XMMATRIX m_ViewMatrix = DirectX::XMLoadFloat4x4(&m_camera->GetViewMx());
         DirectX::XMMATRIX m_ProjectionMatrix = DirectX::XMLoadFloat4x4(&m_camera->GetProjMx());
 

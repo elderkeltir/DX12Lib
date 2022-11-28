@@ -19,6 +19,7 @@ public:
         uint32_t root_signature;
         std::wstring vs;
         std::wstring ps;
+        std::wstring cs;
         uint32_t vertex_type;
         uint32_t id;
     };
@@ -26,6 +27,7 @@ public:
         tt_post_processing                  = 2,
         tt_deferred_shading                 = 3,
         tt_ssao                             = 5,
+        tt_blur                             = 6,
     };
 public:
     virtual void OnInit(ComPtr<ID3D12Device2> &device, std::optional<std::wstring> dbg_name = std::nullopt);
@@ -38,6 +40,7 @@ private:
     void CreateRootSignature_1(ComPtr<ID3D12Device2>& device, RootSignature* root_sign, std::optional<std::wstring> dbg_name = std::nullopt);
     void CreateRootSignature_2(ComPtr<ID3D12Device2>& device, RootSignature* root_sign, std::optional<std::wstring> dbg_name = std::nullopt);
     void CreateRootSignature_3(ComPtr<ID3D12Device2>& device, RootSignature* root_sign, std::optional<std::wstring> dbg_name = std::nullopt);
+    void CreateRootSignature_4(ComPtr<ID3D12Device2>& device, RootSignature* root_sign, std::optional<std::wstring> dbg_name = std::nullopt);
 
     void LoadTechniques();
     static constexpr uint32_t TechniquesCount = 16;
