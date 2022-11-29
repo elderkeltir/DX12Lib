@@ -9,6 +9,10 @@ Supports:
 * Naive PBR implementation
 * Skybox
 * Model's loading using Assimp
+* Imgui integration
+* in-game console, supporting command to rebuild shaders in-flight
+* Intergated DirectXShaderCompiler to compile shaders
+* Full PIX support/integration
 
 
 Expected to be added:
@@ -17,3 +21,6 @@ Expected to be added:
 * Forward rendering
 * TAA
 * Culling
+
+
+![Preview](https://i.imgur.com/B2cV4lV.png)
