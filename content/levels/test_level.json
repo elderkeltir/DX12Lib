@@ -36,7 +36,7 @@
         "dir": [0.0, 0.0, 1.0],
         "fov": 45.0,
         "near": 0.1,
-        "far": 100.0
+        "far": 500.0
     },
     "skybox": {
         "entity": "skybox.json"

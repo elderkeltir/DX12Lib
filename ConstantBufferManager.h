@@ -30,8 +30,7 @@ enum BindingId {
     bi_post_proc_input_tex_table    = 0,
     bi_ssao_cb                      = 0,
     bi_ssao_input_tex               = 1,
-    bi_ssao_uav_tex                 = 2,
-    bo_ssao_blur_constants          = 0,
+    bi_ssao_uav_tex                 = 3,
 };
 
 enum TextureTableOffset {
@@ -46,7 +45,7 @@ enum TextureTableOffset {
     tto_gbuff_ssao                  = 4,
     tto_postp_input                 = 0,
     tto_postp_gui                   = 1,
-    tto_ssao_positions              = 0,
+    tto_ssao_depth                  = 0,
     tto_ssao_normals                = 1,
     tto_ssao_random_vals            = 2,
     tto_ssao_blur_srv               = 0,
