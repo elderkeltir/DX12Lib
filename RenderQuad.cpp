@@ -26,13 +26,15 @@ void RenderQuad::Initialize() {
 RenderQuad::~RenderQuad() = default;
 
 void RenderQuad::FormVertex() {
-    using Vertex = Vertex2;
-    AllocateVertexBuffer(vert_num  * sizeof(Vertex));
-    Vertex* vertex_data_buffer = (Vertex*) m_vertex_buffer_start;
+    if (m_dirty & db_vertex){
+        using Vertex = Vertex2;
+		AllocateVertexBuffer(vert_num * sizeof(Vertex));
+		Vertex* vertex_data_buffer = (Vertex*)m_vertex_buffer_start;
 
-    for (uint32_t i = 0; i < vert_num; i++){
-        vertex_data_buffer[i] = Vertex{ m_mesh->GetVertex(i), m_mesh->GetTexCoord(i) };
-    }
+		for (uint32_t i = 0; i < vert_num; i++) {
+			vertex_data_buffer[i] = Vertex{ m_mesh->GetVertex(i), m_mesh->GetTexCoord(i) };
+		}
+	}
 }
 
 void RenderQuad::LoadDataToGpu(ComPtr<ID3D12GraphicsCommandList6> &command_list) {
