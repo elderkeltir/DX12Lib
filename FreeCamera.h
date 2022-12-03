@@ -19,6 +19,9 @@ public:
     const DirectX::XMFLOAT3& GetUpDirection() const { return m_up; }
     const DirectX::XMFLOAT3& GetPosition() const { return m_pos; }
 
+    float GetNearZ() const { return m_near; }
+    float GetFarZ() const { return m_far; }
+
 private:
     DirectX::XMFLOAT3 m_pos;
     DirectX::XMFLOAT3 m_dir;

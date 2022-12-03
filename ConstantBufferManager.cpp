@@ -93,6 +93,12 @@ void ConstantBufferManager::SetVector4Constant(Constants id, const DirectX::XMVE
 			DirectX::XMStoreFloat4(&scene_cb->RTdim, vec);
 		}
 	}
+	else if (id == Constants::cNearFar) {
+		if (std::shared_ptr<HeapBuffer> buff = m_scene_cb->GetBuffer().lock()) {
+			SceneCB* scene_cb = (SceneCB*)buff->GetCpuData();
+			DirectX::XMStoreFloat4(&scene_cb->NearFarZ, vec);
+		}
+	}
 }
 
 void ConstantBufferManager::SetVector4Constant(Constants id, const DirectX::XMFLOAT4 & vec){
@@ -106,6 +112,12 @@ void ConstantBufferManager::SetVector4Constant(Constants id, const DirectX::XMFL
 		if (std::shared_ptr<HeapBuffer> buff = m_scene_cb->GetBuffer().lock()) {
 			SceneCB* scene_cb = (SceneCB*)buff->GetCpuData();
             scene_cb->RTdim = vec;
+		}
+	}
+	else if (id == Constants::cNearFar) {
+		if (std::shared_ptr<HeapBuffer> buff = m_scene_cb->GetBuffer().lock()) {
+			SceneCB* scene_cb = (SceneCB*)buff->GetCpuData();
+			scene_cb->NearFarZ = vec;
 		}
 	}
 }

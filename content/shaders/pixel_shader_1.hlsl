@@ -1,4 +1,5 @@
 #include "shader_defs.ihlsl"
+#include "constant_buffers.ihlsl"
 
 struct PixelShaderInput
 {
@@ -33,7 +34,7 @@ ps_output main( PixelShaderInput IN )
     normal = normal * 2.0 - 1.0;
     normal = normalize(mul(normal, IN.TBN));
     output.normal = float4(normal, 1.0);
-    output.pos = float4(IN.Pos.xyz, (IN.Pos.w - 0.1) / (100.0 - 0.1));
+    output.pos = float4(IN.Pos.xyz, (IN.Pos.w - NearFarZ.x) / (NearFarZ.y - NearFarZ.x));
     
     float met = metallicness.Sample(linearClamp, IN.TexC).r;
     float rough = roughness.Sample(linearClamp, IN.TexC).r;

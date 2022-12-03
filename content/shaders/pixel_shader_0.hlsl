@@ -24,7 +24,7 @@ ps_output main( PixelShaderInput IN )
 
     // normal mapping
     output.normal = normalize(IN.Normal);
-    output.pos = float4(IN.WorldPos.xyz, (IN.WorldPos.w - 0.1) / (100.0 - 0.1));
+    output.pos = float4(IN.WorldPos.xyz, (IN.WorldPos.w - NearFarZ.x) / (NearFarZ.y - NearFarZ.x));
     output.material = float4(materials[material_id].metal, materials[material_id].rough, 0, 0);
     //output.pos.w = 1 - IN.Position.z / IN.Position.w;
 

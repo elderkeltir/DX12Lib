@@ -17,6 +17,7 @@ enum class Constants {
     cMat,           // material id
     cPinv,          // ViewProj inverted
     cRTdim,         // rt size
+    cNearFar        // x - Znear, y - Zfar, zw - free
 };
 
 enum BindingId {
@@ -89,6 +90,7 @@ public:
         DirectX::XMFLOAT4 CamPos;
         DirectX::XMFLOAT4X4 VPinv;
         DirectX::XMFLOAT4 RTdim; // x=width, y=height, z=1/wisth, w=1/height
+        DirectX::XMFLOAT4 NearFarZ; // x - Znear, y - Zfar, zw - free
     };
 
     GpuResource* m_model_cb;

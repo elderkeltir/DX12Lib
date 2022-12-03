@@ -196,6 +196,9 @@ void Level::RenderEntity(ComPtr<ID3D12GraphicsCommandList6>& command_list, Level
         float h = (float)gD3DApp->GetHeight();
         DirectX::XMFLOAT4 rt_dim(w, h, 1.f / w, 1.f / h);
         gD3DApp->SetVector4Constant(Constants::cRTdim, rt_dim);
+
+        DirectX::XMFLOAT4 z_near_far(m_camera->GetNearZ(), m_camera->GetFarZ(), 0, 0);
+        gD3DApp->SetVector4Constant(Constants::cNearFar, z_near_far);
 		
         // update material CBs
 		if (std::shared_ptr<MaterialManager> mat_mgr = gD3DApp->GetMaterialManager().lock()) {
