@@ -3,7 +3,7 @@
 struct PixelShaderInput
 {
     float2 TexC : TEXCOORD;
-    float3 Pos : POSITION;
+    float4 Pos : POSITION;
     float3x3 TBN : TBN0;
     float4 Position : SV_Position;
 };
@@ -31,9 +31,9 @@ ps_output main( PixelShaderInput IN )
     //normal.x = normal.x * 2 - 1;
     //normal.y = -normal.y * 2 + 1;
     normal = normal * 2.0 - 1.0;
-    normal = normalize(mul(IN.TBN, normal)); 
-    output.normal = float4(normal, 0);
-    output.pos = float4(IN.Pos, 1 - IN.Position.z / IN.Position.w);
+    normal = normalize(mul(normal, IN.TBN));
+    output.normal = float4(normal, 1.0);
+    output.pos = float4(IN.Pos.xyz, (IN.Pos.w - 0.1) / (100.0 - 0.1));
     
     float met = metallicness.Sample(linearClamp, IN.TexC).r;
     float rough = roughness.Sample(linearClamp, IN.TexC).r;

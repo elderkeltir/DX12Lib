@@ -276,7 +276,7 @@ void DXAppImplementation::OnRender()
     // Clear rt and set proper state
     BEGIN_EVENT(command_list_gfx, "G-Buffer");
     {
-        std::vector<DXGI_FORMAT> formats = { DXGI_FORMAT_R16G16B16A16_FLOAT, DXGI_FORMAT_R8G8B8A8_SNORM, DXGI_FORMAT_R16G16B16A16_FLOAT, DXGI_FORMAT_R16G16B16A16_FLOAT };
+        std::vector<DXGI_FORMAT> formats = { DXGI_FORMAT_R16G16B16A16_FLOAT, DXGI_FORMAT_R16G16B16A16_FLOAT, DXGI_FORMAT_R16G16B16A16_FLOAT, DXGI_FORMAT_R16G16B16A16_FLOAT };
         m_deferred_shading_quad->CreateQuadTexture(m_width, m_height, formats, FrameCount, 0, L"m_deferred_shading_quad_");
         std::vector<std::shared_ptr<GpuResource>>& rts = m_deferred_shading_quad->GetRts(m_frameIndex);
         m_commandQueueGfx->ResourceBarrier(rts, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET);
@@ -318,9 +318,13 @@ void DXAppImplementation::OnRender()
 
     std::vector< std::shared_ptr<GpuResource>>& rts = m_deferred_shading_quad->GetRts(m_frameIndex);
     m_commandQueueGfx->ResourceBarrier(rts, D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+
+    m_commandQueueGfx->ResourceBarrier(*m_depthStencil.get(), D3D12_RESOURCE_STATE_DEPTH_WRITE, D3D12_RESOURCE_STATE_DEPTH_READ | D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
     
     // render SSAO to quad
     RenderSSAOquad(command_list_gfx);
+
+    m_commandQueueGfx->ResourceBarrier(*m_depthStencil.get(), D3D12_RESOURCE_STATE_DEPTH_READ | D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_DEPTH_WRITE);
 
 	if (std::shared_ptr<GpuResource> rt = m_ssao->GetRenderQuad()->GetRt(m_frameIndex, 0).lock()) {
 		m_commandQueueGfx->ResourceBarrier(rt, D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
@@ -569,6 +573,10 @@ void DXAppImplementation::RenderSSAOquad(ComPtr<ID3D12GraphicsCommandList6>& com
 	if (std::shared_ptr<ResourceDescriptor> srv = m_ssao->GetRandomVals()->GetSRV().lock()) {
         m_commandQueueGfx->GetGpuHeap().StageDesctriptor(bi_ssao_input_tex, tto_ssao_random_vals, srv->GetCPUhandle());
 	}
+	if (std::shared_ptr<ResourceDescriptor> depth_view = m_depthStencil->GetSRV().lock()) {
+		m_commandQueueGfx->GetGpuHeap().StageDesctriptor(bi_ssao_input_tex, 3, depth_view->GetCPUhandle());
+	}
+
     gD3DApp->CommitCB(command_list, cb_scene);
     // bind ssao cb
     m_ssao->GenerateSSAO(command_list);

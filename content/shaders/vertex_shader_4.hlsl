@@ -17,14 +17,14 @@ VertexShaderOutput main(VertexPosColor IN)
     OUT.tex_coord = IN.Position;
 
     // proj pos
-    float4 posW = mul(M, float4(IN.Position, 1.0f));
+    float4 posW = mul(float4(IN.Position, 1.0f), M);
 
     // Always center sky about camera.
     posW.xyz += CamPos.xyz;
 
     // Set z = w so that z/w = 1 (i.e., skydome always on far plane).
-    matrix viewProj = mul(P, V);
-    OUT.Position = mul(viewProj, posW).xyww;
+    matrix viewProj = mul(V, P);
+    OUT.Position = mul(posW, viewProj).xyww;
  
     return OUT;
 }

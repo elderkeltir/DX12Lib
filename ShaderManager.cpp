@@ -83,6 +83,8 @@ ShaderManager::ShaderBlob* ShaderManager::Load(const std::wstring &name, const s
         L"-I ..\\content\\shaders",                  // include dirs
         L"-Vi",                         // Display details about the include process
         L"-Zs",                         // Enable debug information (slim format)
+        L"-Zpr",                        // Pack matrices in row-major order
+        L"-WX",                         // Treat warnings as errors
         L"-D", L"MYDEFINE=1",           // A single define.
         L"-Fo", bin_name.c_str(),       // Optional. Stored in the pdb. 
         //L"-Fd", pdb_name.c_str(),       // The file name of the pdb. This must either be supplied

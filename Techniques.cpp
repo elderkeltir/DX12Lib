@@ -104,7 +104,7 @@ static Techniques::Technique CreateTechnique_0(ComPtr<ID3D12Device2> &device, Ro
         CD3DX12_PIPELINE_STATE_STREAM_RENDER_TARGET_FORMATS RTVFormats;
     } pipelineStateStream;
 
-    D3D12_RT_FORMAT_ARRAY rtvFormats = {DXGI_FORMAT_R16G16B16A16_FLOAT, DXGI_FORMAT_R8G8B8A8_SNORM, DXGI_FORMAT_R16G16B16A16_FLOAT, DXGI_FORMAT_R16G16B16A16_FLOAT };
+    D3D12_RT_FORMAT_ARRAY rtvFormats = {DXGI_FORMAT_R16G16B16A16_FLOAT, DXGI_FORMAT_R16G16B16A16_FLOAT, DXGI_FORMAT_R16G16B16A16_FLOAT, DXGI_FORMAT_R16G16B16A16_FLOAT };
     rtvFormats.NumRenderTargets = 4;
 
     CD3DX12_SHADER_BYTECODE vs;
@@ -163,7 +163,7 @@ static Techniques::Technique CreateTechnique_1(ComPtr<ID3D12Device2> &device, Ro
         CD3DX12_PIPELINE_STATE_STREAM_RENDER_TARGET_FORMATS RTVFormats;
     } pipelineStateStream;
 
-    D3D12_RT_FORMAT_ARRAY rtvFormats = {DXGI_FORMAT_R16G16B16A16_FLOAT, DXGI_FORMAT_R8G8B8A8_SNORM, DXGI_FORMAT_R16G16B16A16_FLOAT, DXGI_FORMAT_R16G16B16A16_FLOAT };
+    D3D12_RT_FORMAT_ARRAY rtvFormats = {DXGI_FORMAT_R16G16B16A16_FLOAT, DXGI_FORMAT_R16G16B16A16_FLOAT, DXGI_FORMAT_R16G16B16A16_FLOAT, DXGI_FORMAT_R16G16B16A16_FLOAT };
     rtvFormats.NumRenderTargets = 4;
 
     CD3DX12_SHADER_BYTECODE vs;
@@ -332,7 +332,7 @@ static Techniques::Technique CreateTechnique_4(ComPtr<ID3D12Device2> &device, Ro
         CD3DX12_PIPELINE_STATE_STREAM_RASTERIZER raster_dec;
     } pipelineStateStream;
 
-    D3D12_RT_FORMAT_ARRAY rtvFormats = {DXGI_FORMAT_R16G16B16A16_FLOAT, DXGI_FORMAT_R8G8B8A8_SNORM, DXGI_FORMAT_R16G16B16A16_FLOAT, DXGI_FORMAT_R16G16B16A16_FLOAT };
+    D3D12_RT_FORMAT_ARRAY rtvFormats = {DXGI_FORMAT_R16G16B16A16_FLOAT, DXGI_FORMAT_R16G16B16A16_FLOAT, DXGI_FORMAT_R16G16B16A16_FLOAT, DXGI_FORMAT_R16G16B16A16_FLOAT };
     rtvFormats.NumRenderTargets = 4;
 
     CD3DX12_SHADER_BYTECODE vs;
@@ -513,8 +513,10 @@ void Techniques::CreateRootSignature_1(ComPtr<ID3D12Device2> &device, RootSignat
     auto staticSamplers = GetStaticSamplers();
 
     auto &root_params_vec = root_sign->GetRootParams();
-    root_params_vec.resize(1);
+    root_params_vec.resize(3);
     root_params_vec[bi_post_proc_input_tex_table].InitAsDescriptorTable        (1, &texTable, D3D12_SHADER_VISIBILITY_PIXEL);
+    root_params_vec[1].InitAsConstants(1, 0);
+    root_params_vec[bi_scene_cb].InitAsConstantBufferView(cb_scene, 0, D3D12_ROOT_DESCRIPTOR_FLAG_NONE); // sceneCB
 
     CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC rootSignatureDescription;
     rootSignatureDescription.Init_1_1((uint32_t)root_params_vec.size(), root_params_vec.data(), (uint32_t)staticSamplers.size(), staticSamplers.data(), rootSignatureFlags);
@@ -558,7 +560,7 @@ void Techniques::CreateRootSignature_2(ComPtr<ID3D12Device2> &device, RootSignat
 
     root_params_vec[bi_lights_cb].InitAsConstantBufferView(cb_lights, 0, D3D12_ROOT_DESCRIPTOR_FLAG_NONE, D3D12_SHADER_VISIBILITY_PIXEL); // lights
     root_params_vec[bi_deferred_shading_tex_table].InitAsDescriptorTable(1, &texTable, D3D12_SHADER_VISIBILITY_PIXEL); // Texture
-    root_params_vec[bi_scene_cb].InitAsConstantBufferView(cb_scene, 0, D3D12_ROOT_DESCRIPTOR_FLAG_NONE, D3D12_SHADER_VISIBILITY_PIXEL); // sceneCB
+    root_params_vec[bi_scene_cb].InitAsConstantBufferView(cb_scene, 0, D3D12_ROOT_DESCRIPTOR_FLAG_NONE); // sceneCB
 
     CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC rootSignatureDescription;
     rootSignatureDescription.Init_1_1((uint32_t)root_params_vec.size(), root_params_vec.data(), (uint32_t)staticSamplers.size(), staticSamplers.data(), rootSignatureFlags);
@@ -601,7 +603,7 @@ void Techniques::CreateRootSignature_3(ComPtr<ID3D12Device2>& device, RootSignat
 
 	root_params_vec[bi_ssao_cb].InitAsConstantBufferView(cb_ssao, 0, D3D12_ROOT_DESCRIPTOR_FLAG_NONE, D3D12_SHADER_VISIBILITY_PIXEL); // ssao cb
 	root_params_vec[bi_ssao_input_tex].InitAsDescriptorTable(1, &texTable, D3D12_SHADER_VISIBILITY_PIXEL); // Texture
-	root_params_vec[bi_scene_cb].InitAsConstantBufferView(cb_scene, 0, D3D12_ROOT_DESCRIPTOR_FLAG_NONE, D3D12_SHADER_VISIBILITY_PIXEL); // sceneCB
+	root_params_vec[bi_scene_cb].InitAsConstantBufferView(cb_scene, 0, D3D12_ROOT_DESCRIPTOR_FLAG_NONE); // sceneCB
 
 	CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC rootSignatureDescription;
 	rootSignatureDescription.Init_1_1((uint32_t)root_params_vec.size(), root_params_vec.data(), (uint32_t)staticSamplers.size(), staticSamplers.data(), rootSignatureFlags);

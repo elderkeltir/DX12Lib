@@ -19,11 +19,11 @@ struct VertexShaderOutput
 VertexShaderOutput main(VertexPosColor IN)
 {
     VertexShaderOutput OUT;
-    matrix MVP = mul(P, V);
-    MVP = mul(MVP, M);
-    OUT.Position = mul(MVP, float4(IN.Position, 1.0f));
-    OUT.Normal = mul(M, float4(IN.Normal, 0.0f));
-    OUT.WorldPos = mul(M, float4(IN.Position, 1.0f));
+    matrix MVP = mul(M, V);
+    MVP = mul(MVP, P);
+    OUT.Position = mul(float4(IN.Position, 1.0f), MVP);
+    OUT.Normal = mul(float4(IN.Normal, 0.0f), M);
+    OUT.WorldPos = float4(mul(float4(IN.Position, 1.0), M).xyz, OUT.Position.z);
     OUT.Color = float4(IN.Color, 1.0f);
  
     return OUT;

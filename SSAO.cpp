@@ -13,8 +13,8 @@ extern DXAppImplementation* gD3DApp;
 
 
 SSAO::SSAO() :
-    m_ssao_quad(std::make_unique<RenderQuad>()),
-    m_ssao_quad_random_vals(std::make_unique<GpuResource>()),
+	m_ssao_quad(std::make_unique<RenderQuad>()),
+	m_ssao_quad_random_vals(std::make_unique<GpuResource>()),
 	m_ssao_cb(std::make_unique<GpuResource>()),
 	m_cbuffer_cpu(std::make_unique<SsaoConstants>()),
 	m_blur_cbuffer(std::make_unique<BlurConstants>())
@@ -24,7 +24,7 @@ SSAO::SSAO() :
 
 void SSAO::Initialize()
 {
-    m_ssao_quad->Initialize();
+	m_ssao_quad->Initialize();
 
 	uint32_t cb_size = calc_cb_size(sizeof(SsaoConstants));
 	m_ssao_cb->CreateBuffer(HeapBuffer::BufferType::bt_default, cb_size, HeapBuffer::UseFlag::uf_none, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER, std::wstring(L"ssao_const_buffer"));
@@ -71,7 +71,7 @@ void SSAO::GenerateRandomValuesTex(ComPtr<ID3D12GraphicsCommandList6>& command_l
 		for (int j = 0; j < noise_dim; ++j)
 		{
 			DirectX::XMFLOAT4 fl4(
-				0,
+				rand_fp_unorm(),
 				rand_fp_unorm(),
 				rand_fp_unorm(),
 				0
@@ -113,20 +113,58 @@ void SSAO::UpdateSsaoCB(bool m_dirty, UINT k_size, float r, float bs, float nois
 
 void SSAO::SsaoConstants::BuildOffsetVectors()
 {
-	for (unsigned int i = 0; i < 64; ++i)
+	// Start with 14 uniformly distributed vectors.  We choose the 8 corners of the cube
+// and the 6 center points along each cube face.  We always alternate the points on 
+// opposites sides of the cubes.  This way we still get the vectors spread out even
+// if we choose to use less than 14 samples.
+
+// 8 cube corners
+	OffsetVectors[0] = DirectX::XMFLOAT4(+1.0f, +1.0f, +1.0f, 0.0f);
+	OffsetVectors[1] = DirectX::XMFLOAT4(-1.0f, -1.0f, -1.0f, 0.0f);
+
+	OffsetVectors[2] = DirectX::XMFLOAT4(-1.0f, +1.0f, +1.0f, 0.0f);
+	OffsetVectors[3] = DirectX::XMFLOAT4(+1.0f, -1.0f, -1.0f, 0.0f);
+
+	OffsetVectors[4] = DirectX::XMFLOAT4(+1.0f, +1.0f, -1.0f, 0.0f);
+	OffsetVectors[5] = DirectX::XMFLOAT4(-1.0f, -1.0f, +1.0f, 0.0f);
+
+	OffsetVectors[6] = DirectX::XMFLOAT4(-1.0f, +1.0f, -1.0f, 0.0f);
+	OffsetVectors[7] = DirectX::XMFLOAT4(+1.0f, -1.0f, +1.0f, 0.0f);
+
+	// 6 centers of cube faces
+	OffsetVectors[8] = DirectX::XMFLOAT4(-1.0f, 0.0f, 0.0f, 0.0f);
+	OffsetVectors[9] = DirectX::XMFLOAT4(+1.0f, 0.0f, 0.0f, 0.0f);
+
+	OffsetVectors[10] = DirectX::XMFLOAT4(0.0f, -1.0f, 0.0f, 0.0f);
+	OffsetVectors[11] = DirectX::XMFLOAT4(0.0f, +1.0f, 0.0f, 0.0f);
+
+	OffsetVectors[12] = DirectX::XMFLOAT4(0.0f, 0.0f, -1.0f, 0.0f);
+	OffsetVectors[13] = DirectX::XMFLOAT4(0.0f, 0.0f, +1.0f, 0.0f);
+
+	for (int i = 0; i < 14; ++i)
 	{
-		DirectX::XMFLOAT4 sample(
-			rand_fp_unorm() * 2.0f - 1.0f,
-			rand_fp_unorm() * 2.0f - 1.0f,
-			rand_fp_unorm(),
-			0
-		);
-		float scale = (float)i / 64.0f;
-		scale = lerp(0.1f, 1.0f, scale * scale);
-		DirectX::XMVECTOR v = DirectX::XMVectorScale(DirectX::XMVector4Normalize(DirectX::XMLoadFloat4(&sample)), scale);
-		
+		// Create random lengths in [0.25, 1.0].
+		float s = rand_fp(0.25f, 1.0f);
+		assert(s < 1.1 && s > 0.24);
+
+		DirectX::XMVECTOR v = DirectX::XMVectorScale(DirectX::XMVector4Normalize(XMLoadFloat4(&OffsetVectors[i])), s);
+
 		DirectX::XMStoreFloat4(&OffsetVectors[i], v);
 	}
+	//for (unsigned int i = 0; i < 64; ++i)
+	//{
+	//	DirectX::XMFLOAT4 sample(
+	//		rand_fp_unorm() * 2.0f - 1.0f,
+	//		rand_fp_unorm() * 2.0f - 1.0f,
+	//		rand_fp_unorm(),
+	//		0
+	//	);
+	//	float scale = (float)i / 64.0f;
+	//	scale = lerp(0.1f, 1.0f, scale * scale);
+	//	DirectX::XMVECTOR v = DirectX::XMVectorScale(DirectX::XMVector4Normalize(DirectX::XMLoadFloat4(&sample)), scale);
+	//	
+	//	DirectX::XMStoreFloat4(&OffsetVectors[i], v);
+	//}
 }
 
 void SSAO::BlurConstants::ComputeWeights(float sigma)
