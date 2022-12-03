@@ -31,6 +31,11 @@ public:
     std::weak_ptr<D3D12_VERTEX_BUFFER_VIEW> Get_Vertex_View() { return m_vertex_view; }
     std::weak_ptr<D3D12_INDEX_BUFFER_VIEW> Get_Index_View() { return m_index_view; }
 private:
+    friend class GfxCommandQueue;
+    D3D12_RESOURCE_STATES GetState() const { return m_current_state; }
+    void UpdateState(D3D12_RESOURCE_STATES new_state) {
+        m_current_state = new_state;
+    }
     void ResetViews();
     std::shared_ptr<HeapBuffer> m_buffer;
     std::shared_ptr<ResourceDescriptor> m_rtv;
@@ -40,4 +45,6 @@ private:
     std::shared_ptr<ResourceDescriptor> m_cbv;
     std::shared_ptr<D3D12_VERTEX_BUFFER_VIEW> m_vertex_view;
     std::shared_ptr<D3D12_INDEX_BUFFER_VIEW> m_index_view;
+
+    D3D12_RESOURCE_STATES m_current_state{ D3D12_RESOURCE_STATE_COMMON };
 };

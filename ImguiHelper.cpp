@@ -101,7 +101,7 @@ void ImguiHelper::Render(uint32_t frame_id)
 
 	UINT backBufferIdx = frame_id;
 	if (std::shared_ptr<GpuResource> rt = m_rt->GetRt(frame_id).lock()) {
-		m_commandQueueGfx->ResourceBarrier(rt, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET);
+		m_commandQueueGfx->ResourceBarrier(rt, D3D12_RESOURCE_STATE_RENDER_TARGET);
 		if (std::shared_ptr<ResourceDescriptor> render_target_view = rt->GetRTV().lock()) {
 			CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle = render_target_view->GetCPUhandle();
 			command_list->OMSetRenderTargets(1, &rtvHandle, FALSE, NULL);
@@ -115,7 +115,7 @@ void ImguiHelper::Render(uint32_t frame_id)
 	ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), command_list.Get());
 
 	if (std::shared_ptr<GpuResource> rt = m_rt->GetRt(frame_id).lock()) {
-		m_commandQueueGfx->ResourceBarrier(rt, D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+		m_commandQueueGfx->ResourceBarrier(rt, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 	}
 
 	m_commandQueueGfx->ExecuteActiveCL();

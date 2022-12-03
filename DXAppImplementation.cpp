@@ -279,7 +279,7 @@ void DXAppImplementation::OnRender()
 		std::vector<DXGI_FORMAT> formats = { DXGI_FORMAT_R16G16B16A16_FLOAT, DXGI_FORMAT_R16G16B16A16_FLOAT, DXGI_FORMAT_R16G16B16A16_FLOAT, DXGI_FORMAT_R16G16B16A16_FLOAT };
 		m_deferred_shading_quad->CreateQuadTexture(m_width, m_height, formats, FrameCount, 0, L"m_deferred_shading_quad_");
 		std::vector<std::shared_ptr<GpuResource>>& rts = m_deferred_shading_quad->GetRts(m_frameIndex);
-		m_commandQueueGfx->ResourceBarrier(rts, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET);
+		m_commandQueueGfx->ResourceBarrier(rts, D3D12_RESOURCE_STATE_RENDER_TARGET);
 
 		PrepareRenderTarget(command_list_gfx, rts);
 	}
@@ -295,15 +295,15 @@ void DXAppImplementation::OnRender()
 		std::vector< std::shared_ptr<GpuResource>>& rts = m_deferred_shading_quad->GetRts(m_frameIndex);
 		for (uint32_t i = 0; i < rts.size(); i++) {
 			if (i == 1) {
-				m_commandQueueGfx->ResourceBarrier(rts[i], D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+				m_commandQueueGfx->ResourceBarrier(rts[i], D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
 			}
 			else {
-				m_commandQueueGfx->ResourceBarrier(rts[i], D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+				m_commandQueueGfx->ResourceBarrier(rts[i], D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 			}
 		}
 	}
-	m_commandQueueGfx->ResourceBarrier(*m_ssao->GetSSAOres(2), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
-	m_commandQueueGfx->ResourceBarrier(*m_depthStencil.get(), D3D12_RESOURCE_STATE_DEPTH_WRITE, D3D12_RESOURCE_STATE_DEPTH_READ | D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+	m_commandQueueGfx->ResourceBarrier(*m_ssao->GetSSAOres(2), D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+	m_commandQueueGfx->ResourceBarrier(*m_depthStencil.get(), D3D12_RESOURCE_STATE_DEPTH_READ | D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
 
 	m_commandQueueGfx->ExecuteActiveCL();
 	m_commandQueueGfx->Signal(m_fence_inter_queue, ++m_fence_inter_queue_val);
@@ -313,11 +313,11 @@ void DXAppImplementation::OnRender()
 	//m_commandQueueGfx->Flush();
 
 
-	m_commandQueueCompute->ResourceBarrier(*m_ssao->GetSSAOres(0), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+	m_commandQueueCompute->ResourceBarrier(*m_ssao->GetSSAOres(0), D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
 	RenderSSAOquad(command_list_compute);
 
-	m_commandQueueCompute->ResourceBarrier(*m_ssao->GetSSAOres(0), D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
-	m_commandQueueCompute->ResourceBarrier(*m_ssao->GetSSAOres(1), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+	m_commandQueueCompute->ResourceBarrier(*m_ssao->GetSSAOres(0), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+	m_commandQueueCompute->ResourceBarrier(*m_ssao->GetSSAOres(1), D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
 	BlurSSAO(command_list_compute);
 
 
@@ -331,15 +331,15 @@ void DXAppImplementation::OnRender()
 	command_list_gfx = m_commandQueueGfx->ResetActiveCL();
 	command_list_gfx->RSSetViewports(1, &m_viewport);
 	command_list_gfx->RSSetScissorRects(1, &m_scissorRect);
-	m_commandQueueGfx->ResourceBarrier(*m_ssao->GetSSAOres(2), D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+	m_commandQueueGfx->ResourceBarrier(*m_ssao->GetSSAOres(2), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 
-	m_commandQueueGfx->ResourceBarrier(*m_depthStencil.get(), D3D12_RESOURCE_STATE_DEPTH_READ | D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_DEPTH_WRITE);
+	m_commandQueueGfx->ResourceBarrier(*m_depthStencil.get(), D3D12_RESOURCE_STATE_DEPTH_WRITE);
 
 	{
 		std::vector< std::shared_ptr<GpuResource>>& rts = m_deferred_shading_quad->GetRts(m_frameIndex);
 		for (uint32_t i = 0; i < rts.size(); i++) {
 			if (i == 1) {
-				m_commandQueueGfx->ResourceBarrier(rts[i], D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+				m_commandQueueGfx->ResourceBarrier(rts[i], D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 			}
 		}
 	}
@@ -350,7 +350,7 @@ void DXAppImplementation::OnRender()
 		std::vector<DXGI_FORMAT> formats = { DXGI_FORMAT_R16G16B16A16_FLOAT };
 		m_post_process_quad->CreateQuadTexture(m_width, m_height, formats, FrameCount, 0, L"m_post_process_quad_");
 		if (std::shared_ptr<GpuResource> rt = m_post_process_quad->GetRt(m_frameIndex).lock()) {
-			m_commandQueueGfx->ResourceBarrier(rt, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET);
+			m_commandQueueGfx->ResourceBarrier(rt, D3D12_RESOURCE_STATE_RENDER_TARGET);
 			PrepareRenderTarget(command_list_gfx, m_post_process_quad->GetRts(m_frameIndex));
 		}
 		else {
@@ -365,20 +365,20 @@ void DXAppImplementation::OnRender()
 	// post process
 	BEGIN_EVENT(command_list_gfx, "Post Processing");
 	if (std::shared_ptr<GpuResource> rt = m_post_process_quad->GetRt(m_frameIndex).lock()) {
-		m_commandQueueGfx->ResourceBarrier(rt, D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+		m_commandQueueGfx->ResourceBarrier(rt, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 	}
 	else {
 		assert(false);
 	}
 
-	m_commandQueueGfx->ResourceBarrier(m_renderTargets[m_frameIndex], D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
+	m_commandQueueGfx->ResourceBarrier(m_renderTargets[m_frameIndex], D3D12_RESOURCE_STATE_RENDER_TARGET);
 	PrepareRenderTarget(command_list_gfx, m_renderTargets[m_frameIndex]);
 
 	RenderPostProcessQuad(command_list_gfx);
 	END_EVENT(command_list_gfx);
 
 	// Indicate that the back buffer will now be used to present.
-	m_commandQueueGfx->ResourceBarrier(m_renderTargets[m_frameIndex], D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
+	m_commandQueueGfx->ResourceBarrier(m_renderTargets[m_frameIndex], D3D12_RESOURCE_STATE_PRESENT);
 
 	m_commandQueueGfx->ExecuteActiveCL();
 
@@ -590,7 +590,7 @@ void DXAppImplementation::BlurSSAO(ComPtr<ID3D12GraphicsCommandList6>& command_l
 	// vertical pass
 	m_commandQueueCompute->GetGpuHeap().CacheRootSignature(gD3DApp->GetRootSignById(tech->root_signature));
 
-	m_commandQueueCompute->ResourceBarrier(*m_ssao->GetSSAOres(1), D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+	m_commandQueueCompute->ResourceBarrier(*m_ssao->GetSSAOres(1), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
 
 
 	if (std::shared_ptr<ResourceDescriptor> srv = m_ssao->GetSSAOres(1)->GetSRV().lock()) {

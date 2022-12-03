@@ -159,12 +159,12 @@ void ConstantBufferManager::CommitCB(ComPtr<ID3D12GraphicsCommandList6>& command
 void ConstantBufferManager::SyncCpuDataToCB(ComPtr<ID3D12GraphicsCommandList6>& command_list, GpuResource* res, void* cpu_data, uint32_t size, BindingId bind_point, bool gfx) {
     if (gfx) {
         if (std::shared_ptr<GfxCommandQueue> queue = gD3DApp->GetGfxQueue().lock()) {
-            queue->ResourceBarrier(*res, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER, D3D12_RESOURCE_STATE_COPY_DEST);
+            queue->ResourceBarrier(*res, D3D12_RESOURCE_STATE_COPY_DEST);
         }
     }
     else {
 		if (std::shared_ptr<GfxCommandQueue> queue = gD3DApp->GetComputeQueue().lock()) {
-			queue->ResourceBarrier(*res, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER, D3D12_RESOURCE_STATE_COPY_DEST);
+			queue->ResourceBarrier(*res, D3D12_RESOURCE_STATE_COPY_DEST);
 		}
     }
 
@@ -175,12 +175,12 @@ void ConstantBufferManager::SyncCpuDataToCB(ComPtr<ID3D12GraphicsCommandList6>& 
 
     if (gfx) {
         if (std::shared_ptr<GfxCommandQueue> queue = gD3DApp->GetGfxQueue().lock()) {
-            queue->ResourceBarrier(*res, D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER);
+            queue->ResourceBarrier(*res, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER);
         }
     }
     else {
 		if (std::shared_ptr<GfxCommandQueue> queue = gD3DApp->GetComputeQueue().lock()) {
-			queue->ResourceBarrier(*res, D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER);
+			queue->ResourceBarrier(*res, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER);
 		}
     }
 

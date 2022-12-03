@@ -73,25 +73,31 @@ void GfxCommandQueue::ExecuteActiveCL(){
     m_commandQueue->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
 }
 
-void GfxCommandQueue::ResourceBarrier(std::shared_ptr<GpuResource> &res, D3D12_RESOURCE_STATES from, D3D12_RESOURCE_STATES to){
+void GfxCommandQueue::ResourceBarrier(std::shared_ptr<GpuResource> &res, D3D12_RESOURCE_STATES to){
     TODO("Normal! Implement feasible way to store/get curent state of resource. later")
     if (std::shared_ptr<HeapBuffer> buff = res->GetBuffer().lock()){
-        m_command_list->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(buff->GetResource().Get(), from, to));
+        D3D12_RESOURCE_STATES calculated_from = res->GetState();
+        m_command_list->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(buff->GetResource().Get(), calculated_from, to));
+        res->UpdateState(to);
     }
 }
 
-void GfxCommandQueue::ResourceBarrier(GpuResource &res, D3D12_RESOURCE_STATES from, D3D12_RESOURCE_STATES to) {
+void GfxCommandQueue::ResourceBarrier(GpuResource &res, D3D12_RESOURCE_STATES to) {
     if (std::shared_ptr<HeapBuffer> buff = res.GetBuffer().lock()){
-        m_command_list->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(buff->GetResource().Get(), from, to));
+        D3D12_RESOURCE_STATES calculated_from = res.GetState();
+        m_command_list->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(buff->GetResource().Get(), calculated_from, to));
+        res.UpdateState(to);
     }
 }
 
-void GfxCommandQueue::ResourceBarrier(std::vector<std::shared_ptr<GpuResource>>& res, D3D12_RESOURCE_STATES from, D3D12_RESOURCE_STATES to) {
+void GfxCommandQueue::ResourceBarrier(std::vector<std::shared_ptr<GpuResource>>& res, D3D12_RESOURCE_STATES to) {
     std::vector<CD3DX12_RESOURCE_BARRIER> resources;
     resources.reserve(res.size());
     for (auto gpu_res : res){
         if (std::shared_ptr<HeapBuffer> buff = gpu_res->GetBuffer().lock()){
-            resources.push_back(CD3DX12_RESOURCE_BARRIER::Transition(buff->GetResource().Get(), from, to));
+            D3D12_RESOURCE_STATES calculated_from = gpu_res->GetState();
+            resources.push_back(CD3DX12_RESOURCE_BARRIER::Transition(buff->GetResource().Get(), calculated_from, to));
+            gpu_res->UpdateState(to);
         }
     }
 

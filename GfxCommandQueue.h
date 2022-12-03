@@ -16,9 +16,9 @@ public:
     virtual void SetRootSign(uint32_t id) override;
     ComPtr<ID3D12GraphicsCommandList6>& GetActiveCL();
     void ExecuteActiveCL();
-    void ResourceBarrier(std::shared_ptr<GpuResource> &res, D3D12_RESOURCE_STATES from, D3D12_RESOURCE_STATES to);
-    void ResourceBarrier(GpuResource &res, D3D12_RESOURCE_STATES from, D3D12_RESOURCE_STATES to);
-    void ResourceBarrier(std::vector<std::shared_ptr<GpuResource>>& res, D3D12_RESOURCE_STATES from, D3D12_RESOURCE_STATES to);
+    void ResourceBarrier(std::shared_ptr<GpuResource> &res, D3D12_RESOURCE_STATES to);
+    void ResourceBarrier(GpuResource &res, D3D12_RESOURCE_STATES to);
+    void ResourceBarrier(std::vector<std::shared_ptr<GpuResource>>& res, D3D12_RESOURCE_STATES to);
     DynamicGpuHeap& GetGpuHeap() { return m_dynamic_gpu_heaps[m_active_cl]; }
 protected:
     uint32_t m_command_list_num{ 0 };

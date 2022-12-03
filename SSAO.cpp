@@ -111,7 +111,7 @@ void SSAO::GenerateRandomValuesTex(ComPtr<ID3D12GraphicsCommandList6>& command_l
 		m_ssao_quad_random_vals->LoadBuffer(command_list, 0, 1, &subResourceData);
 
 		if (std::shared_ptr<GfxCommandQueue> queue = gD3DApp->GetComputeQueue().lock()) {
-			queue->ResourceBarrier(*m_ssao_quad_random_vals.get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+			queue->ResourceBarrier(*m_ssao_quad_random_vals.get(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
 		}
 
 		m_dirty &= ~df_generate;

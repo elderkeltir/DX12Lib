@@ -11,6 +11,7 @@ void GpuResource::CreateBuffer(HeapBuffer::BufferType type, uint32_t bufferSize,
     }
     m_buffer = std::make_shared<HeapBuffer>();
     m_buffer->Create(type, bufferSize, flag, initial_state, dbg_name);
+    m_current_state = initial_state;
 }
 
 void GpuResource::CreateTexture(HeapBuffer::BufferType type, const CD3DX12_RESOURCE_DESC &res_desc, D3D12_RESOURCE_STATES initial_state, const D3D12_CLEAR_VALUE *clear_val, std::optional<std::wstring> dbg_name){
@@ -19,6 +20,7 @@ void GpuResource::CreateTexture(HeapBuffer::BufferType type, const CD3DX12_RESOU
     }
     m_buffer = std::make_shared<HeapBuffer>();
     m_buffer->CreateTexture(type, res_desc, initial_state, clear_val, dbg_name);
+    m_current_state = initial_state;
 }
 
 void GpuResource::SetBuffer(ComPtr<ID3D12Resource> res){
