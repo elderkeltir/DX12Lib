@@ -27,6 +27,8 @@ public:
     void SetColor(const DirectX::XMFLOAT3 &color) { m_color = color; for(auto &child : m_children) child->SetColor(color); }
     void SetMaterial(uint32_t id) { m_material_id = id; for(auto &child : m_children) child->SetMaterial(id); }
 
+    void SetInstancesNum(uint32_t num) { m_instance_num = num; }
+
 private:
     inline void FormVertexes();
     inline void LoadTextures(ComPtr<ID3D12GraphicsCommandList6> & commandList);
@@ -40,6 +42,7 @@ private:
     std::array<TextureData*, TextureCount> m_textures_data;
     std::unique_ptr<Transformations> m_transformations;
     std::vector<RenderModel*> m_children;
+    uint32_t m_instance_num{ 1 };
     uint32_t m_tech_id{uint32_t(-1)};
     DirectX::XMFLOAT3 m_color{0.5f,0.3f,0.7f};
     uint32_t m_material_id{0};

@@ -367,7 +367,7 @@ static Techniques::Technique CreateTechnique_4(ComPtr<ID3D12Device2> &device, Ro
         sizeof(PipelineStateStream), &pipelineStateStream
     };
     ThrowIfFailed(device->CreatePipelineState(&pipelineStateStreamDesc, IID_PPV_ARGS(&tech.pipeline_state)));
-    SetName(tech.pipeline_state, dbg_name.value_or(L"").append(L"_pso_2").c_str());
+    SetName(tech.pipeline_state, dbg_name.value_or(L"").append(L"_pso_4").c_str());
 
     return tech;
 }
@@ -386,6 +386,7 @@ static Techniques::Technique CreateTechnique_5(ComPtr<ID3D12Device2>& device, Ro
 	vertBlurPSO.Flags = D3D12_PIPELINE_STATE_FLAG_NONE;
 
 	ThrowIfFailed(device->CreateComputePipelineState(&vertBlurPSO, IID_PPV_ARGS(&tech.pipeline_state)));
+    SetName(tech.pipeline_state, dbg_name.value_or(L"").append(L"_pso_5").c_str());
 
 	return tech;
 }
@@ -404,8 +405,66 @@ static Techniques::Technique CreateTechnique_6(ComPtr<ID3D12Device2>& device, Ro
 	vertBlurPSO.Flags = D3D12_PIPELINE_STATE_FLAG_NONE;
 
     ThrowIfFailed(device->CreateComputePipelineState(&vertBlurPSO, IID_PPV_ARGS(&tech.pipeline_state)));
+    SetName(tech.pipeline_state, dbg_name.value_or(L"").append(L"_pso_6").c_str());
 
     return tech;
+}
+// terrain
+static Techniques::Technique CreateTechnique_7(ComPtr<ID3D12Device2>& device, RootSignature& root_sign, std::optional<std::wstring> dbg_name = std::nullopt) {
+	Techniques::Technique tech;
+	tech.vs = L"vertex_shader_5.hlsl";
+	tech.ps = L"pixel_shader_5.hlsl";
+	tech.root_signature = root_sign.id;
+
+	struct PipelineStateStream
+	{
+		CD3DX12_PIPELINE_STATE_STREAM_ROOT_SIGNATURE pRootSignature;
+		CD3DX12_PIPELINE_STATE_STREAM_PRIMITIVE_TOPOLOGY PrimitiveTopologyType;
+		CD3DX12_PIPELINE_STATE_STREAM_VS VS;
+		CD3DX12_PIPELINE_STATE_STREAM_PS PS;
+		CD3DX12_PIPELINE_STATE_STREAM_DEPTH_STENCIL_FORMAT DSVFormat;
+		CD3DX12_PIPELINE_STATE_STREAM_RENDER_TARGET_FORMATS RTVFormats;
+		CD3DX12_PIPELINE_STATE_STREAM_DEPTH_STENCIL ds_desc;
+		CD3DX12_PIPELINE_STATE_STREAM_RASTERIZER raster_dec;
+	} pipelineStateStream;
+
+	D3D12_RT_FORMAT_ARRAY rtvFormats = { DXGI_FORMAT_R16G16B16A16_FLOAT, DXGI_FORMAT_R16G16B16A16_FLOAT, DXGI_FORMAT_R16G16B16A16_FLOAT, DXGI_FORMAT_R16G16B16A16_FLOAT };
+	rtvFormats.NumRenderTargets = 4;
+
+	CD3DX12_SHADER_BYTECODE vs;
+	CD3DX12_SHADER_BYTECODE ps;
+	if (std::shared_ptr<ShaderManager> shader_mgr = gD3DApp->GetShaderManager().lock()) {
+		ShaderManager::ShaderBlob* vs_blob = shader_mgr->Load(tech.vs, L"main", ShaderManager::ShaderType::st_vertex);
+		ShaderManager::ShaderBlob* ps_blob = shader_mgr->Load(tech.ps, L"main", ShaderManager::ShaderType::st_pixel);
+		vs = CD3DX12_SHADER_BYTECODE((const void*)vs_blob->data.data(), vs_blob->data.size());
+		ps = CD3DX12_SHADER_BYTECODE((const void*)ps_blob->data.data(), ps_blob->data.size());
+	}
+	else {
+		assert(false);
+	}
+
+	CD3DX12_DEPTH_STENCIL_DESC dsd(CD3DX12_DEFAULT{});
+	dsd.DepthFunc = D3D12_COMPARISON_FUNC_LESS_EQUAL;
+
+	CD3DX12_RASTERIZER_DESC rd(CD3DX12_DEFAULT{});
+	rd.CullMode = D3D12_CULL_MODE_NONE;
+
+	pipelineStateStream.pRootSignature = root_sign.GetRootSignature().Get();
+	pipelineStateStream.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+	pipelineStateStream.VS = vs;
+	pipelineStateStream.PS = ps;
+	pipelineStateStream.DSVFormat = DXGI_FORMAT_D32_FLOAT;
+	pipelineStateStream.RTVFormats = rtvFormats;
+	pipelineStateStream.ds_desc = dsd;
+	pipelineStateStream.raster_dec = rd;
+
+	D3D12_PIPELINE_STATE_STREAM_DESC pipelineStateStreamDesc = {
+		sizeof(PipelineStateStream), &pipelineStateStream
+	};
+	ThrowIfFailed(device->CreatePipelineState(&pipelineStateStreamDesc, IID_PPV_ARGS(&tech.pipeline_state)));
+	SetName(tech.pipeline_state, dbg_name.value_or(L"").append(L"_pso_7").c_str());
+
+	return tech;
 }
 
 // root sign for g-buffer
@@ -541,7 +600,7 @@ void Techniques::CreateRootSignature_2(ComPtr<ID3D12Device2> &device, RootSignat
         rootSignatureBlob->GetBufferSize(), IID_PPV_ARGS(root_sign->GetRootSignature().GetAddressOf())));
     SetName(root_sign->GetRootSignature(), dbg_name.value_or(L"").append(L"_root_signature_2").c_str());
 }
-// root sign for ssao
+// root sign for terrain
 void Techniques::CreateRootSignature_3(ComPtr<ID3D12Device2>& device, RootSignature* root_sign, std::optional<std::wstring> dbg_name) {
 	// Create a root signature.
 	D3D12_FEATURE_DATA_ROOT_SIGNATURE featureData = {};
@@ -550,7 +609,6 @@ void Techniques::CreateRootSignature_3(ComPtr<ID3D12Device2>& device, RootSignat
 
 	// Allow input layout and deny unnecessary access to certain pipeline stages.
 	D3D12_ROOT_SIGNATURE_FLAGS rootSignatureFlags =
-		D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT |
 		D3D12_ROOT_SIGNATURE_FLAG_DENY_HULL_SHADER_ROOT_ACCESS |
 		D3D12_ROOT_SIGNATURE_FLAG_DENY_DOMAIN_SHADER_ROOT_ACCESS |
 		D3D12_ROOT_SIGNATURE_FLAG_DENY_GEOMETRY_SHADER_ROOT_ACCESS;
@@ -564,8 +622,8 @@ void Techniques::CreateRootSignature_3(ComPtr<ID3D12Device2>& device, RootSignat
 	auto& root_params_vec = root_sign->GetRootParams();
 	root_params_vec.resize(3);
 
-	root_params_vec[bi_ssao_cb].InitAsConstantBufferView(cb_ssao, 0, D3D12_ROOT_DESCRIPTOR_FLAG_NONE, D3D12_SHADER_VISIBILITY_PIXEL); // ssao cb
-	root_params_vec[bi_ssao_input_tex].InitAsDescriptorTable(1, &texTable, D3D12_SHADER_VISIBILITY_PIXEL); // Texture
+    root_params_vec[bi_model_cb].InitAsConstantBufferView(cb_model, 0, D3D12_ROOT_DESCRIPTOR_FLAG_NONE, D3D12_SHADER_VISIBILITY_ALL);
+	root_params_vec[bi_terrain_hm].InitAsDescriptorTable(1, &texTable, D3D12_SHADER_VISIBILITY_PIXEL); // Textures
 	root_params_vec[bi_scene_cb].InitAsConstantBufferView(cb_scene, 0, D3D12_ROOT_DESCRIPTOR_FLAG_NONE); // sceneCB
 
 	CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC rootSignatureDescription;
@@ -582,7 +640,7 @@ void Techniques::CreateRootSignature_3(ComPtr<ID3D12Device2>& device, RootSignat
 	// Create the root signature.
 	ThrowIfFailed(device->CreateRootSignature(0, rootSignatureBlob->GetBufferPointer(),
 		rootSignatureBlob->GetBufferSize(), IID_PPV_ARGS(root_sign->GetRootSignature().GetAddressOf())));
-	SetName(root_sign->GetRootSignature(), dbg_name.value_or(L"").append(L"_root_signature_2").c_str());
+	SetName(root_sign->GetRootSignature(), dbg_name.value_or(L"").append(L"_root_signature_3").c_str());
 }
 
 // blur
@@ -662,6 +720,8 @@ void Techniques::OnInit(ComPtr<ID3D12Device2> &device, std::optional<std::wstrin
 		m_techniques[id].id = id;
 		id = m_techniques.push_back(CreateTechnique_6(device, m_root_signatures[4], dbg_name));
 		m_techniques[id].id = id;
+		id = m_techniques.push_back(CreateTechnique_7(device, m_root_signatures[3], dbg_name));
+		m_techniques[id].id = id;
     }
 }
 
@@ -696,4 +756,6 @@ void Techniques::RebuildShaders(std::optional<std::wstring> dbg_name)
 	m_techniques[5].id = 5;
 	m_techniques[6] = CreateTechnique_6(device, m_root_signatures[4], dbg_name);
 	m_techniques[6].id = 6;
+	m_techniques[7] = CreateTechnique_7(device, m_root_signatures[3], dbg_name);
+	m_techniques[7].id = 7;
 }

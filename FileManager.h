@@ -22,7 +22,7 @@ class RenderQuad;
 class FileManager
 {
 public:
-    enum Geom_type { gt_sphere = 0, gt_quad, gt_num };
+    enum Geom_type { gt_sphere = 0, gt_quad, gt_triangle, gt_num };
     struct Geom {
         std::vector<DirectX::XMFLOAT3> vertices;
         std::vector<DirectX::XMFLOAT2> tex_coords;
@@ -53,7 +53,7 @@ private:
     pro_game_containers::simple_object_pool<RenderMesh, meshes_capacity> m_load_meshes;
     pro_game_containers::simple_object_pool<TextureData, textures_capacity> m_load_textures;
     std::array<Geom, gt_num> m_geoms;
-    std::array<std::wstring, gt_num> m_geom_name;
+    //std::array<std::wstring, gt_num> m_geom_name;
 
     std::filesystem::path m_model_dir;
     std::filesystem::path m_texture_dir;

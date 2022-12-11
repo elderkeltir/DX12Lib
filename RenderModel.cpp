@@ -189,7 +189,7 @@ void RenderModel::Render(ComPtr<ID3D12GraphicsCommandList6> &command_list, const
         }
 
         TODO("Major! DrawIndexed should be at upper level where you know there are few such meshes to render")
-        command_list->DrawIndexedInstanced(m_mesh->GetIndicesNum(), 1, 0, 0, 0);
+        command_list->DrawIndexedInstanced(m_mesh->GetIndicesNum(), m_instance_num, 0, 0, 0);
     }
     DirectX::XMFLOAT4X4 new_parent_xform;
     DirectX::XMStoreFloat4x4(&new_parent_xform, parent_xform_mx);

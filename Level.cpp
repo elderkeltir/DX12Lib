@@ -25,6 +25,7 @@
 #include "GfxCommandQueue.h"
 #include "SkyBox.h"
 #include "DynamicGpuHeap.h"
+#include "Terrain.h"
 
 extern DXAppImplementation *gD3DApp;
 using rapidjson::Document;
@@ -139,7 +140,14 @@ void Level::Load(const std::wstring &name){
     const char * skybox_name_8 = skybox["entity"].GetString();
     const std::wstring skybox_name(&skybox_name_8[0], &skybox_name_8[strlen(skybox_name_8)]);
     m_skybox_ent.swap(std::make_unique<SkyBox>());
-    m_skybox_ent->Load(skybox_name);    
+    m_skybox_ent->Load(skybox_name);
+
+    // Terrain
+    const Value& terrain = d["terrain"];
+    const char* terrain_hm_name_8 = terrain["height_map"].GetString();
+    const std::wstring terrain_hm_name(&terrain_hm_name_8[0], &terrain_hm_name_8[strlen(terrain_hm_name_8)]);
+    m_terrain.swap(std::make_unique<Terrain>());
+    m_terrain->Load(terrain_hm_name);
 }
 
 void Level::Update(float dt){

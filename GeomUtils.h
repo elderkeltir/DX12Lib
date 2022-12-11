@@ -120,3 +120,9 @@ inline void CreateQuad(std::vector<DirectX::XMFLOAT3> &vertices, std::vector<Dir
     indices.push_back(2);
     indices.push_back(3);
 }
+
+inline void CreateTriangle(std::vector<uint16_t>& indices) {
+	indices.push_back(0);
+	indices.push_back(1);
+	indices.push_back(2);
+}

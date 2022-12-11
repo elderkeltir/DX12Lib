@@ -31,6 +31,7 @@ enum BindingId {
     bi_ssao_cb                      = 0,
     bi_ssao_input_tex               = 1,
     bi_ssao_uav_tex                 = 3,
+    bi_terrain_hm                   = 1,
 };
 
 enum TextureTableOffset {

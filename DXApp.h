@@ -6,9 +6,6 @@
 #include <directx/d3dx12.h>
 #include <string>
 
-//
-//#include "Application.h"
-
 class DXApp
 {
 public:

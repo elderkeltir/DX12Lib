@@ -10,7 +10,7 @@ RenderObject::~RenderObject() {
 }
 
 void RenderObject::LoadVertexDataOnGpu(ComPtr<ID3D12GraphicsCommandList6> &commandList, const void* data, uint32_t size_of_vertex, uint32_t vertex_count){
-    if (m_dirty & db_vertex){
+    if (m_dirty & db_vertex && vertex_count){
         m_VertexBuffer = std::make_unique<GpuResource>();
         m_VertexBuffer->CreateBuffer(HeapBuffer::BufferType::bt_default, (vertex_count * size_of_vertex), HeapBuffer::UseFlag::uf_none, D3D12_RESOURCE_STATE_COPY_DEST, std::wstring(L"vertex_buffer").append(m_name));
         m_VertexBuffer->LoadBuffer(commandList, vertex_count, size_of_vertex, data);
@@ -23,7 +23,7 @@ void RenderObject::LoadVertexDataOnGpu(ComPtr<ID3D12GraphicsCommandList6> &comma
 }
 
 void RenderObject::LoadIndexDataOnGpu(ComPtr<ID3D12GraphicsCommandList6> &commandList){
-    if (m_dirty & db_index){
+    if (m_dirty & db_index && m_mesh->GetIndicesNum()){
         m_IndexBuffer = std::make_unique<GpuResource>();
         m_IndexBuffer->CreateBuffer(HeapBuffer::BufferType::bt_default, (m_mesh->GetIndicesNum() * sizeof(uint16_t)), HeapBuffer::UseFlag::uf_none, D3D12_RESOURCE_STATE_COPY_DEST, std::wstring(L"index_buffer").append(m_name));
         m_IndexBuffer->LoadBuffer(commandList, m_mesh->GetIndicesNum(), sizeof(uint16_t), m_mesh->GetIndicesData());

@@ -40,5 +40,8 @@
     },
     "skybox": {
         "entity": "skybox.json"
+    },
+    "terrain": {
+        "height_map": "terrain_hm.png"
     }
 }

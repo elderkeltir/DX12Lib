@@ -20,7 +20,7 @@ void RenderQuad::Initialize() {
 
     m_dirty |= db_rt_tx;
 
-    Initialized();
+    //Initialized();
 }
 
 RenderQuad::~RenderQuad() = default;

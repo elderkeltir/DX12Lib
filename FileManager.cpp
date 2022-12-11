@@ -103,6 +103,8 @@ FileManager::FileManager() :
 	m_geoms[gt_sphere].type = gt_sphere;
 	CreateQuad(m_geoms[gt_quad].vertices, m_geoms[gt_quad].tex_coords, m_geoms[gt_quad].indices);
 	m_geoms[gt_quad].type = gt_quad;
+	CreateTriangle(m_geoms[gt_triangle].indices);
+	m_geoms[gt_triangle].type = gt_triangle;
 
 	ThrowIfFailed(CoInitializeEx(nullptr, COINITBASE_MULTITHREADED));
 }
