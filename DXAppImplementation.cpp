@@ -36,6 +36,7 @@ DXAppImplementation::DXAppImplementation(uint32_t width, uint32_t height, std::w
 	m_commandQueueGfx(std::make_shared<GfxCommandQueue>()),
 	m_commandQueueCompute(std::make_shared<GfxCommandQueue>()),
 	m_post_process_quad(std::make_unique<RenderQuad>()),
+	m_forward_quad(std::make_unique<RenderQuad>()),
 	m_deferred_shading_quad(std::make_unique<RenderQuad>()),
 	m_ssao(std::make_unique<SSAO>()),
 	m_gui(std::make_unique<ImguiHelper>()),
@@ -63,6 +64,7 @@ void DXAppImplementation::OnInit()
 
 	m_post_process_quad->Initialize();
 	m_deferred_shading_quad->Initialize();
+	m_forward_quad->Initialize();
 	m_ssao->Initialize(m_width, m_height, L"SSAO_");
 
 	m_gui->Initialize(m_device, FrameCount);
@@ -309,6 +311,11 @@ void DXAppImplementation::OnRender()
 	RenderDeferredShadingQuad(command_list_gfx);
 	END_EVENT(command_list_gfx);
 
+	// forward pass
+	BEGIN_EVENT(command_list_gfx, "Forward Pass");
+	RenderForwardQuad(command_list_gfx);
+	END_EVENT(command_list_gfx);
+
 	// post process
 	BEGIN_EVENT(command_list_gfx, "Post Processing");
 	RenderPostProcessQuad(command_list_gfx);
@@ -335,7 +342,7 @@ void DXAppImplementation::OnDestroy()
 	gD3DApp = nullptr;
 }
 
-void DXAppImplementation::PrepareRenderTarget(ComPtr<ID3D12GraphicsCommandList6>& command_list, const std::vector<std::shared_ptr<GpuResource>>& rts) {
+void DXAppImplementation::PrepareRenderTarget(ComPtr<ID3D12GraphicsCommandList6>& command_list, const std::vector<std::shared_ptr<GpuResource>>& rts, bool set_dsv, bool clear_dsv) {
 	CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle;
 	CD3DX12_CPU_DESCRIPTOR_HANDLE dsvHandle;
 	if (std::shared_ptr<ResourceDescriptor> render_target_view = rts.at(0)->GetRTV().lock()) {
@@ -344,18 +351,26 @@ void DXAppImplementation::PrepareRenderTarget(ComPtr<ID3D12GraphicsCommandList6>
 	else {
 		assert(false);
 	}
-	if (std::shared_ptr<ResourceDescriptor> depth_view = m_depthStencil->GetDSV().lock()) {
-		dsvHandle = depth_view->GetCPUhandle();
+
+	if (set_dsv) {
+		if (std::shared_ptr<ResourceDescriptor> depth_view = m_depthStencil->GetDSV().lock()) {
+			dsvHandle = depth_view->GetCPUhandle();
+			if (clear_dsv) {
+				command_list->ClearDepthStencilView(dsvHandle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
+			}
+		}
+		else {
+			assert(false);
+		}
+
+		command_list->OMSetRenderTargets((uint32_t)rts.size(), &rtvHandle, rts.size() > 1 ? TRUE : FALSE, &dsvHandle);
 	}
 	else {
-		assert(false);
+		command_list->OMSetRenderTargets((uint32_t)rts.size(), &rtvHandle, rts.size() > 1 ? TRUE : FALSE, NULL);
 	}
 
-	command_list->OMSetRenderTargets((uint32_t)rts.size(), &rtvHandle, rts.size() > 1 ? TRUE : FALSE, &dsvHandle);
-	command_list->ClearDepthStencilView(dsvHandle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
-
 	// Record commands.
-	const float clearColor[] = { 0.2f, 0.2f, 0.4f, 1.0f };
+	const float clearColor[] = { 0.f, 0.f, 0.f, 0.0f };
 	for (auto& rt : rts) {
 		if (std::shared_ptr<ResourceDescriptor> render_target_view = rt->GetRTV().lock()) {
 			rtvHandle = render_target_view->GetCPUhandle();
@@ -364,7 +379,7 @@ void DXAppImplementation::PrepareRenderTarget(ComPtr<ID3D12GraphicsCommandList6>
 	}
 }
 
-void DXAppImplementation::PrepareRenderTarget(ComPtr<ID3D12GraphicsCommandList6>& command_list, GpuResource& rt, bool set_dsv) {
+void DXAppImplementation::PrepareRenderTarget(ComPtr<ID3D12GraphicsCommandList6>& command_list, GpuResource& rt, bool set_dsv, bool clear_dsv) {
 	CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle;
 	CD3DX12_CPU_DESCRIPTOR_HANDLE dsvHandle;
 	if (std::shared_ptr<ResourceDescriptor> render_target_view = rt.GetRTV().lock()) {
@@ -382,14 +397,16 @@ void DXAppImplementation::PrepareRenderTarget(ComPtr<ID3D12GraphicsCommandList6>
 
 	if (set_dsv) {
 		command_list->OMSetRenderTargets(1, &rtvHandle, FALSE, &dsvHandle);
-		command_list->ClearDepthStencilView(dsvHandle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
+		if (clear_dsv) {
+			command_list->ClearDepthStencilView(dsvHandle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
+		}
 	}
 	else {
 		command_list->OMSetRenderTargets(1, &rtvHandle, FALSE, nullptr);
 	}
 
 	// Record commands.
-	const float clearColor[] = { 0.2f, 0.2f, 0.4f, 1.0f };
+	const float clearColor[] = { 0.f, 0.f, 0.f, 0.0f };
 	command_list->ClearRenderTargetView(rtvHandle, clearColor, 0, nullptr);
 }
 
@@ -427,7 +444,7 @@ void DXAppImplementation::RenderPostProcessQuad(ComPtr<ID3D12GraphicsCommandList
 	}
 
 	m_commandQueueGfx->ResourceBarrier(m_renderTargets[m_frameIndex], D3D12_RESOURCE_STATE_RENDER_TARGET);
-	PrepareRenderTarget(command_list, m_renderTargets[m_frameIndex]);
+	PrepareRenderTarget(command_list, m_renderTargets[m_frameIndex], false);
 
 	const Techniques::Technique* tech = GetTechniqueById(tt_post_processing);
 	if (m_commandQueueGfx->GetPSO() != tt_post_processing) {
@@ -443,6 +460,7 @@ void DXAppImplementation::RenderPostProcessQuad(ComPtr<ID3D12GraphicsCommandList
 			m_commandQueueGfx->GetGpuHeap().StageDesctriptor(bi_post_proc_input_tex_table, tto_postp_input, srv->GetCPUhandle());
 		}
 	}
+
 	m_post_process_quad->LoadDataToGpu(command_list);
 	if (std::shared_ptr<GpuResource> rt = m_gui->GetGuiQuad()->GetRt(m_frameIndex).lock()) {
 		if (std::shared_ptr<ResourceDescriptor> srv = rt->GetSRV().lock()) {
@@ -450,9 +468,40 @@ void DXAppImplementation::RenderPostProcessQuad(ComPtr<ID3D12GraphicsCommandList
 		}
 	}
 
+	if (std::shared_ptr<GpuResource> rt = m_forward_quad->GetRt(m_frameIndex).lock()) {
+		if (std::shared_ptr<ResourceDescriptor> srv = rt->GetSRV().lock()) {
+			m_commandQueueGfx->GetGpuHeap().StageDesctriptor(bi_post_proc_input_tex_table, tto_postp_fwd, srv->GetCPUhandle());
+		}
+	}
+	CommitCB(command_list, cb_scene);
+
 	m_commandQueueGfx->GetGpuHeap().CommitRootSignature(command_list);
 
 	m_post_process_quad->Render(command_list);
+}
+
+void DXAppImplementation::RenderForwardQuad(ComPtr<ID3D12GraphicsCommandList6>& command_list) {
+	{
+		std::vector<DXGI_FORMAT> formats = { DXGI_FORMAT_R16G16B16A16_FLOAT };
+		m_forward_quad->CreateQuadTexture(m_width, m_height, formats, FrameCount, 0, L"m_forward_quad_");
+	}
+
+	if (std::shared_ptr<GpuResource> rt = m_forward_quad->GetRt(m_frameIndex).lock()) {
+		m_commandQueueGfx->ResourceBarrier(rt, D3D12_RESOURCE_STATE_RENDER_TARGET);
+		PrepareRenderTarget(command_list, *rt.get(), true, false);
+	}
+	else {
+		assert(false);
+	}
+
+	// water
+	m_level->RenderWater(command_list);
+
+	if (std::shared_ptr<GpuResource> rt = m_forward_quad->GetRt(m_frameIndex).lock()) {
+		m_commandQueueGfx->ResourceBarrier(rt, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+	}
+
+	//m_post_process_quad->Render(command_list);
 }
 
 void DXAppImplementation::RenderDeferredShadingQuad(ComPtr<ID3D12GraphicsCommandList6>& command_list) {
@@ -473,7 +522,7 @@ void DXAppImplementation::RenderDeferredShadingQuad(ComPtr<ID3D12GraphicsCommand
 		m_post_process_quad->CreateQuadTexture(m_width, m_height, formats, FrameCount, 0, L"m_post_process_quad_");
 		if (std::shared_ptr<GpuResource> rt = m_post_process_quad->GetRt(m_frameIndex).lock()) {
 			m_commandQueueGfx->ResourceBarrier(rt, D3D12_RESOURCE_STATE_RENDER_TARGET);
-			PrepareRenderTarget(command_list, m_post_process_quad->GetRts(m_frameIndex));
+			PrepareRenderTarget(command_list, m_post_process_quad->GetRts(m_frameIndex), false);
 		}
 		else {
 			assert(false);

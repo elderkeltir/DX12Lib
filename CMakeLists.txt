@@ -87,7 +87,8 @@ add_executable(DX12Lib WIN32 main.cpp
     ImguiHelper.cpp
     Console.cpp
     ConsoleCommands.cpp
-    Terrain.cpp
+    Plane.cpp
+    Water.cpp
     )
 
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})

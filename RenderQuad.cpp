@@ -61,7 +61,7 @@ bool RenderQuad::CreateQuadTexture(uint32_t width, uint32_t height, const std::v
                 if (uavs << m)
                     res_flags |= D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
                 CD3DX12_RESOURCE_DESC res_desc = CD3DX12_RESOURCE_DESC::Tex2D(formats[m], width, height, 1, 0, 1, 0, res_flags);
-                res->CreateTexture(HeapBuffer::BufferType::bt_default, res_desc, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, nullptr, dbg_name.value_or(L"quad_tex_").append(std::to_wstring(n).append(L"-")).append(std::to_wstring(m)));
+                res->CreateTexture(HeapBuffer::BufferType::bt_default, res_desc, res_state, nullptr, dbg_name.value_or(L"quad_tex_").append(std::to_wstring(n).append(L"-")).append(std::to_wstring(m)));
                 res->CreateRTV();
 
                 D3D12_SHADER_RESOURCE_VIEW_DESC srv_desc = {};

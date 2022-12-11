@@ -8,25 +8,27 @@ extern DXAppImplementation* gD3DApp;
 
 
 void ConstantBufferManager::OnInit() {
-    {
-        m_scene_cb.swap(std::make_unique<GpuResource>());
-        m_scene_cb->CreateBuffer(HeapBuffer::BufferType::bt_upload, calc_cb_size(sizeof(SceneCB)), HeapBuffer::UseFlag::uf_none, D3D12_RESOURCE_STATE_GENERIC_READ, L"Scene_cb");
-        D3D12_CONSTANT_BUFFER_VIEW_DESC desc;
-        desc.SizeInBytes = calc_cb_size(sizeof(SceneCB));
-        m_scene_cb->Create_CBV(desc);
-        if (std::shared_ptr<HeapBuffer> buff = m_scene_cb->GetBuffer().lock()){
-            buff->Map();
-        }
-    }
+	for (uint32_t i = 0; i < 2; i++) {
+        GpuResource& m_scene_cb = m_scene_cbs[i];
+		m_scene_cb.CreateBuffer(HeapBuffer::BufferType::bt_upload, calc_cb_size(sizeof(SceneCB)), HeapBuffer::UseFlag::uf_none, D3D12_RESOURCE_STATE_GENERIC_READ, L"Scene_cb");
+		D3D12_CONSTANT_BUFFER_VIEW_DESC desc;
+		desc.SizeInBytes = calc_cb_size(sizeof(SceneCB));
+		m_scene_cb.Create_CBV(desc);
+		if (std::shared_ptr<HeapBuffer> buff = m_scene_cb.GetBuffer().lock()) {
+			buff->Map();
+		}
+	}
 }
 
 void ConstantBufferManager::Destroy() {
-    if (std::shared_ptr<HeapBuffer> buff = m_scene_cb->GetBuffer().lock()){
+    const uint32_t id = gD3DApp->FrameId();
+    if (std::shared_ptr<HeapBuffer> buff = m_scene_cbs[id].GetBuffer().lock()) {
         buff->Unmap();
     }
 }
 
 void ConstantBufferManager::SetMatrix4Constant(Constants id, const DirectX::XMMATRIX & matrix){
+    const uint32_t frame_id = gD3DApp->FrameId();
     if (id == Constants::cM){
         if (std::shared_ptr<HeapBuffer> buff = m_model_cb->GetBuffer().lock()){
             ModelCB* model_cb = (ModelCB*) buff->GetCpuData();
@@ -34,19 +36,19 @@ void ConstantBufferManager::SetMatrix4Constant(Constants id, const DirectX::XMMA
         }
     }
     else if (id == Constants::cV){
-        if (std::shared_ptr<HeapBuffer> buff = m_scene_cb->GetBuffer().lock()){
+        if (std::shared_ptr<HeapBuffer> buff = m_scene_cbs[frame_id].GetBuffer().lock()) {
             SceneCB* scene_cb = (SceneCB*) buff->GetCpuData();
             DirectX::XMStoreFloat4x4(&scene_cb->V, matrix);
         }
     }
     else if (id == Constants::cP){
-        if (std::shared_ptr<HeapBuffer> buff = m_scene_cb->GetBuffer().lock()){
+        if (std::shared_ptr<HeapBuffer> buff = m_scene_cbs[frame_id].GetBuffer().lock()){
             SceneCB* scene_cb = (SceneCB*) buff->GetCpuData();
             DirectX::XMStoreFloat4x4(&scene_cb->P, matrix);
         }
     }
 	else if (id == Constants::cPinv) {
-		if (std::shared_ptr<HeapBuffer> buff = m_scene_cb->GetBuffer().lock()) {
+		if (std::shared_ptr<HeapBuffer> buff = m_scene_cbs[frame_id].GetBuffer().lock()) {
 			SceneCB* scene_cb = (SceneCB*)buff->GetCpuData();
 			DirectX::XMStoreFloat4x4(&scene_cb->VPinv, matrix);
 		}
@@ -54,6 +56,7 @@ void ConstantBufferManager::SetMatrix4Constant(Constants id, const DirectX::XMMA
 }
 
 void ConstantBufferManager::SetMatrix4Constant(Constants id, const DirectX::XMFLOAT4X4 & matrix){
+    const uint32_t frame_id = gD3DApp->FrameId();
     if (id == Constants::cM){
         if (std::shared_ptr<HeapBuffer> buff = m_model_cb->GetBuffer().lock()){
             ModelCB* model_cb = (ModelCB*) buff->GetCpuData();
@@ -61,19 +64,19 @@ void ConstantBufferManager::SetMatrix4Constant(Constants id, const DirectX::XMFL
         }
     }
     else if (id == Constants::cV){
-        if (std::shared_ptr<HeapBuffer> buff = m_scene_cb->GetBuffer().lock()){
+        if (std::shared_ptr<HeapBuffer> buff = m_scene_cbs[frame_id].GetBuffer().lock()){
             SceneCB* scene_cb = (SceneCB*) buff->GetCpuData();
             scene_cb->V = matrix;
         }
     }
     else if (id == Constants::cP){
-        if (std::shared_ptr<HeapBuffer> buff = m_scene_cb->GetBuffer().lock()){
+        if (std::shared_ptr<HeapBuffer> buff = m_scene_cbs[frame_id].GetBuffer().lock()){
             SceneCB* scene_cb = (SceneCB*) buff->GetCpuData();
             scene_cb->P = matrix;
         }
     }
     else if (id == Constants::cPinv) {
-		if (std::shared_ptr<HeapBuffer> buff = m_scene_cb->GetBuffer().lock()) {
+		if (std::shared_ptr<HeapBuffer> buff = m_scene_cbs[frame_id].GetBuffer().lock()) {
 			SceneCB* scene_cb = (SceneCB*)buff->GetCpuData();
 			scene_cb->VPinv = matrix;
 		}
@@ -81,43 +84,57 @@ void ConstantBufferManager::SetMatrix4Constant(Constants id, const DirectX::XMFL
 }
 
 void ConstantBufferManager::SetVector4Constant(Constants id, const DirectX::XMVECTOR & vec){
+    const uint32_t frame_id = gD3DApp->FrameId();
     if (id == Constants::cCP){
-        if (std::shared_ptr<HeapBuffer> buff = m_scene_cb->GetBuffer().lock()){
+        if (std::shared_ptr<HeapBuffer> buff = m_scene_cbs[frame_id].GetBuffer().lock()){
             SceneCB* scene_cb = (SceneCB*) buff->GetCpuData();
             DirectX::XMStoreFloat4(&scene_cb->CamPos, vec);
         }
     }
 	else if (id == Constants::cRTdim) {
-		if (std::shared_ptr<HeapBuffer> buff = m_scene_cb->GetBuffer().lock()) {
+		if (std::shared_ptr<HeapBuffer> buff = m_scene_cbs[frame_id].GetBuffer().lock()) {
 			SceneCB* scene_cb = (SceneCB*)buff->GetCpuData();
 			DirectX::XMStoreFloat4(&scene_cb->RTdim, vec);
 		}
 	}
 	else if (id == Constants::cNearFar) {
-		if (std::shared_ptr<HeapBuffer> buff = m_scene_cb->GetBuffer().lock()) {
+		if (std::shared_ptr<HeapBuffer> buff = m_scene_cbs[frame_id].GetBuffer().lock()) {
 			SceneCB* scene_cb = (SceneCB*)buff->GetCpuData();
 			DirectX::XMStoreFloat4(&scene_cb->NearFarZ, vec);
+		}
+	}
+	else if (id == Constants::cTime) {
+		if (std::shared_ptr<HeapBuffer> buff = m_scene_cbs[frame_id].GetBuffer().lock()) {
+			SceneCB* scene_cb = (SceneCB*)buff->GetCpuData();
+			DirectX::XMStoreFloat4(&scene_cb->Time, vec);
 		}
 	}
 }
 
 void ConstantBufferManager::SetVector4Constant(Constants id, const DirectX::XMFLOAT4 & vec){
+    const uint32_t frame_id = gD3DApp->FrameId();
     if (id == Constants::cCP){
-        if (std::shared_ptr<HeapBuffer> buff = m_scene_cb->GetBuffer().lock()){
+        if (std::shared_ptr<HeapBuffer> buff = m_scene_cbs[frame_id].GetBuffer().lock()){
             SceneCB* scene_cb = (SceneCB*) buff->GetCpuData();
             scene_cb->CamPos = vec;
         }
     }
 	else if (id == Constants::cRTdim) {
-		if (std::shared_ptr<HeapBuffer> buff = m_scene_cb->GetBuffer().lock()) {
+		if (std::shared_ptr<HeapBuffer> buff = m_scene_cbs[frame_id].GetBuffer().lock()) {
 			SceneCB* scene_cb = (SceneCB*)buff->GetCpuData();
             scene_cb->RTdim = vec;
 		}
 	}
 	else if (id == Constants::cNearFar) {
-		if (std::shared_ptr<HeapBuffer> buff = m_scene_cb->GetBuffer().lock()) {
+		if (std::shared_ptr<HeapBuffer> buff = m_scene_cbs[frame_id].GetBuffer().lock()) {
 			SceneCB* scene_cb = (SceneCB*)buff->GetCpuData();
 			scene_cb->NearFarZ = vec;
+		}
+	}
+	else if (id == Constants::cTime) {
+		if (std::shared_ptr<HeapBuffer> buff = m_scene_cbs[frame_id].GetBuffer().lock()) {
+			SceneCB* scene_cb = (SceneCB*)buff->GetCpuData();
+			scene_cb->Time = vec;
 		}
 	}
 }
@@ -145,7 +162,8 @@ void ConstantBufferManager::CommitCB(ComPtr<ID3D12GraphicsCommandList6>& command
         }
     }
     else if (id == cb_scene) {
-        if (std::shared_ptr<HeapBuffer> buff = m_scene_cb->GetBuffer().lock()) {
+        const uint32_t frame_id = gD3DApp->FrameId();
+        if (std::shared_ptr<HeapBuffer> buff = m_scene_cbs[frame_id].GetBuffer().lock()) {
             if (gfx) {
                 command_list->SetGraphicsRootConstantBufferView(bi_scene_cb, buff->GetResource()->GetGPUVirtualAddress());
             }

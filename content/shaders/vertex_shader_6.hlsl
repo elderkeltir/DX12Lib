@@ -21,7 +21,7 @@ static float3 gVertices[4] =
 
 VertexShaderOutput main(uint vid : SV_VertexID, uint iid : SV_InstanceID)
 {
-    VertexShaderOutput OUT = (VertexShaderOutput)0;
+    VertexShaderOutput OUT = (VertexShaderOutput) 0;
     float scale = 1;
     float y_scale = 100;
     float3 v_pos = gVertices[vid];
@@ -39,28 +39,21 @@ VertexShaderOutput main(uint vid : SV_VertexID, uint iid : SV_InstanceID)
     v_pos.x -= (terrain_dim / 2) * scale;
     v_pos.z -= (terrain_dim / 2) * scale;
     
-    float height = height_map.SampleLevel(linearWrap, tex_coord, 0).r;
-    //height = height * 2.0 - 1.0;
-    v_pos.y = height * y_scale;
-    
-    v_pos.y *= scale;
-    
-    if (height > 0.02)
-    {
-        OUT.color = float4(0, 1, 0, 1);
-    }
-    else
-    {
-        OUT.color = float4(0.3, 0.4, 0.4, 1);
-    }
+    float height = sin((tex_coord.x + tex_coord.y) * Time.y * 1) * 0.1;
+    v_pos.y = height;
+
+
+    OUT.color = float4(0, 0, 1, 1);
+
     
     matrix MVP = mul(M, V);
     MVP = mul(MVP, P);
     OUT.Position = mul(float4(v_pos, 1.0f), MVP);
         
     OUT.pos_world.xyz = mul(float4(v_pos, 1.0f), M).xyz;
-    OUT.pos_world.w = height;
+    //OUT.pos_world.w = height;
     
+    if (1)
     {
         // normals
         uint second_tri = iid % 2;
@@ -102,17 +95,13 @@ VertexShaderOutput main(uint vid : SV_VertexID, uint iid : SV_InstanceID)
         p1.z -= terrain_dim / 2;
         p2.x -= terrain_dim / 2;
         p2.z -= terrain_dim / 2;
-    
-        float height0 = height_map.SampleLevel(linearWrap, tex_coord0, 0).r;
-        height0 = height0 * 2.0 - 1.0;
-        float height1 = height_map.SampleLevel(linearWrap, tex_coord1, 0).r;
-        height1 = height1 * 2.0 - 1.0;
-        float height2 = height_map.SampleLevel(linearWrap, tex_coord2, 0).r;
-        height2 = height2 * 2.0 - 1.0;
-
-        p0.y = height0 * y_scale;
-        p1.y = height1 * y_scale;
-        p2.y = height2 * y_scale;
+        
+        float height0 = sin((tex_coord0.x + tex_coord0.y) * Time.y * 1) * 0.1;
+        p0.y = height0;
+        float height1 = sin((tex_coord1.x + tex_coord1.y) * Time.y * 1) * 0.1;
+        p1.y = height1;
+        float height2 = sin((tex_coord2.x + tex_coord2.y) * Time.y * 1) * 0.1;
+        p2.y = height2;
 
         
         float3 vec1 = p0 - p1;
@@ -120,6 +109,10 @@ VertexShaderOutput main(uint vid : SV_VertexID, uint iid : SV_InstanceID)
         float3 normal = cross(vec1, vec2);
         
         OUT.Normal = mul(float4(normal, 0), M);
+    }
+    else
+    {
+        OUT.Normal = mul(float4(0,1,0, 0), M);
     }
     
     return OUT;

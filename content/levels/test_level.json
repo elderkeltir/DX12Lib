@@ -1,5 +1,11 @@
 {
     "entities": [
+      {
+        "model": "boxes.json",
+        "pos": [ -17.0, 0.5, 3.6 ],
+        "rot": [ 0.0, 0.0, 0.0 ],
+        "scale": [ 0.01, 0.01, 0.01 ]
+      }
     ],
     "lights":[
         {
@@ -19,6 +25,14 @@
         "entity": "skybox.json"
     },
     "terrain": {
-        "height_map": "terrain_hm.png"
+        "height_map": "terrain_hm.png",
+        "dim": 512,
+        "tech_id": 7,
+        "pos": [0, 0, 0]
+    },
+    "water": {
+        "dim": 512,
+        "tech_id": 8,
+        "pos": [0, 0.3, 0]
     }
 }

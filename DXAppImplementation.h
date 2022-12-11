@@ -37,7 +37,8 @@ public:
 
     const std::chrono::duration<float>& TotalTime() const { return m_total_time; }
     const std::chrono::duration<float>& FrameTime() const { return m_dt; }
-    uint64_t FrameNumber() const { return m_frame_id; }
+    uint32_t FrameNumber() const { return m_frame_id; }
+    uint32_t FrameId() const { return m_frameIndex; }
     float GetAspectRatio() const { return m_width/(float)m_height; }
     std::weak_ptr<GfxCommandQueue> GetGfxQueue() { return m_commandQueueGfx; }
     std::weak_ptr<GfxCommandQueue> GetComputeQueue() { return m_commandQueueCompute; }
@@ -56,10 +57,11 @@ private:
     
     void CreateDevice(std::optional<std::wstring> dbg_name = std::nullopt);
     void CreateSwapChain(std::optional<std::wstring> dbg_name = std::nullopt);
-    void PrepareRenderTarget(ComPtr<ID3D12GraphicsCommandList6> &command_list, const std::vector<std::shared_ptr<GpuResource>> &rt);
-    void PrepareRenderTarget(ComPtr<ID3D12GraphicsCommandList6> &command_list, GpuResource &rts, bool set_dsv = true);
+    void PrepareRenderTarget(ComPtr<ID3D12GraphicsCommandList6> &command_list, const std::vector<std::shared_ptr<GpuResource>> &rt, bool set_dsv = true, bool clear_dsv = true);
+    void PrepareRenderTarget(ComPtr<ID3D12GraphicsCommandList6> &command_list, GpuResource &rts, bool set_dsv = true, bool clear_dsv = true);
     void RenderLevel(ComPtr<ID3D12GraphicsCommandList6>& command_list);
     void RenderPostProcessQuad(ComPtr<ID3D12GraphicsCommandList6>& command_list);
+    void RenderForwardQuad(ComPtr<ID3D12GraphicsCommandList6>& command_list);
     void RenderDeferredShadingQuad(ComPtr<ID3D12GraphicsCommandList6>& command_list);
     void RenderSSAOquad(ComPtr<ID3D12GraphicsCommandList6>& command_list);
     void BlurSSAO(ComPtr<ID3D12GraphicsCommandList6>& command_list);
@@ -82,6 +84,7 @@ private:
     std::unique_ptr<GpuResource> m_depthStencil;
     std::unique_ptr<RenderQuad> m_post_process_quad;
     std::unique_ptr<RenderQuad> m_deferred_shading_quad;
+    std::unique_ptr<RenderQuad> m_forward_quad;
     std::unique_ptr<SSAO> m_ssao;
     std::unique_ptr<ImguiHelper> m_gui;
     std::unique_ptr<logger> m_logger;
@@ -93,7 +96,7 @@ private:
     std::chrono::time_point<std::chrono::system_clock> m_start_time;
     std::chrono::duration<float> m_total_time;
     std::chrono::duration<float> m_dt;
-    uint64_t m_frame_id{0};
+    uint32_t m_frame_id{0};
 
     std::shared_ptr<Level> m_level;
     std::shared_ptr<DescriptorHeapCollection> m_descriptor_heap_collection;

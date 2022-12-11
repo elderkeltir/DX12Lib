@@ -1,13 +1,13 @@
 #pragma once
 
-#include <memory>
+#include <array>
 #include <DirectXMath.h>
 #include <directx/d3d12.h>
 #include <wrl.h>
 #include "LevelLight.h"
+#include "GpuResource.h"
 
 using Microsoft::WRL::ComPtr;
-class GpuResource;
 
 enum class Constants {
     cCP,            // camera pos
@@ -17,7 +17,8 @@ enum class Constants {
     cMat,           // material id
     cPinv,          // ViewProj inverted
     cRTdim,         // rt size
-    cNearFar        // x - Znear, y - Zfar, z - terrain_dim, w - free
+    cNearFar,       // x - Znear, y - Zfar, z - terrain_dim, w - FREE
+    cTime,          // x - dt, y - total_time, zw - FREE
 };
 
 enum BindingId {
@@ -25,7 +26,7 @@ enum BindingId {
     bi_g_buffer_tex_table           = 1,
     bi_scene_cb                     = 2,
     bi_materials_cb                 = 3,
-    bi_lights_cb                    = 0,
+    bi_lights_cb                    = 3,
     bi_deferred_shading_tex_table   = 1,
     bi_post_proc_input_tex_table    = 0,
     bi_ssao_cb                      = 0,
@@ -46,6 +47,7 @@ enum TextureTableOffset {
     tto_gbuff_ssao                  = 4,
     tto_postp_input                 = 0,
     tto_postp_gui                   = 1,
+    tto_postp_fwd                   = 2,
     tto_ssao_depth                  = 0,
     tto_ssao_normals                = 1,
     tto_ssao_random_vals            = 2,
@@ -91,8 +93,9 @@ public:
         DirectX::XMFLOAT4X4 VPinv;
         DirectX::XMFLOAT4 RTdim; // x=width, y=height, z=1/wisth, w=1/height
         DirectX::XMFLOAT4 NearFarZ; // x - Znear, y - Zfar, zw - free
+        DirectX::XMFLOAT4 Time; // x - dt, y - total, zw - free
     };
 
     GpuResource* m_model_cb;
-    std::unique_ptr<GpuResource> m_scene_cb;
+    std::array<GpuResource, 2> m_scene_cbs;
 };
