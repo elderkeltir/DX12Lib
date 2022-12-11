@@ -83,8 +83,15 @@ void main(int3 group_thread_id : SV_GroupThreadID,
 	// q -- a random offset from p.
 	// r -- a potential occluder that might occlude p.
 
-	// Get viewspace normal and z-coord of this pixel.  
-    float3 normal = normalize(normals.SampleLevel(pointClamp, tex_coord, 0.0f).xyz);
+	// Get viewspace normal and z-coord of this pixel. 
+    float4 nm_sampled = normals.SampleLevel(pointClamp, tex_coord, 0.0f);
+    if (nm_sampled.a > 0.99)
+    {
+        output_tex[pixel_pos] = 1;
+        return;
+    }
+	
+    float3 normal = normalize(nm_sampled.xyz);
     float pz = depth_map.SampleLevel(depthMapSam, tex_coord, 0.0f).r;
     //pz = 0.1 + (100.0 - 0.1) * pz;
     pz = NdcDepthToViewDepth(pz);

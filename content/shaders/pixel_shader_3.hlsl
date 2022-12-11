@@ -44,12 +44,23 @@ float4 main(PixelShaderInput IN ) : SV_Target
         Light light = lights[i];
         uint tp = light.type;
         if (tp > 0){
+            float3 L;
+            float attenuation;
+            if (tp == 3)
+            {
+                float3 pos = light.Position;
+                L = normalize(pos - WorldPos); 
+                float distance = length(pos - WorldPos);
+                attenuation = 1.0 / (distance * distance);
+            }
+            else if (tp == 2)
+            {
+                attenuation = 1;
+                L = normalize(-light.Direction);
+            }
             // calculate per-light radiance
-            float3 pos = light.Position;
-            float3 L = normalize(pos - WorldPos);
+            
             float3 H = normalize(V + L);
-            float distance    = length(pos - WorldPos);
-            float attenuation = 1.0 / (distance * distance);
             float3 l_color = light.Color;
             float3 radiance     = l_color * attenuation;        
             

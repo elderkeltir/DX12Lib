@@ -170,6 +170,21 @@ void Level::Render(ComPtr<ID3D12GraphicsCommandList6>& command_list){
     }
 
     RenderEntity(command_list, *m_skybox_ent, is_scene_constants_set);
+    {
+        uint32_t terrain_tech_id = m_terrain->GetTerrainTechId();
+        const Techniques::Technique* tech = gD3DApp->GetTechniqueById(terrain_tech_id);
+        if (std::shared_ptr<GfxCommandQueue> gfx_queue = gD3DApp->GetGfxQueue().lock()) {
+            if (gfx_queue->GetPSO() != terrain_tech_id) {
+                gfx_queue->SetPSO(terrain_tech_id);
+            }
+            if (gfx_queue->GetRootSign() != tech->root_signature) {
+                gfx_queue->SetRootSign(tech->root_signature);
+            }
+            gfx_queue->GetGpuHeap().CacheRootSignature(gD3DApp->GetRootSignById(tech->root_signature));
+        }
+        gD3DApp->CommitCB(command_list, cb_scene);
+        m_terrain->Render(command_list);
+    }
 }
 
 void Level::RenderEntity(ComPtr<ID3D12GraphicsCommandList6>& command_list, LevelEntity & ent, bool &is_scene_constants_set){
@@ -205,7 +220,7 @@ void Level::RenderEntity(ComPtr<ID3D12GraphicsCommandList6>& command_list, Level
         DirectX::XMFLOAT4 rt_dim(w, h, 1.f / w, 1.f / h);
         gD3DApp->SetVector4Constant(Constants::cRTdim, rt_dim);
 
-        DirectX::XMFLOAT4 z_near_far(m_camera->GetNearZ(), m_camera->GetFarZ(), 0, 0);
+        DirectX::XMFLOAT4 z_near_far(m_camera->GetNearZ(), m_camera->GetFarZ(), m_terrain->GetTerrainDim(), 0);
         gD3DApp->SetVector4Constant(Constants::cNearFar, z_near_far);
 		
         // update material CBs

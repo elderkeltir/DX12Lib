@@ -1,0 +1,47 @@
+{
+    "entities": [
+        {
+            "model": "boxes.json",
+            "pos": [0.0, 0.0, 0.0],
+            "rot": [0.0, 0.0, 0.0],
+            "scale": [0.1, 0.1, 0.1]
+        },
+        {
+            "model": "anvil.json",
+            "pos": [12.0, 0.0, 0.0],
+            "rot": [0.0, 0.0, 0.0],
+            "scale": [0.03, 0.03, 0.03]
+        },
+        {
+            "model": "box.json",
+            "pos": [0.0, -15.0, 0.0],
+            "rot": [0.0, 0.0, 0.0],
+            "scale": [0.3, 0.3, 0.3]
+        }
+    ],
+    "lights":[
+        {
+            "type": 3,
+            "pos": [-5, 10, 0],
+            "color": [20.8, 20.8, 20.8]
+        },
+        {
+            "type": 3,
+            "pos": [ 15, 10, 0 ],
+            "color": [ 50.8, 50.8, 50.8 ]
+        }
+    ],
+    "camera": {
+        "pos": [-4, 11, -15],
+        "dir": [0.0, 0.0, 1.0],
+        "fov": 45.0,
+        "near": 0.1,
+        "far": 500.0
+    },
+    "skybox": {
+        "entity": "skybox.json"
+    },
+    "terrain": {
+        "height_map": "terrain_hm.png"
+    }
+}

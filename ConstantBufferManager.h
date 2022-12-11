@@ -17,7 +17,7 @@ enum class Constants {
     cMat,           // material id
     cPinv,          // ViewProj inverted
     cRTdim,         // rt size
-    cNearFar        // x - Znear, y - Zfar, zw - free
+    cNearFar        // x - Znear, y - Zfar, z - terrain_dim, w - free
 };
 
 enum BindingId {

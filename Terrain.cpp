@@ -11,8 +11,8 @@ void Terrain::Load(const std::wstring &hm_name)
 		fileMgr->CreateModel(hm_name, FileManager::Geom_type::gt_triangle, obj);
 	}
 
-	m_model->SetInstancesNum(64*64*2);
-	m_model->SetTechniqueId(7);
+	m_model->SetInstancesNum(m_terrain_dim * m_terrain_dim);
+	m_model->SetTechniqueId(GetTerrainTechId());
 }
 
 void Terrain::Render(ComPtr<ID3D12GraphicsCommandList6>& command_list)

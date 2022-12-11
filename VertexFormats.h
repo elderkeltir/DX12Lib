@@ -41,8 +41,8 @@ inline uint32_t GetSizeByVertexType(uint32_t id) {
         case 3:
             return sizeof(Vertex3);
             break;
-        default:
-            assert(false);
+        //default:
+            //assert(false);
     }
 
     return 0;

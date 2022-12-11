@@ -622,8 +622,8 @@ void Techniques::CreateRootSignature_3(ComPtr<ID3D12Device2>& device, RootSignat
 	auto& root_params_vec = root_sign->GetRootParams();
 	root_params_vec.resize(3);
 
-    root_params_vec[bi_model_cb].InitAsConstantBufferView(cb_model, 0, D3D12_ROOT_DESCRIPTOR_FLAG_NONE, D3D12_SHADER_VISIBILITY_ALL);
-	root_params_vec[bi_terrain_hm].InitAsDescriptorTable(1, &texTable, D3D12_SHADER_VISIBILITY_PIXEL); // Textures
+    root_params_vec[bi_model_cb].InitAsConstantBufferView(cb_model, 0, D3D12_ROOT_DESCRIPTOR_FLAG_NONE);
+    root_params_vec[bi_terrain_hm].InitAsDescriptorTable(1, &texTable, D3D12_SHADER_VISIBILITY_VERTEX); // Textures
 	root_params_vec[bi_scene_cb].InitAsConstantBufferView(cb_scene, 0, D3D12_ROOT_DESCRIPTOR_FLAG_NONE); // sceneCB
 
 	CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC rootSignatureDescription;
