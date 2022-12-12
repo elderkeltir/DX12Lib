@@ -21,7 +21,7 @@ struct PS_INPUT
 ps_output main(PS_INPUT input)
 {
     ps_output OUT = (ps_output) 0;
-    //OUT.albedo = height_map.Sample(linearWrap, input.tex_coord);
+    
     OUT.albedo = input.color;
     
     OUT.pos.xyz = input.pos_world.xyz;

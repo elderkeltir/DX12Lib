@@ -55,3 +55,11 @@ float3 CalcRetractionSkyboxVec(float3 cam_pos, float3 world_pos, float3 normal, 
     
     return R;
 }
+
+float3 FogColor(float dist, float fog_start, float fog_range, float3 fog_color, float3 pix_color)
+{
+    float fogAmount = saturate((dist - fog_start) / fog_range);
+    float3 color = lerp(pix_color, fog_color, fogAmount);
+    
+    return color;
+}
