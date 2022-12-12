@@ -29,6 +29,8 @@ public:
 
     void SetInstancesNum(uint32_t num) { m_instance_num = num; }
 
+    GpuResource* GetTexture(TextureType type);
+
 private:
     inline void FormVertexes();
     inline void LoadTextures(ComPtr<ID3D12GraphicsCommandList6> & commandList);

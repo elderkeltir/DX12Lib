@@ -275,6 +275,11 @@ void Level::RenderWater(ComPtr<ID3D12GraphicsCommandList6>& command_list)
         }
         
         gfx_queue->GetGpuHeap().CacheRootSignature(gD3DApp->GetRootSignById(tech->root_signature));
+
+        GpuResource* skybox_tex = m_skybox_ent->GetTexture();
+		if (std::shared_ptr<ResourceDescriptor> srv = skybox_tex->GetSRV().lock()) {
+			gfx_queue->GetGpuHeap().StageDesctriptor(bi_fwd_tex, tto_fwd_skybox, srv->GetCPUhandle());
+		}
         gD3DApp->CommitCB(command_list, cb_scene);
         BindLights(command_list);
     }

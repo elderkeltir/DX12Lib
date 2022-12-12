@@ -59,3 +59,7 @@ void SkyBox::Load(const std::wstring &name) {
         m_model->SetTechniqueId(m_tech_id);
     }
 }
+
+GpuResource* SkyBox::GetTexture() {
+	return m_model->GetTexture(RenderObject::TextureType::DiffuseTexture);
+}

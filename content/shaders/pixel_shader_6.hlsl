@@ -2,6 +2,8 @@
 #include "constant_buffers.ihlsl"
 #include "pbr_light.ihlsl"
 
+TextureCube SkyMap : register(t0);
+
 struct PS_INPUT
 {
     float4 sv_pos : SV_Position;
@@ -71,11 +73,16 @@ float4 main(PS_INPUT input) : SV_TARGET0
             Lo += (kD * albedo / PI + specular) * radiance * NdotL;
         }
     }
+    
+    // skybox reflection
+    float3 r = CalcReflectionSkyboxVec(CamPos.xyz, WorldPos, N);
+    float4 reflectionColor = SkyMap.Sample(linearWrap, r);
   
-    float3 ambient = float3(0.03, 0.03, 0.03) * albedo * ao;
+    float3 ambient = float3(0.03, 0.03, 0.03) * albedo * ao ;
     float3 color = ambient + Lo;
    
-    float4 FragColor = float4(color, 0.8);
+    float4 FragColor = float4(color + (reflectionColor.rgb * 0.2 * (float3(1, 1, 1) - F0)), 0.8);
 
     return FragColor;
 }
+

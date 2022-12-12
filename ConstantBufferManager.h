@@ -33,6 +33,7 @@ enum BindingId {
     bi_ssao_input_tex               = 1,
     bi_ssao_uav_tex                 = 3,
     bi_terrain_hm                   = 1,
+    bi_fwd_tex                      = 1,
 };
 
 enum TextureTableOffset {
@@ -53,6 +54,7 @@ enum TextureTableOffset {
     tto_ssao_random_vals            = 2,
     tto_ssao_blur_srv               = 0,
     tto_ssao_blur_uav               = 0,
+    tto_fwd_skybox                  = 0,
 };
 
 enum ConstantBuffers {

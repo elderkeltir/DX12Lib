@@ -236,6 +236,16 @@ void RenderModel::SetTexture(TextureData * texture_data, TextureType type){
     }
 }
 
+GpuResource* RenderModel::GetTexture(TextureType type)
+{
+    switch (type) {
+	case RenderObject::DiffuseTexture:
+		return m_diffuse_tex.get();
+	default:
+		assert(false);
+    }
+}
+
 void RenderModel::LoadConstantData(ComPtr<ID3D12GraphicsCommandList6> &command_list){
     if (m_dirty & db_rt_cbv){
         m_constant_buffer = std::make_unique<GpuResource>();

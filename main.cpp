@@ -28,6 +28,6 @@ using Microsoft::WRL::ComPtr;
 _Use_decl_annotations_
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
 {
-    DXAppImplementation sample(1280, 720, L"D3D12 Hello Window");
+    DXAppImplementation sample(1280, 720, L"DX12Lib");
     return Application::Run(&sample, hInstance, nCmdShow);
 }

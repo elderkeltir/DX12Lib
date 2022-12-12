@@ -28,6 +28,7 @@ float GeometrySchlickGGX(float NdotV, float roughness)
 	
     return num / denom;
 }
+
 float GeometrySmith(float3 N, float3 V, float3 L, float roughness)
 {
     float NdotV = max(dot(N, V), 0.0);
@@ -36,4 +37,21 @@ float GeometrySmith(float3 N, float3 V, float3 L, float roughness)
     float ggx1  = GeometrySchlickGGX(NdotL, roughness);
 	
     return ggx1 * ggx2;
+}
+
+float3 CalcReflectionSkyboxVec(float3 cam_pos, float3 world_pos, float3 normal)
+{
+    float3 V = normalize(cam_pos - world_pos);
+    float3 r = reflect(-V, normal);
+    
+    return r;
+}
+
+float3 CalcRetractionSkyboxVec(float3 cam_pos, float3 world_pos, float3 normal, float ref_idx)
+{
+    float refraction_ratio = 1.00 / ref_idx;
+    float3 I = normalize(world_pos - cam_pos);
+    float3 R = refract(I, normal, refraction_ratio);
+    
+    return R;
 }
