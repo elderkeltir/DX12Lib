@@ -13,12 +13,14 @@ Supports:
 * in-game console, supporting command to rebuild shaders in-flight
 * Intergated DirectXShaderCompiler to compile shaders
 * Full PIX support/integration
+* Forward rendering (water as an example)
+* Terrain generation using GPU instancing
+* Water generation and animation using GPU instancing (very simple aproach)
 
 
 Expected to be added:
 * CSM
 * IBL
-* Forward rendering
 * TAA
 * Culling
 
