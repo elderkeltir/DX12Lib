@@ -81,8 +81,8 @@ TODO("Minor. Implement PSO composition and serialization later. maybe.")
 // g-buffer color
 static Techniques::Technique CreateTechnique_0(ComPtr<ID3D12Device2> &device, RootSignature& root_sign, std::optional<std::wstring> dbg_name = std::nullopt){
     Techniques::Technique tech;
-    tech.vs = L"vertex_shader_0.hlsl";
-    tech.ps = L"pixel_shader_0.hlsl";
+    tech.vs = L"g_buffer_color_vs.hlsl";
+    tech.ps = L"g_buffer_color_ps.hlsl";
     tech.vertex_type = 0;
     tech.root_signature = root_sign.id;
 
@@ -138,8 +138,8 @@ static Techniques::Technique CreateTechnique_0(ComPtr<ID3D12Device2> &device, Ro
 // g-buffer texture
 static Techniques::Technique CreateTechnique_1(ComPtr<ID3D12Device2> &device, RootSignature& root_sign, std::optional<std::wstring> dbg_name = std::nullopt){
     Techniques::Technique tech;
-    tech.vs = L"vertex_shader_1.hlsl";
-    tech.ps = L"pixel_shader_1.hlsl";
+    tech.vs = L"g_buffer_tex_vs.hlsl";
+    tech.ps = L"g_buffer_tex_ps.hlsl";
     tech.vertex_type = 1;
     tech.root_signature = root_sign.id;
 
@@ -196,8 +196,8 @@ static Techniques::Technique CreateTechnique_1(ComPtr<ID3D12Device2> &device, Ro
 // post-processing
 static Techniques::Technique CreateTechnique_2(ComPtr<ID3D12Device2> &device, RootSignature& root_sign, std::optional<std::wstring> dbg_name = std::nullopt){
     Techniques::Technique tech;
-    tech.vs = L"vertex_shader_2.hlsl";
-    tech.ps = L"pixel_shader_2.hlsl";
+    tech.vs = L"quad_screen_vs.hlsl";
+    tech.ps = L"post_processing_ps.hlsl";
     tech.vertex_type = 2;
     tech.root_signature = root_sign.id;
 
@@ -251,8 +251,8 @@ static Techniques::Technique CreateTechnique_2(ComPtr<ID3D12Device2> &device, Ro
 // def shading
 static Techniques::Technique CreateTechnique_3(ComPtr<ID3D12Device2> &device, RootSignature& root_sign, std::optional<std::wstring> dbg_name = std::nullopt){
     Techniques::Technique tech;
-    tech.vs = L"vertex_shader_2.hlsl";
-    tech.ps = L"pixel_shader_3.hlsl";
+    tech.vs = L"quad_screen_vs.hlsl";
+    tech.ps = L"def_shading_ps.hlsl";
     tech.vertex_type = 2;
     tech.root_signature = root_sign.id;
 
@@ -305,8 +305,8 @@ static Techniques::Technique CreateTechnique_3(ComPtr<ID3D12Device2> &device, Ro
 // skybox
 static Techniques::Technique CreateTechnique_4(ComPtr<ID3D12Device2> &device, RootSignature& root_sign, std::optional<std::wstring> dbg_name = std::nullopt){
     Techniques::Technique tech;
-    tech.vs = L"vertex_shader_4.hlsl";
-    tech.ps = L"pixel_shader_4.hlsl";
+    tech.vs = L"skybox_vs.hlsl";
+    tech.ps = L"skybox_ps.hlsl";
     tech.vertex_type = 3;
     tech.root_signature = root_sign.id;
 
@@ -370,7 +370,7 @@ static Techniques::Technique CreateTechnique_4(ComPtr<ID3D12Device2> &device, Ro
 // ssao
 static Techniques::Technique CreateTechnique_5(ComPtr<ID3D12Device2>& device, RootSignature& root_sign, std::optional<std::wstring> dbg_name = std::nullopt) {
 	Techniques::Technique tech;
-	tech.cs = L"compute_shader_0.hlsl";
+	tech.cs = L"ssao_cs.hlsl";
 	tech.root_signature = root_sign.id;
 
 	D3D12_COMPUTE_PIPELINE_STATE_DESC vertBlurPSO = {};
@@ -386,10 +386,10 @@ static Techniques::Technique CreateTechnique_5(ComPtr<ID3D12Device2>& device, Ro
 
 	return tech;
 }
-
+// gaussian blur
 static Techniques::Technique CreateTechnique_6(ComPtr<ID3D12Device2>& device, RootSignature& root_sign, std::optional<std::wstring> dbg_name = std::nullopt) {
 	Techniques::Technique tech;
-	tech.cs = L"compute_shader_1.hlsl";
+	tech.cs = L"gaussian_blur_cs.hlsl";
 	tech.root_signature = root_sign.id;
 
 	D3D12_COMPUTE_PIPELINE_STATE_DESC vertBlurPSO = {};
@@ -408,8 +408,8 @@ static Techniques::Technique CreateTechnique_6(ComPtr<ID3D12Device2>& device, Ro
 // terrain
 static Techniques::Technique CreateTechnique_7(ComPtr<ID3D12Device2>& device, RootSignature& root_sign, std::optional<std::wstring> dbg_name = std::nullopt) {
 	Techniques::Technique tech;
-	tech.vs = L"vertex_shader_5.hlsl";
-	tech.ps = L"pixel_shader_5.hlsl";
+	tech.vs = L"terrain_vs.hlsl";
+	tech.ps = L"terrain_ps.hlsl";
 	tech.root_signature = root_sign.id;
 
 	struct PipelineStateStream
@@ -465,8 +465,8 @@ static Techniques::Technique CreateTechnique_7(ComPtr<ID3D12Device2>& device, Ro
 // water
 static Techniques::Technique CreateTechnique_8(ComPtr<ID3D12Device2>& device, RootSignature& root_sign, std::optional<std::wstring> dbg_name = std::nullopt) {
 	Techniques::Technique tech;
-	tech.vs = L"vertex_shader_6.hlsl";
-	tech.ps = L"pixel_shader_6.hlsl";
+	tech.vs = L"water_vs.hlsl";
+	tech.ps = L"water_ps.hlsl";
 	tech.root_signature = root_sign.id;
 
 	struct PipelineStateStream

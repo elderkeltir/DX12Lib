@@ -51,6 +51,7 @@ cbuffer MaterialsCB : register(b3)
 cbuffer SsaoCb : register(b4)
 {
 	float4   gOffsetVectors[14];
+
     uint     kernelSize;
     float    radius;
     float    bias;

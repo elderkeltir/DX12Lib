@@ -88,12 +88,13 @@ add_executable(DX12Lib WIN32 main.cpp
     Console.cpp
     ConsoleCommands.cpp
     Plane.cpp
-    Water.cpp
     )
 
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
 include(CPack)
+
+target_compile_options(${PROJECT_NAME} PUBLIC  "/EHsc")
 
 target_link_options(${PROJECT_NAME} PRIVATE "/entry:WinMainCRTStartup")
 target_link_libraries(${PROJECT_NAME} d3d12.lib)

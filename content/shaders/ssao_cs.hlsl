@@ -13,13 +13,6 @@ static float gSurfaceEpsilon = 0.05f;
 static float gOcclusionFadeStart = 0.2f;
 static float gOcclusionFadeEnd = 2.0f;
 
-//=============================================================================
-// Ssao.hlsl by Frank Luna (C) 2015 All Rights Reserved.
-//============================================================================= 
-// Nonnumeric values cannot be added to a cbuffer.
-
-static const int gSampleCount = 14;
-
 // Determines how much the sample point q occludes the point p as a function
 // of distZ.
 float OcclusionFunction(float distZ)
@@ -85,11 +78,11 @@ void main(int3 group_thread_id : SV_GroupThreadID,
 
 	// Get viewspace normal and z-coord of this pixel. 
     float4 nm_sampled = normals.SampleLevel(pointClamp, tex_coord, 0.0f);
-    if (nm_sampled.a > 0.99)
-    {
-        output_tex[pixel_pos] = 1;
-        return;
-    }
+    //if (nm_sampled.a > 0.99)
+    //{
+    //    output_tex[pixel_pos] = 1;
+    //    return;
+    //}
 	
     float3 normal = normalize(nm_sampled.xyz);
     float pz = depth_map.SampleLevel(depthMapSam, tex_coord, 0.0f).r;
@@ -110,7 +103,7 @@ void main(int3 group_thread_id : SV_GroupThreadID,
     float occlusionSum = 0.0f;
 	
 	// Sample neighboring points about p in the hemisphere oriented by n.
-    for (int i = 0; i < gSampleCount; ++i)
+    for (int i = 0; i < kernelSize; ++i)
     {
 		// Are offset vectors are fixed and uniformly distributed (so that our offset vectors
 		// do not clump in the same direction).  If we reflect them about a random vector
@@ -165,7 +158,7 @@ void main(int3 group_thread_id : SV_GroupThreadID,
         occlusionSum += occlusion;
     }
 	
-    occlusionSum /= gSampleCount;
+    occlusionSum /= kernelSize;
 	
     float access = 1.0f - occlusionSum;
 

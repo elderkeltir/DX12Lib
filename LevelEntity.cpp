@@ -74,10 +74,7 @@ void LevelEntity::Load(const std::wstring &name){
 }
 
 void LevelEntity::Update(float dt){
-    // float angle = static_cast<float>(gD3DApp->TotalTime().count() * 90.0);
-    float angle = 0.f;
-    const DirectX::XMVECTOR rot_axis  = DirectX::XMVectorSet(0, 1, 1, 0);
-    DirectX::XMMATRIX rot = DirectX::XMMatrixRotationAxis(rot_axis, DirectX::XMConvertToRadians(angle));
+    DirectX::XMMATRIX rot = DirectX::XMMatrixRotationRollPitchYaw(DirectX::XMConvertToRadians(m_rot.x), DirectX::XMConvertToRadians(m_rot.y), DirectX::XMConvertToRadians(m_rot.z));
     DirectX::XMMATRIX pos = DirectX::XMMatrixTranslation(m_pos.x, m_pos.y, m_pos.z);
     DirectX::XMMATRIX scale = DirectX::XMMatrixScaling(m_scale.x, m_scale.y, m_scale.z);
     DirectX::XMMATRIX xform = DirectX::XMMatrixMultiply(scale, rot);

@@ -92,7 +92,7 @@ void SSAO::GenerateRandomValuesTex(ComPtr<ID3D12GraphicsCommandList6>& command_l
 			for (int j = 0; j < noise_dim; ++j)
 			{
 				DirectX::XMFLOAT4 fl4(
-					0,
+					rand_fp_unorm(),
 					rand_fp_unorm(),
 					rand_fp_unorm(),
 					0
