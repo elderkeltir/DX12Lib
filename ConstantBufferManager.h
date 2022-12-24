@@ -17,7 +17,7 @@ enum class Constants {
     cMat,           // material id
     cPinv,          // ViewProj inverted
     cRTdim,         // rt size
-    cNearFar,       // x - Znear, y - Zfar, z - terrain_dim, w - FREE
+    cNearFar,       // x - Znear, y - Zfar, z - terrain_dim, w - render_mode (0 - default, 1 - ssao)
     cTime,          // x - dt, y - total_time, zw - FREE
 };
 
@@ -49,9 +49,11 @@ enum TextureTableOffset {
     tto_postp_input                 = 0,
     tto_postp_gui                   = 1,
     tto_postp_fwd                   = 2,
+    tto_postp_ssao                  = 3,
     tto_ssao_depth                  = 0,
     tto_ssao_normals                = 1,
     tto_ssao_random_vals            = 2,
+    tto_ssao_positions              = 3,
     tto_ssao_blur_srv               = 0,
     tto_ssao_blur_uav               = 0,
     tto_fwd_skybox                  = 0,

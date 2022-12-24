@@ -1,8 +1,10 @@
 #include "shader_defs.ihlsl"
+#include "constant_buffers.ihlsl"
 
 Texture2D offScreenTexture : register(t0);
 Texture2D gui_texture : register(t1);
 Texture2D fwd_tex : register(t2);
+Texture2D ssao_tex : register(t3);
 
 static const float3 GrayScaleIntensity = { 0.299f, 0.587f, 0.114f };
 static const float3x3 SepiaFilter = { 0.393f, 0.349f, 0.272f,
@@ -44,12 +46,15 @@ float4 main(PS_INPUT input) : SV_TARGET
     float gamma = 2.2;
     pix_color.rgb = pow(pix_color.rgb, float3(1.0/gamma, 1.0/gamma, 1.0/gamma));
     
-
+    if (uint(NearFarZ.w) == 1)
+    {
+        pix_color = float4(ssao_tex.Sample(pointWrap, input.textCoord).r, 0, 0, 1);
+    }
 	
     if (gui_pixel.a > 0.01)
     {
         pix_color.rgb = gui_pixel.rgb;
     }
-
+    
     return pix_color;
 }

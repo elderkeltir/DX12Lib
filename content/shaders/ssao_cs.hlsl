@@ -4,12 +4,12 @@
 Texture2D depth_map : register(t0);
 Texture2D normals : register(t1);
 Texture2D randlom_vals : register(t2);
+Texture2D world_positions : register(t3);
 
 RWTexture2D<float> output_tex : register(u0);
 
 #define N 32
 
-static float gSurfaceEpsilon = 0.05f;
 static float gOcclusionFadeStart = 0.2f;
 static float gOcclusionFadeEnd = 2.0f;
 
@@ -37,7 +37,7 @@ float OcclusionFunction(float distZ)
 	//
 	
     float occlusion = 0.0f;
-    if (distZ > gSurfaceEpsilon)
+    if (distZ > bias)
     {
         float fadeLength = gOcclusionFadeEnd - gOcclusionFadeStart;
 		
@@ -69,6 +69,8 @@ void main(int3 group_thread_id : SV_GroupThreadID,
     // Transform quad corners to view space near plane.
     float4 ph = mul(posH, Pinv);
     float3 PosV = ph.xyz / ph.w;
+	
+
 
     
 	// p -- the point we are computing the ambient occlusion for.
@@ -84,7 +86,7 @@ void main(int3 group_thread_id : SV_GroupThreadID,
     //    return;
     //}
 	
-    float3 normal = normalize(nm_sampled.xyz);
+    float3 normal = normalize(mul(float4(normalize(nm_sampled.xyz), 0), V).rgb);
     float pz = depth_map.SampleLevel(depthMapSam, tex_coord, 0.0f).r;
     //pz = 0.1 + (100.0 - 0.1) * pz;
     pz = NdcDepthToViewDepth(pz);
@@ -96,11 +98,27 @@ void main(int3 group_thread_id : SV_GroupThreadID,
 	// t = p.z / pin.PosV.z    
     float3 p = (pz / PosV.z) * PosV;
 	
+	// check
+    float3 world_pos = world_positions.SampleLevel(pointClamp, tex_coord, 0.0f).rgb;
+    float3 view_pos = mul(float4(world_pos, 1), V).rgb;
+    float2 noiseScale = float2(RTdim.x / noise_dim, RTdim.y / noise_dim); // screen = 1280x720
+    if (view_pos.x + view_pos.y + view_pos.z < world_pos.x * world_pos.y * world_pos.z)
+    {
+		// here we are
+        noiseScale *= 2;
+
+    }
+	
+	
 	// Extract random vector and map from [0,1] --> [-1, +1].
-    const float2 noiseScale = float2(RTdim.x / noise_dim, RTdim.y / noise_dim); // screen = 1280x720
-    float3 randVec = 2.0f * randlom_vals.SampleLevel(linearWrap, noiseScale * tex_coord, 0.0f).rgb - 1.0f;
+    
+    float3 randVec = normalize(float3(randlom_vals.SampleLevel(linearWrap, noiseScale * tex_coord, 0.0f).rg, 0)) * 2.0f - 1.0f;
 
     float occlusionSum = 0.0f;
+	
+    float3 tangent = normalize(randVec - normal * dot(randVec, normal));
+    float3 bitangent = cross(normal, tangent);
+    float3x3 TBN = float3x3(tangent, bitangent, normal);
 	
 	// Sample neighboring points about p in the hemisphere oriented by n.
     for (int i = 0; i < kernelSize; ++i)
@@ -108,13 +126,16 @@ void main(int3 group_thread_id : SV_GroupThreadID,
 		// Are offset vectors are fixed and uniformly distributed (so that our offset vectors
 		// do not clump in the same direction).  If we reflect them about a random vector
 		// then we get a random uniform distribution of offset vectors.
-        float3 offset = reflect(gOffsetVectors[i].xyz, randVec);
-	
+        float3 offset = float3(gOffsetVectors[i].xyz);
+		
+        float3 samplePos = normalize(mul(offset, TBN)); // from tangent to view-space
+        float my_radius = 0.5;
+        float my_bias = 0.01;
 		// Flip offset vector if it is behind the plane defined by (p, n).
         float flip = sign(dot(offset, normal));
-		
+        samplePos = view_pos + samplePos * my_radius * flip;
 		// Sample a point near p within the occlusion radius.
-        float3 q = p + flip * radius * offset;
+        float3 q = samplePos;
 		
 		// Project q and generate projective tex-coords.
 
@@ -128,6 +149,16 @@ void main(int3 group_thread_id : SV_GroupThreadID,
 		// Find the nearest depth value along the ray from the eye to q (this is not
 		// the depth of q, as q is just an arbitrary point near p and might
 		// occupy empty space).  To find the nearest depth we look it up in the depthmap.
+		
+		//double_ceck
+        float3 world_pos_new = world_positions.SampleLevel(pointClamp, offset_coord.xy, 0.0f).rgb;
+        float3 view_pos_new = mul(float4(world_pos_new, 1), V).rgb;
+		
+        if (view_pos_new.x + view_pos_new.y + view_pos_new.z < world_pos_new.x * world_pos_new.y * world_pos_new.z)
+        {
+            occlusionSum += 0.01;
+
+        }
 
         float rz = depth_map.SampleLevel(depthMapSam, offset_coord.xy, 0.0f).r;
         rz = NdcDepthToViewDepth(rz);
@@ -155,7 +186,9 @@ void main(int3 group_thread_id : SV_GroupThreadID,
 
         float occlusion = dp * OcclusionFunction(distZ);
 
-        occlusionSum += occlusion;
+        //occlusionSum += occlusion;
+        float rangeCheck = smoothstep(0.0, 1.0, my_radius / abs(view_pos.z - view_pos_new.z));
+        occlusionSum += (view_pos_new.z >= q.z + my_bias ? 1.0 : 0.0) * rangeCheck;
     }
 	
     occlusionSum /= kernelSize;
@@ -163,5 +196,5 @@ void main(int3 group_thread_id : SV_GroupThreadID,
     float access = 1.0f - occlusionSum;
 
 	// Sharpen the contrast of the SSAO map to make the SSAO affect more dramatic.    
-    output_tex[pixel_pos] = saturate(pow(access, 6.0f));
+    output_tex[pixel_pos] = access;
 }

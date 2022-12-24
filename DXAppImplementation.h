@@ -50,6 +50,8 @@ public:
     virtual void RebuildShaders(std::optional<std::wstring> dbg_name = std::nullopt) override;
     logger* GetLogger() { return m_logger.get(); }
     ImguiHelper* GetUiHelper() { return m_gui.get(); }
+    uint32_t GetRenderMode() const { return m_render_mode; }
+    void SetRenderMode(uint32_t mode) { m_render_mode = mode; }
 private:
     static constexpr uint32_t FrameCount = 2;
     static constexpr uint32_t GfxQueueCmdList_num = 6;
@@ -113,7 +115,7 @@ private:
         int32_t camera_x_delta{0};
         int32_t camera_y_delta{0};
     } m_camera_movement;
-
+    uint32_t m_render_mode{ 0 };
     bool m_rebuild_shaders{ false };
 };
 

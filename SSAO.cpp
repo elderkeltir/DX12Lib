@@ -64,7 +64,7 @@ void SSAO::Initialize(uint32_t width, uint32_t height, std::optional<std::wstrin
 
 void SSAO::GenerateSSAO(ComPtr<ID3D12GraphicsCommandList6>& command_list, bool gfx)
 {
-	UpdateSsaoCB(m_dirty);
+	UpdateSsaoCB();
 	GenerateRandomValuesTex(command_list);
 	ConstantBufferManager::SyncCpuDataToCB(command_list, m_ssao_cb.get(), m_cbuffer_cpu.get(), sizeof(SsaoConstants), bi_ssao_cb, gfx);
 }
@@ -119,9 +119,9 @@ void SSAO::GenerateRandomValuesTex(ComPtr<ID3D12GraphicsCommandList6>& command_l
 }
 
 
-void SSAO::UpdateSsaoCB(bool m_dirty, UINT k_size, float r, float bs, float noise_size)
+void SSAO::UpdateSsaoCB(UINT k_size, float r, float bs, float noise_size)
 {
-	if (m_dirty) {
+	if (m_dirty & df_generate) {
 		m_cbuffer_cpu->BuildOffsetVectors();
 		m_cbuffer_cpu->ComputeWeights();
 	}

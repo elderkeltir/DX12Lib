@@ -425,7 +425,7 @@ void DXAppImplementation::RenderLevel(ComPtr<ID3D12GraphicsCommandList6>& comman
 	{
 		std::vector< std::shared_ptr<GpuResource>>& rts = m_deferred_shading_quad->GetRts(m_frameIndex);
 		for (uint32_t i = 0; i < rts.size(); i++) {
-			if (i == 1) {
+			if (i == 1 || i == 2) {
 				m_commandQueueGfx->ResourceBarrier(rts[i], D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
 			}
 			else {
@@ -473,6 +473,11 @@ void DXAppImplementation::RenderPostProcessQuad(ComPtr<ID3D12GraphicsCommandList
 			m_commandQueueGfx->GetGpuHeap().StageDesctriptor(bi_post_proc_input_tex_table, tto_postp_fwd, srv->GetCPUhandle());
 		}
 	}
+
+	if (std::shared_ptr<ResourceDescriptor> srv = m_ssao->GetSSAOres(1)->GetSRV().lock()) {
+		m_commandQueueGfx->GetGpuHeap().StageDesctriptor(bi_post_proc_input_tex_table, tto_postp_ssao, srv->GetCPUhandle());
+	}
+
 	CommitCB(command_list, cb_scene);
 
 	m_commandQueueGfx->GetGpuHeap().CommitRootSignature(command_list);
@@ -511,7 +516,7 @@ void DXAppImplementation::RenderDeferredShadingQuad(ComPtr<ID3D12GraphicsCommand
 	{
 		std::vector< std::shared_ptr<GpuResource>>& rts = m_deferred_shading_quad->GetRts(m_frameIndex);
 		for (uint32_t i = 0; i < rts.size(); i++) {
-			if (i == 1) {
+			if (i == 1 || i == 2) {
 				m_commandQueueGfx->ResourceBarrier(rts[i], D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 			}
 		}
@@ -574,6 +579,11 @@ void DXAppImplementation::RenderSSAOquad(ComPtr<ID3D12GraphicsCommandList6>& com
 	if (std::shared_ptr<GpuResource> rt = m_deferred_shading_quad->GetRt(m_frameIndex, 1).lock()) {
 		if (std::shared_ptr<ResourceDescriptor> srv = rt->GetSRV().lock()) {
 			m_commandQueueCompute->GetGpuHeap().StageDesctriptor(bi_ssao_input_tex, tto_ssao_normals, srv->GetCPUhandle());
+		}
+	}
+	if (std::shared_ptr<GpuResource> rt = m_deferred_shading_quad->GetRt(m_frameIndex, 2).lock()) {
+		if (std::shared_ptr<ResourceDescriptor> srv = rt->GetSRV().lock()) {
+			m_commandQueueCompute->GetGpuHeap().StageDesctriptor(bi_ssao_input_tex, tto_ssao_positions, srv->GetCPUhandle());
 		}
 	}
 	if (std::shared_ptr<ResourceDescriptor> srv = m_ssao->GetRandomVals()->GetSRV().lock()) {

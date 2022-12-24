@@ -21,7 +21,7 @@ public:
 
 private:
 	void GenerateRandomValuesTex(ComPtr<ID3D12GraphicsCommandList6>& command_list);
-	void UpdateSsaoCB(bool m_dirty, UINT k_size = 14, float r = 0.5f, float bs = 0.05f, float noise_size = 256.f);
+	void UpdateSsaoCB(UINT k_size = 14, float r = 0.5f, float bs = 0.05f, float noise_size = 256.f);
 	struct SsaoConstants
 	{
 		DirectX::XMFLOAT4  OffsetVectors[14];
