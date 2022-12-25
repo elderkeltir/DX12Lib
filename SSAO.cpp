@@ -72,7 +72,7 @@ void SSAO::GenerateSSAO(ComPtr<ID3D12GraphicsCommandList6>& command_list, bool g
 void SSAO::GenerateRandomValuesTex(ComPtr<ID3D12GraphicsCommandList6>& command_list)
 {
 	if (m_dirty & df_generate) {
-		const uint32_t noise_dim = 256;
+		const uint32_t noise_dim = 4;
 		CD3DX12_RESOURCE_DESC res_desc = CD3DX12_RESOURCE_DESC::Tex2D(DXGI_FORMAT_R8G8B8A8_UNORM, noise_dim, noise_dim, 1, 0, 1, 0, D3D12_RESOURCE_FLAG_NONE);
 		m_ssao_quad_random_vals->CreateTexture(HeapBuffer::BufferType::bt_default, res_desc, D3D12_RESOURCE_STATE_COPY_DEST, nullptr, L"m_ssao_quad_random_vals");
 
@@ -94,10 +94,10 @@ void SSAO::GenerateRandomValuesTex(ComPtr<ID3D12GraphicsCommandList6>& command_l
 				DirectX::XMFLOAT4 fl4(
 					rand_fp_unorm(),
 					rand_fp_unorm(),
-					rand_fp_unorm(),
+					0,
 					0
 				);
-				DirectX::XMVECTOR v = DirectX::XMLoadFloat4(&fl4);
+				DirectX::XMVECTOR v = DirectX::XMVector4Normalize(DirectX::XMLoadFloat4(&fl4));
 
 				DirectX::PackedVector::XMStoreColor(&(initData[i * noise_dim + j]), v);
 			}
@@ -119,7 +119,7 @@ void SSAO::GenerateRandomValuesTex(ComPtr<ID3D12GraphicsCommandList6>& command_l
 }
 
 
-void SSAO::UpdateSsaoCB(UINT k_size, float r, float bs, float noise_size)
+void SSAO::UpdateSsaoCB(UINT k_size, float r, float bs, uint32_t noise_size)
 {
 	if (m_dirty & df_generate) {
 		m_cbuffer_cpu->BuildOffsetVectors();
@@ -134,41 +134,20 @@ void SSAO::UpdateSsaoCB(UINT k_size, float r, float bs, float noise_size)
 
 void SSAO::SsaoConstants::BuildOffsetVectors()
 {
-	// Start with 14 uniformly distributed vectors.  We choose the 8 corners of the cube
-// and the 6 center points along each cube face.  We always alternate the points on 
-// opposites sides of the cubes.  This way we still get the vectors spread out even
-// if we choose to use less than 14 samples.
 
-// 8 cube corners
-	OffsetVectors[0] = DirectX::XMFLOAT4(+1.0f, +1.0f, +1.0f, 0.0f);
-	OffsetVectors[1] = DirectX::XMFLOAT4(-1.0f, -1.0f, -1.0f, 0.0f);
-
-	OffsetVectors[2] = DirectX::XMFLOAT4(-1.0f, +1.0f, +1.0f, 0.0f);
-	OffsetVectors[3] = DirectX::XMFLOAT4(+1.0f, -1.0f, -1.0f, 0.0f);
-
-	OffsetVectors[4] = DirectX::XMFLOAT4(+1.0f, +1.0f, -1.0f, 0.0f);
-	OffsetVectors[5] = DirectX::XMFLOAT4(-1.0f, -1.0f, +1.0f, 0.0f);
-
-	OffsetVectors[6] = DirectX::XMFLOAT4(-1.0f, +1.0f, -1.0f, 0.0f);
-	OffsetVectors[7] = DirectX::XMFLOAT4(+1.0f, -1.0f, +1.0f, 0.0f);
-
-	// 6 centers of cube faces
-	OffsetVectors[8] = DirectX::XMFLOAT4(-1.0f, 0.0f, 0.0f, 0.0f);
-	OffsetVectors[9] = DirectX::XMFLOAT4(+1.0f, 0.0f, 0.0f, 0.0f);
-
-	OffsetVectors[10] = DirectX::XMFLOAT4(0.0f, -1.0f, 0.0f, 0.0f);
-	OffsetVectors[11] = DirectX::XMFLOAT4(0.0f, +1.0f, 0.0f, 0.0f);
-
-	OffsetVectors[12] = DirectX::XMFLOAT4(0.0f, 0.0f, -1.0f, 0.0f);
-	OffsetVectors[13] = DirectX::XMFLOAT4(0.0f, 0.0f, +1.0f, 0.0f);
-
-	for (int i = 0; i < 14; ++i)
+	for (uint32_t i = 0; i < kernelSize; ++i)
 	{
-		// Create random lengths in [0.25, 1.0].
-		float s = rand_fp(0.25f, 1.0f);
-		assert(s < 1.1 && s > 0.24);
-
-		DirectX::XMVECTOR v = DirectX::XMVectorScale(DirectX::XMVector4Normalize(XMLoadFloat4(&OffsetVectors[i])), s);
+		DirectX::XMFLOAT4 p (
+			rand_fp(-1.f,1.f),
+			rand_fp(-1.f, 1.f),
+			rand_fp(0, 1.f) * 3,
+			0
+		);
+		DirectX::XMVECTOR v = DirectX::XMVector4Normalize(DirectX::XMLoadFloat4(&p));
+		DirectX::XMVectorScale(v, rand_fp(0, 1.f));
+		float scale = float(i) / float(kernelSize);
+		scale = lerp(0.1f, 1.0f, scale * scale);
+		DirectX::XMVectorScale(v, scale);
 
 		DirectX::XMStoreFloat4(&OffsetVectors[i], v);
 	}

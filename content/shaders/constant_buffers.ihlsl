@@ -55,7 +55,7 @@ cbuffer SsaoCb : register(b4)
     uint     kernelSize;
     float    radius;
     float    bias;
-    float    noise_dim;
+    uint    noise_dim;
 
     //blur
     int pass_type;
