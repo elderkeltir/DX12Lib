@@ -7,6 +7,7 @@
 #include "DXHelper.h"
 #include "RenderMesh.h"
 #include "VertexFormats.h"
+#include "GfxCommandQueue.h"
 
 extern DXAppImplementation *gD3DApp;
 
@@ -37,7 +38,7 @@ void RenderQuad::FormVertex() {
 	}
 }
 
-void RenderQuad::LoadDataToGpu(ComPtr<ID3D12GraphicsCommandList6> &command_list) {
+void RenderQuad::LoadDataToGpu(CommandList& command_list) {
     using Vertex = Vertex2;
     FormVertex();
     LoadVertexDataOnGpu(command_list, (const void*)m_vertex_buffer_start, (uint32_t)sizeof(Vertex), vert_num);
@@ -94,23 +95,23 @@ std::weak_ptr<GpuResource> RenderQuad::GetRt(uint32_t set_idx, uint32_t idx_in_s
     return m_textures.at(set_idx).at(idx_in_set);
 }
 
-void RenderQuad::Render(ComPtr<ID3D12GraphicsCommandList6> &command_list) {
+void RenderQuad::Render(CommandList& command_list) {
     if (m_mesh->GetIndicesNum() > 0){
         if (std::shared_ptr<D3D12_VERTEX_BUFFER_VIEW> vert_view = m_VertexBuffer->Get_Vertex_View().lock()){
-            command_list->IASetVertexBuffers(0, 1, vert_view.get());
+            command_list.IASetVertexBuffers(0, 1, vert_view.get());
         }
         else{
             assert(false);
         }
 
         if (std::shared_ptr<D3D12_INDEX_BUFFER_VIEW> ind_view = m_IndexBuffer->Get_Index_View().lock()){
-            command_list->IASetIndexBuffer(ind_view.get());
+            command_list.IASetIndexBuffer(ind_view.get());
         }
         else {
             assert(false);
         }
-        command_list->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+        command_list.IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
         
-        command_list->DrawIndexedInstanced((UINT)m_mesh->GetIndicesNum(), 1, 0, 0, 0);
+        command_list.DrawIndexedInstanced((UINT)m_mesh->GetIndicesNum(), 1, 0, 0, 0);
     }
 }

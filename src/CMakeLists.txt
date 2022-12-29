@@ -80,6 +80,7 @@ add_executable(DX12Lib WIN32 main.cpp
     ConsoleCommands.cpp
     Plane.cpp
     Sun.cpp
+    CommandList.cpp
     )
 
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})

@@ -1,5 +1,6 @@
 #include "GpuResource.h"
 #include "ResourceDescriptor.h"
+#include "GfxCommandQueue.h"
 
 GpuResource::~GpuResource(){
 
@@ -31,12 +32,12 @@ void GpuResource::SetBuffer(ComPtr<ID3D12Resource> res){
     m_buffer->Set(res);
 }
 
-void GpuResource::LoadBuffer(ComPtr<ID3D12GraphicsCommandList6> &commandList, uint32_t numElements, uint32_t elementSize, const void* bufferData){
-    m_buffer->Load(commandList, numElements, elementSize, bufferData);
+void GpuResource::LoadBuffer(CommandList& command_list, uint32_t numElements, uint32_t elementSize, const void* bufferData){
+    m_buffer->Load(command_list, numElements, elementSize, bufferData);
 }
 
-void GpuResource::LoadBuffer(ComPtr<ID3D12GraphicsCommandList6> &commandList, uint32_t firstSubresource, uint32_t numSubresources, D3D12_SUBRESOURCE_DATA* subresourceData){
-    m_buffer->Load(commandList, firstSubresource, numSubresources, subresourceData);
+void GpuResource::LoadBuffer(CommandList& command_list, uint32_t firstSubresource, uint32_t numSubresources, D3D12_SUBRESOURCE_DATA* subresourceData){
+    m_buffer->Load(command_list, firstSubresource, numSubresources, subresourceData);
 }
 
 void GpuResource::CreateRTV(){

@@ -93,26 +93,26 @@ void ImguiHelper::Render(uint32_t frame_id)
 		m_console->Draw("Console");
 	}
 
-	ComPtr<ID3D12GraphicsCommandList6>& command_list = m_commandQueueGfx->ResetActiveCL();
+	CommandList& command_list = m_commandQueueGfx->ResetActiveCL();
 
 	// set gpu heap
 	ID3D12DescriptorHeap* descriptorHeaps[] = { m_gpu_visible_heap.Get() };
-	command_list->SetDescriptorHeaps(_countof(descriptorHeaps), descriptorHeaps);
+	command_list.SetDescriptorHeaps(_countof(descriptorHeaps), descriptorHeaps);
 
 	UINT backBufferIdx = frame_id;
 	if (std::shared_ptr<GpuResource> rt = m_rt->GetRt(frame_id).lock()) {
 		m_commandQueueGfx->ResourceBarrier(rt, D3D12_RESOURCE_STATE_RENDER_TARGET);
 		if (std::shared_ptr<ResourceDescriptor> render_target_view = rt->GetRTV().lock()) {
 			CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle = render_target_view->GetCPUhandle();
-			command_list->OMSetRenderTargets(1, &rtvHandle, FALSE, NULL);
+			command_list.OMSetRenderTargets(1, &rtvHandle, FALSE, NULL);
 			const float clearColor[] = { 0.0f, 0.0f, 0.0f, 0.0f };
-			command_list->ClearRenderTargetView(rtvHandle, clearColor, 0, nullptr);
+			command_list.ClearRenderTargetView(rtvHandle, clearColor, 0, nullptr);
 		}
 	}
 
 	// Render Dear ImGui graphics
 	ImGui::Render();
-	ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), command_list.Get());
+	ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), command_list.GetRawCommandList().Get());
 
 	if (std::shared_ptr<GpuResource> rt = m_rt->GetRt(frame_id).lock()) {
 		m_commandQueueGfx->ResourceBarrier(rt, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);

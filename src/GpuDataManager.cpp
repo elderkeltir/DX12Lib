@@ -1,5 +1,5 @@
 #include "GpuDataManager.h"
-
+#include "GfxCommandQueue.h"
 #include "GpuResource.h"
 
 uint64_t GpuDataManager::AllocateVertexBuffer(uint32_t size) {
@@ -12,7 +12,7 @@ void GpuDataManager::DeallocateVertexBuffer(uint64_t start, uint32_t size) {
     m_dirty = true;
 }
 
-void GpuDataManager::Initialize(ComPtr<ID3D12GraphicsCommandList6>& command_list)
+void GpuDataManager::Initialize(CommandList& command_list)
 {
     m_vertex_buffer_res = std::make_unique<GpuResource>();
     m_vertex_buffer_res->CreateBuffer(HeapBuffer::BufferType::bt_default, vertex_storage_size, HeapBuffer::UseFlag::uf_srv, D3D12_RESOURCE_STATE_COPY_DEST, std::wstring(L"vertex_buffer"));
@@ -26,7 +26,7 @@ void GpuDataManager::Initialize(ComPtr<ID3D12GraphicsCommandList6>& command_list
     m_vertex_buffer_res->Create_SRV(desc);
 }
 
-void GpuDataManager::UploadToGpu(ComPtr<ID3D12GraphicsCommandList6>& command_list)
+void GpuDataManager::UploadToGpu(CommandList& command_list)
 {
     if (m_dirty) {
         m_vertex_buffer_res->LoadBuffer(command_list, vertex_storage_size, 1, (void*)m_vertex_storage.begin());

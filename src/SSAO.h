@@ -10,6 +10,7 @@ using Microsoft::WRL::ComPtr;
 
 class RenderQuad;
 class GpuResource;
+class CommandList;
 
 class SSAO {
 public:
@@ -17,10 +18,10 @@ public:
 	void Initialize(uint32_t width, uint32_t height, std::optional<std::wstring> dbg_name);
 	GpuResource* GetSSAOres(uint32_t id) { assert(id < m_ssao_resurces.size()); return m_ssao_resurces[id].get(); }
 	GpuResource* GetRandomVals() { return m_ssao_quad_random_vals.get(); }
-	void GenerateSSAO(ComPtr<ID3D12GraphicsCommandList6>& command_list, bool gfx = true);
+	void GenerateSSAO(CommandList& command_list, bool gfx = true);
 
 private:
-	void GenerateRandomValuesTex(ComPtr<ID3D12GraphicsCommandList6>& command_list);
+	void GenerateRandomValuesTex(CommandList& command_list);
 	void UpdateSsaoCB(UINT k_size = 14, float r = 0.25f, float bs = 0.025f, uint32_t noise_size = 4);
 	struct SsaoConstants
 	{

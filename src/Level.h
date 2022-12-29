@@ -14,6 +14,7 @@ class RenderModel;
 class GpuResource;
 class SkyBox;
 class Plane;
+class CommandList;
 
 class Level {
 public:
@@ -21,16 +22,16 @@ public:
     ~Level();
     void Load(const std::wstring &name);
     void Update(float dt);
-    void Render(ComPtr<ID3D12GraphicsCommandList6>& command_list);
-    void RenderWater(ComPtr<ID3D12GraphicsCommandList6>& command_list);
-    void BindLights(ComPtr<ID3D12GraphicsCommandList6>& command_list);
+    void Render(CommandList& command_list);
+    void RenderWater(CommandList& command_list);
+    void BindLights(CommandList& command_list);
 
     std::weak_ptr<FreeCamera> GetCamera() { return m_camera; }
     const std::filesystem::path& GetLevelsDir() const;
     const std::filesystem::path& GetEntitiesDir() const;
 
 private:
-    void RenderEntity(ComPtr<ID3D12GraphicsCommandList6>& command_list, LevelEntity & ent, bool &is_scene_constants_set);
+    void RenderEntity(CommandList& command_list, LevelEntity & ent, bool &is_scene_constants_set);
     static const uint32_t entities_num = 256;
     std::wstring m_name;
     pro_game_containers::simple_object_pool<LevelEntity, entities_num> m_entites;

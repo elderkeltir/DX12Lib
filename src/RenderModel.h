@@ -12,8 +12,8 @@ public:
     ~RenderModel();
 
     void Load(const std::wstring &name);
-    void Render(ComPtr<ID3D12GraphicsCommandList6> &commandList, const DirectX::XMFLOAT4X4 &parent_xform);
-    virtual void LoadDataToGpu(ComPtr<ID3D12GraphicsCommandList6> &commandList) override;
+    void Render(CommandList& command_list, const DirectX::XMFLOAT4X4 &parent_xform);
+    virtual void LoadDataToGpu(CommandList& command_list) override;
 
     void AddChild(RenderModel* child) { m_children.push_back(child); }
     RenderModel* GetChild(uint32_t idx) { return m_children[idx]; }
@@ -33,8 +33,8 @@ public:
 
 private:
     inline void FormVertexes();
-    inline void LoadTextures(ComPtr<ID3D12GraphicsCommandList6> & commandList);
-    inline void LoadConstantData(ComPtr<ID3D12GraphicsCommandList6> &command_list);
+    inline void LoadTextures(CommandList& command_list);
+    inline void LoadConstantData(CommandList& command_list);
 
     std::unique_ptr<GpuResource> m_constant_buffer;
 

@@ -12,6 +12,7 @@ extern DXAppImplementation *gD3DApp;
 void GfxCommandQueue::OnInit(ComPtr<ID3D12Device2> device, D3D12_COMMAND_LIST_TYPE type, uint32_t command_list_num, std::optional<std::wstring> dbg_name){
     m_command_list_num = command_list_num;
     m_type = type;
+    m_command_list.m_queue = this;
 
     // allocate
     m_dynamic_gpu_heaps.swap(std::make_unique<DynamicGpuHeap[]>(m_command_list_num));
@@ -27,9 +28,9 @@ void GfxCommandQueue::OnInit(ComPtr<ID3D12Device2> device, D3D12_COMMAND_LIST_TY
         ThrowIfFailed(device->CreateCommandAllocator(type, IID_PPV_ARGS(&m_commandAllocator[i])));
         SetName(m_commandAllocator[i], dbg_name.value_or(L"").append(L"_cmd_allocator_" + std::to_wstring(type)).append(std::to_wstring(i)).c_str());
     }
-    ThrowIfFailed(device->CreateCommandList(0, type, m_commandAllocator[m_active_cl].Get(), nullptr, IID_PPV_ARGS(&m_command_list)));
-    SetName(m_command_list, dbg_name.value_or(L"").append(L"_cmd_list_" + std::to_wstring(type)).c_str());
-    ThrowIfFailed(m_command_list->Close());
+    ThrowIfFailed(device->CreateCommandList(0, type, m_commandAllocator[m_active_cl].Get(), nullptr, IID_PPV_ARGS(&m_command_list.m_command_list)));
+    SetName(m_command_list.m_command_list, dbg_name.value_or(L"").append(L"_cmd_list_" + std::to_wstring(type)).c_str());
+    ThrowIfFailed(m_command_list.m_command_list->Close());
 
     {
         ThrowIfFailed(device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&m_fence)));
@@ -46,7 +47,7 @@ void GfxCommandQueue::OnInit(ComPtr<ID3D12Device2> device, D3D12_COMMAND_LIST_TY
     }
 }
 
-ComPtr<ID3D12GraphicsCommandList6> & GfxCommandQueue::ResetActiveCL(ID3D12PipelineState *pipeline_state) {
+CommandList& GfxCommandQueue::ResetActiveCL(ID3D12PipelineState *pipeline_state) {
     m_active_cl = ++m_active_cl % m_command_list_num;
     
     // reset PSO and root_sig
@@ -54,22 +55,22 @@ ComPtr<ID3D12GraphicsCommandList6> & GfxCommandQueue::ResetActiveCL(ID3D12Pipeli
     m_root_sign = uint32_t(-1);
     
     ThrowIfFailed(m_commandAllocator[m_active_cl]->Reset());
-    ThrowIfFailed(m_command_list->Reset(m_commandAllocator[m_active_cl].Get(), pipeline_state));
+    ThrowIfFailed(m_command_list.m_command_list->Reset(m_commandAllocator[m_active_cl].Get(), pipeline_state));
 
 	// set gpu heap
 	ID3D12DescriptorHeap* descriptorHeaps[] = { m_dynamic_gpu_heaps[m_active_cl].GetVisibleHeap().Get() };
-    m_command_list->SetDescriptorHeaps(_countof(descriptorHeaps), descriptorHeaps);
+    m_command_list.m_command_list->SetDescriptorHeaps(_countof(descriptorHeaps), descriptorHeaps);
     m_dynamic_gpu_heaps[m_active_cl].Reset();
 
     return m_command_list;
 }
 
-ComPtr<ID3D12GraphicsCommandList6>& GfxCommandQueue::GetActiveCL(){
+CommandList& GfxCommandQueue::GetActiveCL(){
     return m_command_list;
 }
 void GfxCommandQueue::ExecuteActiveCL(){
-    ThrowIfFailed(m_command_list->Close());
-    ID3D12CommandList* ppCommandLists[] = { m_command_list.Get() };
+    ThrowIfFailed(m_command_list.m_command_list->Close());
+    ID3D12CommandList* ppCommandLists[] = { m_command_list.m_command_list.Get() };
     m_commandQueue->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
 }
 
@@ -77,7 +78,7 @@ void GfxCommandQueue::ResourceBarrier(std::shared_ptr<GpuResource> &res, D3D12_R
     TODO("Normal! Implement feasible way to store/get curent state of resource. later")
     if (std::shared_ptr<HeapBuffer> buff = res->GetBuffer().lock()){
         D3D12_RESOURCE_STATES calculated_from = res->GetState();
-        m_command_list->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(buff->GetResource().Get(), calculated_from, to));
+        m_command_list.m_command_list->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(buff->GetResource().Get(), calculated_from, to));
         res->UpdateState(to);
     }
 }
@@ -85,7 +86,7 @@ void GfxCommandQueue::ResourceBarrier(std::shared_ptr<GpuResource> &res, D3D12_R
 void GfxCommandQueue::ResourceBarrier(GpuResource &res, D3D12_RESOURCE_STATES to) {
     if (std::shared_ptr<HeapBuffer> buff = res.GetBuffer().lock()){
         D3D12_RESOURCE_STATES calculated_from = res.GetState();
-        m_command_list->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(buff->GetResource().Get(), calculated_from, to));
+        m_command_list.m_command_list->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(buff->GetResource().Get(), calculated_from, to));
         res.UpdateState(to);
     }
 }
@@ -101,7 +102,7 @@ void GfxCommandQueue::ResourceBarrier(std::vector<std::shared_ptr<GpuResource>>&
         }
     }
 
-    m_command_list->ResourceBarrier((uint32_t)resources.size(), resources.data());
+    m_command_list.m_command_list->ResourceBarrier((uint32_t)resources.size(), resources.data());
 }
 
 void GfxCommandQueue::SetPSO(uint32_t id) {
@@ -109,10 +110,10 @@ void GfxCommandQueue::SetPSO(uint32_t id) {
     auto tech = gD3DApp->GetTechniqueById(id);
 
     if (m_type == D3D12_COMMAND_LIST_TYPE_DIRECT) {
-        m_command_list->SetPipelineState(tech->pipeline_state.Get());
+        m_command_list.m_command_list->SetPipelineState(tech->pipeline_state.Get());
     }
     else if (m_type == D3D12_COMMAND_LIST_TYPE_COMPUTE) {
-        m_command_list->SetPipelineState(tech->pipeline_state.Get());
+        m_command_list.m_command_list->SetPipelineState(tech->pipeline_state.Get());
     }
 }
 
@@ -122,9 +123,9 @@ void GfxCommandQueue::SetRootSign(uint32_t id) {
     auto root_sign = gD3DApp->GetRootSignById(id);
     auto &r = root_sign->GetRootSignature();
     if (m_type == D3D12_COMMAND_LIST_TYPE_DIRECT) {
-        m_command_list->SetGraphicsRootSignature(r.Get());
+        m_command_list.m_command_list->SetGraphicsRootSignature(r.Get());
     }
     else if (m_type == D3D12_COMMAND_LIST_TYPE_COMPUTE){
-        m_command_list->SetComputeRootSignature(r.Get());
+        m_command_list.m_command_list->SetComputeRootSignature(r.Get());
     }
 }

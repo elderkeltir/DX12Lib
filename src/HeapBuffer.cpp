@@ -3,6 +3,7 @@
 #include "DXHelper.h"
 #include <directx/d3d12.h>
 #include "DXAppImplementation.h"
+#include "GfxCommandQueue.h"
 
 extern DXAppImplementation *gD3DApp;
 
@@ -80,7 +81,7 @@ void HeapBuffer::CreateTexture(BufferType type, const CD3DX12_RESOURCE_DESC &res
     m_recreate_intermediate_res = true;
 }
 
-void HeapBuffer::Load(ComPtr<ID3D12GraphicsCommandList6> &commandList, uint32_t numElements, uint32_t elementSize, const void* bufferData){
+void HeapBuffer::Load(CommandList& command_list, uint32_t numElements, uint32_t elementSize, const void* bufferData){
     if (bufferData)
     {
         auto& device = gD3DApp->GetDevice();
@@ -105,13 +106,13 @@ void HeapBuffer::Load(ComPtr<ID3D12GraphicsCommandList6> &commandList, uint32_t 
         subresourceData.RowPitch = bufferSize;
         subresourceData.SlicePitch = subresourceData.RowPitch;
 
-        UpdateSubresources(commandList.Get(),
+        UpdateSubresources(command_list.GetRawCommandList().Get(),
             m_resourse.Get(), pIntermediateResource.Get(),
             0, 0, 1, &subresourceData);
     }
 }
 
-void HeapBuffer::Load(ComPtr<ID3D12GraphicsCommandList6> &commandList, uint32_t firstSubresource, uint32_t numSubresources, D3D12_SUBRESOURCE_DATA* subresourceData){
+void HeapBuffer::Load(CommandList& command_list, uint32_t firstSubresource, uint32_t numSubresources, D3D12_SUBRESOURCE_DATA* subresourceData){
     if (subresourceData)
     {
         auto& device = gD3DApp->GetDevice();
@@ -131,7 +132,7 @@ void HeapBuffer::Load(ComPtr<ID3D12GraphicsCommandList6> &commandList, uint32_t 
             m_recreate_intermediate_res = !m_recreate_intermediate_res;
         }
 
-        UpdateSubresources(commandList.Get(),
+        UpdateSubresources(command_list.GetRawCommandList().Get(),
             m_resourse.Get(), pIntermediateResource.Get(),
             0, firstSubresource, numSubresources, subresourceData);
     }
@@ -150,6 +151,6 @@ void HeapBuffer::Unmap(){
     m_resourse->Unmap(0, nullptr);
 }
 
-void HeapBuffer::Copy(ComPtr<ID3D12GraphicsCommandList> &commandList, HeapBuffer &dest, uint64_t dstOffset, uint64_t srcOffset, uint64_t size){
-    commandList->CopyBufferRegion(dest.m_resourse.Get(), dstOffset, m_resourse.Get(), srcOffset, size);
+void HeapBuffer::Copy(ComPtr<ID3D12GraphicsCommandList> &command_list, HeapBuffer &dest, uint64_t dstOffset, uint64_t srcOffset, uint64_t size){
+    command_list->CopyBufferRegion(dest.m_resourse.Get(), dstOffset, m_resourse.Get(), srcOffset, size);
 }

@@ -2,6 +2,7 @@
 #include "GpuResource.h"
 #include "DXAppImplementation.h"
 #include "GpuDataManager.h"
+#include "GfxCommandQueue.h"
 
 extern DXAppImplementation *gD3DApp;
 
@@ -9,34 +10,29 @@ RenderObject::~RenderObject() {
     DeallocateVertexBuffer();
 }
 
-void RenderObject::LoadVertexDataOnGpu(ComPtr<ID3D12GraphicsCommandList6> &commandList, const void* data, uint32_t size_of_vertex, uint32_t vertex_count){
+void RenderObject::LoadVertexDataOnGpu(CommandList& command_list, const void* data, uint32_t size_of_vertex, uint32_t vertex_count){
     if (m_dirty & db_vertex && vertex_count){
         m_VertexBuffer = std::make_unique<GpuResource>();
         m_VertexBuffer->CreateBuffer(HeapBuffer::BufferType::bt_default, (vertex_count * size_of_vertex), HeapBuffer::UseFlag::uf_none, D3D12_RESOURCE_STATE_COPY_DEST, std::wstring(L"vertex_buffer").append(m_name));
-        m_VertexBuffer->LoadBuffer(commandList, vertex_count, size_of_vertex, data);
-        if (std::shared_ptr<HeapBuffer> buff = m_VertexBuffer->GetBuffer().lock()){
-            //if (std::shared_ptr<GfxCommandQueue> queu)
-            commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(buff->GetResource().Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER));
-        }
+        m_VertexBuffer->LoadBuffer(command_list, vertex_count, size_of_vertex, data);
+        command_list.GetQueue()->ResourceBarrier(*m_VertexBuffer, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER);
         m_VertexBuffer->Create_Vertex_View((vertex_count * size_of_vertex), size_of_vertex);
         m_dirty &= (~db_vertex);
     }
 }
 
-void RenderObject::LoadIndexDataOnGpu(ComPtr<ID3D12GraphicsCommandList6> &commandList){
+void RenderObject::LoadIndexDataOnGpu(CommandList& command_list){
     if (m_dirty & db_index && m_mesh->GetIndicesNum()){
         m_IndexBuffer = std::make_unique<GpuResource>();
         m_IndexBuffer->CreateBuffer(HeapBuffer::BufferType::bt_default, (m_mesh->GetIndicesNum() * sizeof(uint16_t)), HeapBuffer::UseFlag::uf_none, D3D12_RESOURCE_STATE_COPY_DEST, std::wstring(L"index_buffer").append(m_name));
-        m_IndexBuffer->LoadBuffer(commandList, m_mesh->GetIndicesNum(), sizeof(uint16_t), m_mesh->GetIndicesData());
-        if (std::shared_ptr<HeapBuffer> buff = m_IndexBuffer->GetBuffer().lock()){
-            commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(buff->GetResource().Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_INDEX_BUFFER));
-        }
+        m_IndexBuffer->LoadBuffer(command_list, m_mesh->GetIndicesNum(), sizeof(uint16_t), m_mesh->GetIndicesData());
+        command_list.GetQueue()->ResourceBarrier(*m_IndexBuffer, D3D12_RESOURCE_STATE_INDEX_BUFFER);
         m_IndexBuffer->Create_Index_View(DXGI_FORMAT_R16_UINT, (m_mesh->GetIndicesNum() * sizeof(uint16_t)));
         m_dirty &= (~db_index);
     }
 }
 
-void RenderObject::Loadtexture(ComPtr<ID3D12GraphicsCommandList6> & commandList, GpuResource* res, TextureData* tex_data, const CD3DX12_RESOURCE_DESC &tex_desc, const D3D12_SRV_DIMENSION &srv_dim, uint32_t idx) const {
+void RenderObject::Loadtexture(CommandList& command_list, GpuResource* res, TextureData* tex_data, const CD3DX12_RESOURCE_DESC &tex_desc, const D3D12_SRV_DIMENSION &srv_dim, uint32_t idx) const {
     D3D12_RESOURCE_STATES initial_state = D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_COPY_DEST;
     res->CreateTexture(HeapBuffer::BufferType::bt_default, tex_desc, initial_state, nullptr, std::wstring(m_name).append(L"model_srv_").append(std::to_wstring(idx)).c_str());
 
@@ -49,10 +45,8 @@ void RenderObject::Loadtexture(ComPtr<ID3D12GraphicsCommandList6> & commandList,
         subresource.SlicePitch = pImages[i].slicePitch;
         subresource.pData = pImages[i].pixels;
     }
-    res->LoadBuffer(commandList, 0, (uint32_t)subresources.size(), subresources.data());
-    if (std::shared_ptr<HeapBuffer> buff = res->GetBuffer().lock()){
-        commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(buff->GetResource().Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
-    }
+    res->LoadBuffer(command_list, 0, (uint32_t)subresources.size(), subresources.data());
+    command_list.GetQueue()->ResourceBarrier(*res, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 
     D3D12_SHADER_RESOURCE_VIEW_DESC srv_desc = {};
     srv_desc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;

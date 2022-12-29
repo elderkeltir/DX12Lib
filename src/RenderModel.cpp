@@ -63,7 +63,7 @@ void RenderModel::FormVertexes(){
     }
 }
 
-void RenderModel::LoadTextures(ComPtr<ID3D12GraphicsCommandList6> & command_list){
+void RenderModel::LoadTextures(CommandList& command_list){
     if (!(m_dirty & (db_diffuse_tx | db_normals_tx | db_metallic_tx | db_rough_tx))){
         return;
     }
@@ -132,14 +132,14 @@ void RenderModel::LoadTextures(ComPtr<ID3D12GraphicsCommandList6> & command_list
     }
 }
 
-void RenderModel::Render(ComPtr<ID3D12GraphicsCommandList6> &command_list, const DirectX::XMFLOAT4X4 &parent_xform){
+void RenderModel::Render(CommandList& command_list, const DirectX::XMFLOAT4X4 &parent_xform){
     DirectX::XMMATRIX parent_xform_mx = DirectX::XMLoadFloat4x4(&parent_xform);
     parent_xform_mx = DirectX::XMMatrixMultiply(m_transformations->GetModel(), parent_xform_mx);
 
     if (m_mesh && m_mesh->GetIndicesNum() > 0){
         if (m_VertexBuffer) {
             if (std::shared_ptr<D3D12_VERTEX_BUFFER_VIEW> vert_view = m_VertexBuffer->Get_Vertex_View().lock()) {
-                command_list->IASetVertexBuffers(0, 1, vert_view.get());
+                command_list.IASetVertexBuffers(0, 1, vert_view.get());
             }
             else {
                 assert(false);
@@ -147,12 +147,12 @@ void RenderModel::Render(ComPtr<ID3D12GraphicsCommandList6> &command_list, const
         }
 
         if (std::shared_ptr<D3D12_INDEX_BUFFER_VIEW> ind_view = m_IndexBuffer->Get_Index_View().lock()){
-            command_list->IASetIndexBuffer(ind_view.get());
+            command_list.IASetIndexBuffer(ind_view.get());
         }
         else {
             assert(false);
         }
-        command_list->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+        command_list.IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
         
         if (std::shared_ptr<GfxCommandQueue> gfx_queue = gD3DApp->GetGfxQueue().lock()) {
             if (m_diffuse_tex) {
@@ -191,7 +191,7 @@ void RenderModel::Render(ComPtr<ID3D12GraphicsCommandList6> &command_list, const
         }
 
         TODO("Major! DrawIndexed should be at upper level where you know there are few such meshes to render")
-        command_list->DrawIndexedInstanced(m_mesh->GetIndicesNum(), m_instance_num, 0, 0, 0);
+        command_list.DrawIndexedInstanced(m_mesh->GetIndicesNum(), m_instance_num, 0, 0, 0);
     }
     DirectX::XMFLOAT4X4 new_parent_xform;
     DirectX::XMStoreFloat4x4(&new_parent_xform, parent_xform_mx);
@@ -201,7 +201,7 @@ void RenderModel::Render(ComPtr<ID3D12GraphicsCommandList6> &command_list, const
     }
 }
 
-void RenderModel::LoadDataToGpu(ComPtr<ID3D12GraphicsCommandList6> &command_list){
+void RenderModel::LoadDataToGpu(CommandList& command_list){
     if (m_mesh && m_mesh->GetIndicesNum() > 0){
         if (m_dirty & db_vertex){
             FormVertexes();
@@ -247,7 +247,7 @@ GpuResource* RenderModel::GetTexture(TextureType type)
     }
 }
 
-void RenderModel::LoadConstantData(ComPtr<ID3D12GraphicsCommandList6> &command_list){
+void RenderModel::LoadConstantData(CommandList& command_list){
     if (m_dirty & db_rt_cbv){
         m_constant_buffer = std::make_unique<GpuResource>();
         uint32_t cb_size = calc_cb_size(sizeof(ConstantBufferManager::ModelCB));

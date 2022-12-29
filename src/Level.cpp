@@ -185,7 +185,7 @@ void Level::Update(float dt){
     }
 }
 
-void Level::Render(ComPtr<ID3D12GraphicsCommandList6>& command_list){
+void Level::Render(CommandList& command_list){
     TODO("Normal! Create Gatherer or RenderScene to avoid this shity code")
     bool is_scene_constants_set = false;
 
@@ -212,7 +212,7 @@ void Level::Render(ComPtr<ID3D12GraphicsCommandList6>& command_list){
     }
 }
 
-void Level::RenderEntity(ComPtr<ID3D12GraphicsCommandList6>& command_list, LevelEntity & ent, bool &is_scene_constants_set){
+void Level::RenderEntity(CommandList& command_list, LevelEntity & ent, bool &is_scene_constants_set){
     ent.LoadDataToGpu(command_list);
 
     const Techniques::Technique *tech = gD3DApp->GetTechniqueById(ent.GetTechniqueId());
@@ -262,7 +262,7 @@ void Level::RenderEntity(ComPtr<ID3D12GraphicsCommandList6>& command_list, Level
     ent.Render(command_list);
 }
 
-void Level::RenderWater(ComPtr<ID3D12GraphicsCommandList6>& command_list)
+void Level::RenderWater(CommandList& command_list)
 {
     uint32_t tech_id = m_water->GetTerrainTechId();
 	const Techniques::Technique* tech = gD3DApp->GetTechniqueById(tech_id);
@@ -287,7 +287,7 @@ void Level::RenderWater(ComPtr<ID3D12GraphicsCommandList6>& command_list)
     m_water->Render(command_list);
 }
 
-void Level::BindLights(ComPtr<ID3D12GraphicsCommandList6>& command_list){
+void Level::BindLights(CommandList& command_list){
     ConstantBufferManager::SyncCpuDataToCB(command_list, m_lights_res.get(), m_lights.data(), (LightsNum * sizeof(LevelLight)), bi_lights_cb);
 }
 

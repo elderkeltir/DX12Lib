@@ -17,6 +17,7 @@
 #include "FileManager.h"
 #include "Level.h"
 #include "MaterialManager.h"
+#include "GfxCommandQueue.h"
 
 extern DXAppImplementation *gD3DApp;
 using rapidjson::Document;
@@ -83,10 +84,10 @@ void LevelEntity::Update(float dt){
     DirectX::XMStoreFloat4x4(&m_xform, xform);
 }
 
-void LevelEntity::Render(ComPtr<ID3D12GraphicsCommandList6> &commandList){
-    m_model->Render(commandList, m_xform);
+void LevelEntity::Render(CommandList& command_list){
+    m_model->Render(command_list, m_xform);
 }
 
-void LevelEntity::LoadDataToGpu(ComPtr<ID3D12GraphicsCommandList6> &commandList) {
-    m_model->LoadDataToGpu(commandList);
+void LevelEntity::LoadDataToGpu(CommandList& command_list) {
+    m_model->LoadDataToGpu(command_list);
 }

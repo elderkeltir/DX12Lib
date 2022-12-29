@@ -9,6 +9,8 @@
 
 using Microsoft::WRL::ComPtr;
 
+class CommandList;
+
 enum class Constants {
     cCP,            // camera pos
     cM,             // model matrix
@@ -79,9 +81,9 @@ public:
     void SetVector4Constant(Constants id, const DirectX::XMFLOAT4 & vec);
     void SetUint32(Constants id, uint32_t val);
     void SetModelCB(GpuResource* res) { m_model_cb = res; }
-    void CommitCB(ComPtr<ID3D12GraphicsCommandList6>& command_list, ConstantBuffers id, bool gfx = true);
+    void CommitCB(CommandList& command_list, ConstantBuffers id, bool gfx = true);
 
-    static void SyncCpuDataToCB(ComPtr<ID3D12GraphicsCommandList6>& command_list, GpuResource* res, void* cpu_data, uint32_t size, BindingId bind_point, bool gfx = true);
+    static void SyncCpuDataToCB(CommandList& command_list, GpuResource* res, void* cpu_data, uint32_t size, BindingId bind_point, bool gfx = true);
 
 public:
     // 1 x 256

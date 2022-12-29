@@ -149,15 +149,15 @@ void ConstantBufferManager::SetUint32(Constants id, uint32_t val)
     }
 }
 
-void ConstantBufferManager::CommitCB(ComPtr<ID3D12GraphicsCommandList6>& command_list, ConstantBuffers id, bool gfx)
+void ConstantBufferManager::CommitCB(CommandList& command_list, ConstantBuffers id, bool gfx)
 {
     if (id == cb_model) {
         if (std::shared_ptr<HeapBuffer> buff = m_model_cb->GetBuffer().lock()) {
             if (gfx) {
-                command_list->SetGraphicsRootConstantBufferView(bi_model_cb, buff->GetResource()->GetGPUVirtualAddress());
+                command_list.SetGraphicsRootConstantBufferView(bi_model_cb, buff->GetResource()->GetGPUVirtualAddress());
             }
             else {
-                command_list->SetComputeRootConstantBufferView(bi_model_cb, buff->GetResource()->GetGPUVirtualAddress());
+                command_list.SetComputeRootConstantBufferView(bi_model_cb, buff->GetResource()->GetGPUVirtualAddress());
             }
         }
     }
@@ -165,16 +165,16 @@ void ConstantBufferManager::CommitCB(ComPtr<ID3D12GraphicsCommandList6>& command
         const uint32_t frame_id = gD3DApp->FrameId();
         if (std::shared_ptr<HeapBuffer> buff = m_scene_cbs[frame_id].GetBuffer().lock()) {
             if (gfx) {
-                command_list->SetGraphicsRootConstantBufferView(bi_scene_cb, buff->GetResource()->GetGPUVirtualAddress());
+                command_list.SetGraphicsRootConstantBufferView(bi_scene_cb, buff->GetResource()->GetGPUVirtualAddress());
             }
             else {
-                command_list->SetComputeRootConstantBufferView(bi_scene_cb, buff->GetResource()->GetGPUVirtualAddress());
+                command_list.SetComputeRootConstantBufferView(bi_scene_cb, buff->GetResource()->GetGPUVirtualAddress());
             }
         }
     }
 }
 
-void ConstantBufferManager::SyncCpuDataToCB(ComPtr<ID3D12GraphicsCommandList6>& command_list, GpuResource* res, void* cpu_data, uint32_t size, BindingId bind_point, bool gfx) {
+void ConstantBufferManager::SyncCpuDataToCB(CommandList& command_list, GpuResource* res, void* cpu_data, uint32_t size, BindingId bind_point, bool gfx) {
     if (gfx) {
         if (std::shared_ptr<GfxCommandQueue> queue = gD3DApp->GetGfxQueue().lock()) {
             queue->ResourceBarrier(*res, D3D12_RESOURCE_STATE_COPY_DEST);
@@ -204,10 +204,10 @@ void ConstantBufferManager::SyncCpuDataToCB(ComPtr<ID3D12GraphicsCommandList6>& 
 
 	if (std::shared_ptr<HeapBuffer> buff = res->GetBuffer().lock()) {
         if (gfx) {
-            command_list->SetGraphicsRootConstantBufferView(bind_point, buff->GetResource()->GetGPUVirtualAddress());
+            command_list.SetGraphicsRootConstantBufferView(bind_point, buff->GetResource()->GetGPUVirtualAddress());
         }
         else {
-            command_list->SetComputeRootConstantBufferView(bind_point, buff->GetResource()->GetGPUVirtualAddress());
+            command_list.SetComputeRootConstantBufferView(bind_point, buff->GetResource()->GetGPUVirtualAddress());
         }
 	}
 }

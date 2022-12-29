@@ -6,7 +6,7 @@
 
 extern DXAppImplementation* gD3DApp;
 
-void Sun::Initialize(ComPtr<ID3D12GraphicsCommandList6>& command_list, float width, float height)
+void Sun::Initialize(CommandList& command_list, float width, float height)
 {
 	m_shadow_map = std::make_unique<GpuResource>();
 
@@ -35,7 +35,7 @@ void Sun::Initialize(ComPtr<ID3D12GraphicsCommandList6>& command_list, float wid
 	m_shadow_map->Create_SRV(srv_desc);
 }
 
-void Sun::Generate(ComPtr<ID3D12GraphicsCommandList6>& command_list, std::shared_ptr<GfxCommandQueue> & queue)
+void Sun::Generate(CommandList& command_list, std::shared_ptr<GfxCommandQueue> & queue)
 {
 	// set ps
 	const Techniques::Technique* tech = gD3DApp->GetTechniqueById(Techniques::tt_shadow_map);

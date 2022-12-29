@@ -28,6 +28,6 @@ void MaterialManager::LoadMaterials() {
     m_materials_res->Create_CBV(desc);
 }
 
-void MaterialManager::BindMaterials(ComPtr<ID3D12GraphicsCommandList6>& command_list) {
+void MaterialManager::BindMaterials(CommandList& command_list) {
     ConstantBufferManager::SyncCpuDataToCB(command_list, m_materials_res.get(), m_materials.data(), (materials_num * sizeof(Material)), bi_materials_cb);
 }

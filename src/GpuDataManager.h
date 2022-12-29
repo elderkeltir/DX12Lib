@@ -7,14 +7,15 @@
 using Microsoft::WRL::ComPtr;
 
 class GpuResource;
+class CommandList;
 
 class GpuDataManager {
 public:
     uint64_t AllocateVertexBuffer(uint32_t size);
     void DeallocateVertexBuffer(uint64_t start, uint32_t size);
 
-    void Initialize(ComPtr<ID3D12GraphicsCommandList6>& command_list);
-    void UploadToGpu(ComPtr<ID3D12GraphicsCommandList6>& command_list);
+    void Initialize(CommandList& command_list);
+    void UploadToGpu(CommandList& command_list);
     GpuResource* GetVertexBuffer() { return m_vertex_buffer_res.get(); }
 
 private:

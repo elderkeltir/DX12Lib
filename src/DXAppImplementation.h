@@ -13,6 +13,7 @@ class Level;
 class DescriptorHeapCollection;
 class GpuResource;
 class GfxCommandQueue;
+class CommandList;
 class FreeCamera;
 class RenderQuad;
 class DynamicGpuHeap;
@@ -59,14 +60,14 @@ private:
     
     void CreateDevice(std::optional<std::wstring> dbg_name = std::nullopt);
     void CreateSwapChain(std::optional<std::wstring> dbg_name = std::nullopt);
-    void PrepareRenderTarget(ComPtr<ID3D12GraphicsCommandList6> &command_list, const std::vector<std::shared_ptr<GpuResource>> &rt, bool set_dsv = true, bool clear_dsv = true);
-    void PrepareRenderTarget(ComPtr<ID3D12GraphicsCommandList6> &command_list, GpuResource &rts, bool set_dsv = true, bool clear_dsv = true);
-    void RenderLevel(ComPtr<ID3D12GraphicsCommandList6>& command_list);
-    void RenderPostProcessQuad(ComPtr<ID3D12GraphicsCommandList6>& command_list);
-    void RenderForwardQuad(ComPtr<ID3D12GraphicsCommandList6>& command_list);
-    void RenderDeferredShadingQuad(ComPtr<ID3D12GraphicsCommandList6>& command_list);
-    void RenderSSAOquad(ComPtr<ID3D12GraphicsCommandList6>& command_list);
-    void BlurSSAO(ComPtr<ID3D12GraphicsCommandList6>& command_list);
+    void PrepareRenderTarget(CommandList& command_list, const std::vector<std::shared_ptr<GpuResource>> &rt, bool set_dsv = true, bool clear_dsv = true);
+    void PrepareRenderTarget(CommandList& command_list, GpuResource &rts, bool set_dsv = true, bool clear_dsv = true);
+    void RenderLevel(CommandList& command_list);
+    void RenderPostProcessQuad(CommandList& command_list);
+    void RenderForwardQuad(CommandList& command_list);
+    void RenderDeferredShadingQuad(CommandList& command_list);
+    void RenderSSAOquad(CommandList& command_list);
+    void BlurSSAO(CommandList& command_list);
 
     void UpdateCamera(std::shared_ptr<FreeCamera> &camera, float dt);
 

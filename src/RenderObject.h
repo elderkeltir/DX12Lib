@@ -12,6 +12,7 @@
 using Microsoft::WRL::ComPtr;
 
 class GpuResource;
+class CommandList;
 
 class RenderObject {
 public:
@@ -24,14 +25,14 @@ public:
     virtual const std::wstring& GetName() const { return m_name; }
     virtual void Initialized() { m_is_initialized = true; m_dirty |= db_vertex; m_dirty |= db_index; }
     virtual bool IsInitialized() const { return m_is_initialized; }
-    virtual void LoadDataToGpu(ComPtr<ID3D12GraphicsCommandList6> &commandList) = 0;
+    virtual void LoadDataToGpu(CommandList& command_list) = 0;
     virtual void SetMesh(RenderMesh * mesh) { m_mesh = mesh; }
     virtual void SetTexture(TextureData * texture_data, TextureType type) {};
 
 protected:
-    virtual void LoadVertexDataOnGpu(ComPtr<ID3D12GraphicsCommandList6> &commandList, const void* data, uint32_t size_of_vertex, uint32_t vertex_count);
-    virtual void LoadIndexDataOnGpu(ComPtr<ID3D12GraphicsCommandList6> &commandList);
-    void Loadtexture(ComPtr<ID3D12GraphicsCommandList6> & commandList, GpuResource* res, TextureData* tex_data, const CD3DX12_RESOURCE_DESC &tex_desc, const D3D12_SRV_DIMENSION &srv_dim, uint32_t idx) const;
+    virtual void LoadVertexDataOnGpu(CommandList& command_list, const void* data, uint32_t size_of_vertex, uint32_t vertex_count);
+    virtual void LoadIndexDataOnGpu(CommandList& command_list);
+    void Loadtexture(CommandList& command_list, GpuResource* res, TextureData* tex_data, const CD3DX12_RESOURCE_DESC &tex_desc, const D3D12_SRV_DIMENSION &srv_dim, uint32_t idx) const;
     void AllocateVertexBuffer(uint32_t size);
 
     enum dirty_bits {
