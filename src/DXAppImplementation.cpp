@@ -648,8 +648,6 @@ void DXAppImplementation::BlurSSAO(ComPtr<ID3D12GraphicsCommandList6>& command_l
 		m_commandQueueCompute->GetGpuHeap().StageDesctriptor(bi_ssao_uav_tex, tto_ssao_blur_uav, uav->GetCPUhandle());
 	}
 
-	//m_ssao->BindBluerConstants(command_list, 1);
-   // m_ssao->GenerateSSAO(command_list);
 	m_commandQueueCompute->GetGpuHeap().CommitRootSignature(command_list, false);
 
 	command_list->Dispatch((uint32_t)ceilf(float(m_width) / threads_num), (uint32_t)ceilf(float(m_height) / threads_num), 1);

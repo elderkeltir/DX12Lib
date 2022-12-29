@@ -245,7 +245,7 @@ void Level::RenderEntity(ComPtr<ID3D12GraphicsCommandList6>& command_list, Level
         DirectX::XMFLOAT4 rt_dim(w, h, 1.f / w, 1.f / h);
         gD3DApp->SetVector4Constant(Constants::cRTdim, rt_dim);
 
-        DirectX::XMFLOAT4 z_near_far(m_camera->GetNearZ(), m_camera->GetFarZ(), (float)m_terrain->GetTerrainDim(), gD3DApp->GetRenderMode());
+        DirectX::XMFLOAT4 z_near_far(m_camera->GetNearZ(), m_camera->GetFarZ(), (float)m_terrain->GetTerrainDim(), (float)gD3DApp->GetRenderMode());
         gD3DApp->SetVector4Constant(Constants::cNearFar, z_near_far);
 
         DirectX::XMFLOAT4 time_vec(gD3DApp->FrameTime().count(), gD3DApp->TotalTime().count(), 0, 0);

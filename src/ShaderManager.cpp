@@ -74,8 +74,8 @@ ShaderManager::ShaderManager()
 
 	s_custom_handler = new CustomIncludeHandler;
 
-	m_shader_source_dir = gD3DApp->GetRootDir() / L"content" / L"shaders";
-	m_shader_bin_dir = gD3DApp->GetRootDir() / L"build" / L"shaders";
+	m_shader_source_dir = gD3DApp->GetRootDir() / L"shaders";
+	m_shader_bin_dir = gD3DApp->GetRootDir() / L"build" / L"src" / L"shaders";
 }
 
 ShaderManager::~ShaderManager()

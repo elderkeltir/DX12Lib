@@ -25,7 +25,8 @@ enum BindingId {
     bi_model_cb                     = 0,
     bi_g_buffer_tex_table           = 1,
     bi_scene_cb                     = 2,
-    bi_materials_cb                 = 3,
+    bi_vertex_buffer                = 3,
+    bi_materials_cb                 = 4,
     bi_lights_cb                    = 3,
     bi_deferred_shading_tex_table   = 1,
     bi_post_proc_input_tex_table    = 0,
@@ -57,6 +58,7 @@ enum TextureTableOffset {
     tto_ssao_blur_srv               = 0,
     tto_ssao_blur_uav               = 0,
     tto_fwd_skybox                  = 0,
+    tto_vertex_buffer               = 5,
 };
 
 enum ConstantBuffers {

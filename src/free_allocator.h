@@ -15,7 +15,7 @@ namespace pro_game_containers {
             m_free_spaces.push_back({(uint64_t)m_buffer.get(), size});
         }
 
-        uint64_t Allocate(uint32_t size) {
+        uint64_t allocate(uint32_t size) {
             for (auto &free_space : m_free_spaces){
                 if (free_space.size >= size){
                     uint64_t start = free_space.start;
@@ -31,7 +31,7 @@ namespace pro_game_containers {
             return 0;
         }
         
-        void Deallocate(uint64_t start, uint32_t size) {
+        void deallocate(uint64_t start, uint32_t size) {
             std::vector<MemoryBlock>::iterator before_block = m_free_spaces.end();
             std::vector<MemoryBlock>::iterator after_block = m_free_spaces.end();
 
@@ -59,6 +59,8 @@ namespace pro_game_containers {
                 m_free_spaces.push_back({ start, size});
             }
         }
+
+        uint64_t begin() const { return (uint64_t)m_buffer.get(); }
     private:
         struct MemoryBlock {
             uint64_t start;

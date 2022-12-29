@@ -243,6 +243,7 @@ GpuResource* RenderModel::GetTexture(TextureType type)
 		return m_diffuse_tex.get();
 	default:
 		assert(false);
+        return nullptr;
     }
 }
 

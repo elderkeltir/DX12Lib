@@ -536,6 +536,80 @@ static Techniques::Technique CreateTechnique_8(ComPtr<ID3D12Device2>& device, Ro
 	return tech;
 }
 
+// shadow_map
+static Techniques::Technique CreateTechnique_9(ComPtr<ID3D12Device2>& device, RootSignature& root_sign, std::optional<std::wstring> dbg_name = std::nullopt) {
+	Techniques::Technique tech;
+	tech.vs = L"water_vs.hlsl";
+	tech.ps = L"water_ps.hlsl";
+	tech.root_signature = root_sign.id;
+
+	struct PipelineStateStream
+	{
+		CD3DX12_PIPELINE_STATE_STREAM_ROOT_SIGNATURE pRootSignature;
+		CD3DX12_PIPELINE_STATE_STREAM_PRIMITIVE_TOPOLOGY PrimitiveTopologyType;
+		CD3DX12_PIPELINE_STATE_STREAM_VS VS;
+		CD3DX12_PIPELINE_STATE_STREAM_PS PS;
+		CD3DX12_PIPELINE_STATE_STREAM_DEPTH_STENCIL_FORMAT DSVFormat;
+		CD3DX12_PIPELINE_STATE_STREAM_RENDER_TARGET_FORMATS RTVFormats;
+		CD3DX12_PIPELINE_STATE_STREAM_DEPTH_STENCIL ds_desc;
+		CD3DX12_PIPELINE_STATE_STREAM_RASTERIZER raster_dec;
+		CD3DX12_PIPELINE_STATE_STREAM_BLEND_DESC blend_desc;
+	} pipelineStateStream;
+
+	D3D12_RT_FORMAT_ARRAY rtvFormats = { DXGI_FORMAT_R16G16B16A16_FLOAT };
+	rtvFormats.NumRenderTargets = 1;
+
+	CD3DX12_SHADER_BYTECODE vs;
+	CD3DX12_SHADER_BYTECODE ps;
+	if (std::shared_ptr<ShaderManager> shader_mgr = gD3DApp->GetShaderManager().lock()) {
+		ShaderManager::ShaderBlob* vs_blob = shader_mgr->Load(tech.vs, L"main", ShaderManager::ShaderType::st_vertex);
+		ShaderManager::ShaderBlob* ps_blob = shader_mgr->Load(tech.ps, L"main", ShaderManager::ShaderType::st_pixel);
+		vs = CD3DX12_SHADER_BYTECODE((const void*)vs_blob->data.data(), vs_blob->data.size());
+		ps = CD3DX12_SHADER_BYTECODE((const void*)ps_blob->data.data(), ps_blob->data.size());
+	}
+	else {
+		assert(false);
+	}
+
+	CD3DX12_DEPTH_STENCIL_DESC dsd(CD3DX12_DEFAULT{});
+	dsd.DepthFunc = D3D12_COMPARISON_FUNC_LESS_EQUAL;
+
+	CD3DX12_RASTERIZER_DESC rd(CD3DX12_DEFAULT{});
+	rd.CullMode = D3D12_CULL_MODE_NONE;
+
+	CD3DX12_BLEND_DESC bs(CD3DX12_DEFAULT{});
+	D3D12_RENDER_TARGET_BLEND_DESC transparencyBlendDesc;
+	transparencyBlendDesc.BlendEnable = true;
+	transparencyBlendDesc.LogicOpEnable = false;
+	transparencyBlendDesc.SrcBlend = D3D12_BLEND_SRC_ALPHA;
+	transparencyBlendDesc.DestBlend = D3D12_BLEND_INV_SRC_ALPHA;
+	transparencyBlendDesc.BlendOp = D3D12_BLEND_OP_ADD;
+	transparencyBlendDesc.SrcBlendAlpha = D3D12_BLEND_ONE;
+	transparencyBlendDesc.DestBlendAlpha = D3D12_BLEND_ZERO;
+	transparencyBlendDesc.BlendOpAlpha = D3D12_BLEND_OP_ADD;
+	transparencyBlendDesc.LogicOp = D3D12_LOGIC_OP_NOOP;
+	transparencyBlendDesc.RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL;
+	bs.RenderTarget[0] = transparencyBlendDesc;
+
+	pipelineStateStream.pRootSignature = root_sign.GetRootSignature().Get();
+	pipelineStateStream.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+	pipelineStateStream.VS = vs;
+	pipelineStateStream.PS = ps;
+	pipelineStateStream.DSVFormat = DXGI_FORMAT_D32_FLOAT;
+	pipelineStateStream.RTVFormats = rtvFormats;
+	pipelineStateStream.ds_desc = dsd;
+	pipelineStateStream.raster_dec = rd;
+	pipelineStateStream.blend_desc = bs;
+
+	D3D12_PIPELINE_STATE_STREAM_DESC pipelineStateStreamDesc = {
+		sizeof(PipelineStateStream), &pipelineStateStream
+	};
+	ThrowIfFailed(device->CreatePipelineState(&pipelineStateStreamDesc, IID_PPV_ARGS(&tech.pipeline_state)));
+	SetName(tech.pipeline_state, dbg_name.value_or(L"").append(L"_pso_8").c_str());
+
+	return tech;
+}
+
 // root sign for g-buffer
 void Techniques::CreateRootSignature_0(ComPtr<ID3D12Device2> &device, RootSignature* root_sign, std::optional<std::wstring> dbg_name){
     // Create a root signature.
@@ -557,11 +631,12 @@ void Techniques::CreateRootSignature_0(ComPtr<ID3D12Device2> &device, RootSignat
     auto staticSamplers = GetStaticSamplers();
 
     auto &root_params_vec = root_sign->GetRootParams();
-    root_params_vec.resize(4);
+    root_params_vec.resize(5);
     root_params_vec[bi_model_cb].InitAsConstantBufferView     (cb_model, 0, D3D12_ROOT_DESCRIPTOR_FLAG_NONE, D3D12_SHADER_VISIBILITY_ALL);
     root_params_vec[bi_g_buffer_tex_table].InitAsDescriptorTable        (1, &tex_table_srv, D3D12_SHADER_VISIBILITY_PIXEL);
     root_params_vec[bi_scene_cb].InitAsConstantBufferView     (cb_scene, 0, D3D12_ROOT_DESCRIPTOR_FLAG_NONE);
-    root_params_vec[bi_materials_cb].InitAsConstantBufferView     (cb_materials, 0, D3D12_ROOT_DESCRIPTOR_FLAG_NONE, D3D12_SHADER_VISIBILITY_PIXEL);
+    root_params_vec[bi_vertex_buffer].InitAsShaderResourceView(tto_vertex_buffer);
+    root_params_vec[bi_materials_cb].InitAsConstantBufferView (cb_materials, 0, D3D12_ROOT_DESCRIPTOR_FLAG_NONE, D3D12_SHADER_VISIBILITY_PIXEL);
     
 
     CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC rootSignatureDescription;

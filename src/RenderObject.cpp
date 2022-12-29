@@ -15,6 +15,7 @@ void RenderObject::LoadVertexDataOnGpu(ComPtr<ID3D12GraphicsCommandList6> &comma
         m_VertexBuffer->CreateBuffer(HeapBuffer::BufferType::bt_default, (vertex_count * size_of_vertex), HeapBuffer::UseFlag::uf_none, D3D12_RESOURCE_STATE_COPY_DEST, std::wstring(L"vertex_buffer").append(m_name));
         m_VertexBuffer->LoadBuffer(commandList, vertex_count, size_of_vertex, data);
         if (std::shared_ptr<HeapBuffer> buff = m_VertexBuffer->GetBuffer().lock()){
+            //if (std::shared_ptr<GfxCommandQueue> queu)
             commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(buff->GetResource().Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER));
         }
         m_VertexBuffer->Create_Vertex_View((vertex_count * size_of_vertex), size_of_vertex);
