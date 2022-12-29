@@ -134,7 +134,6 @@ void SSAO::UpdateSsaoCB(UINT k_size, float r, float bs, uint32_t noise_size)
 
 void SSAO::SsaoConstants::BuildOffsetVectors()
 {
-
 	for (uint32_t i = 0; i < kernelSize; ++i)
 	{
 		DirectX::XMFLOAT4 p (
