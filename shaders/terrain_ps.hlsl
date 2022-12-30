@@ -1,4 +1,4 @@
-#include "shader_defs.ihlsl"
+#include "shader_defs.hlsl"
 
 
 

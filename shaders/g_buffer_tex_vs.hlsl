@@ -1,4 +1,6 @@
-#include "constant_buffers.ihlsl"
+#include "constant_buffers.hlsl"
+
+ByteAddressBuffer vertex_data : register(t5);
 
 struct VertexPosColor
 {
@@ -17,9 +19,37 @@ struct VertexShaderOutput
     float4 Position : SV_Position;
 };
 
-VertexShaderOutput main(VertexPosColor IN)
+float3 unpack_vertex_float3(uint offset)
+{
+    float3 output;
+    output.x = asfloat(vertex_data.Load(offset));
+    output.y = asfloat(vertex_data.Load(offset + 4));
+    output.z = asfloat(vertex_data.Load(offset + 8));
+    
+    return output;
+}
+
+float2 unpack_vertex_float2(uint offset)
+{
+    float2 output;
+    output.x = asfloat(vertex_data.Load(offset));
+    output.y = asfloat(vertex_data.Load(offset + 4));
+    
+    return output;
+}
+
+VertexShaderOutput main(uint vert_id : SV_VertexID)
 {
     VertexShaderOutput OUT;
+    VertexPosColor IN;
+    uint vertex_offset_current = vertex_offset + ((56) * vert_id);
+    IN.Position.xyz = unpack_vertex_float3(vertex_offset_current);
+    IN.Normal.xyz = unpack_vertex_float3(vertex_offset_current + 12);
+    IN.tangents.xyz = unpack_vertex_float3(vertex_offset_current + 24);
+    IN.bitangents.xyz = unpack_vertex_float3(vertex_offset_current + 36);
+    IN.TexC.xy = unpack_vertex_float2(vertex_offset_current + 48);
+    
+    
     matrix MVP = mul(M, V);
     MVP = mul(MVP, P);
     OUT.Position = mul(float4(IN.Position, 1.0f), MVP);

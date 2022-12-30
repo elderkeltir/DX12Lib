@@ -1,6 +1,8 @@
-#include "constant_buffers.ihlsl"
+#include "constant_buffers.hlsl"
 
-struct VertexPosColor
+ByteAddressBuffer vertex_data : register(t5);
+
+struct VertexPos
 {
     float3 Position : POSITION;
 };
@@ -11,9 +13,24 @@ struct VertexShaderOutput
     float3 tex_coord    : TEXCOORD;
 };
 
-VertexShaderOutput main(VertexPosColor IN)
+float3 unpack_vertex_float3(uint offset)
+{
+    float3 output;
+    output.x = asfloat(vertex_data.Load(offset));
+    output.y = asfloat(vertex_data.Load(offset + 4));
+    output.z = asfloat(vertex_data.Load(offset + 8));
+    
+    return output;
+}
+
+VertexShaderOutput main(uint vert_id : SV_VertexID)
 {
     VertexShaderOutput OUT;
+    
+    VertexPos IN;
+    uint vertex_offset_current = vertex_offset + (12 * vert_id);
+    IN.Position.xyz = unpack_vertex_float3(vertex_offset_current);
+    
     OUT.tex_coord = IN.Position;
 
     // proj pos

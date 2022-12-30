@@ -1,4 +1,4 @@
-#include "shader_defs.ihlsl"
+#include "shader_defs.hlsl"
 
 struct ps_output
 {

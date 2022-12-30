@@ -24,6 +24,7 @@ public:
 	void ClearRenderTargetView(D3D12_CPU_DESCRIPTOR_HANDLE rtv, const float color[4], uint32_t num_rects, const D3D12_RECT* rect);
 	void ClearDepthStencilView(D3D12_CPU_DESCRIPTOR_HANDLE dsv, D3D12_CLEAR_FLAGS clear_flags, float depth, uint8_t stencil, uint32_t num_rects, const D3D12_RECT* rects);
 	void Dispatch(uint32_t thread_group_count_x, uint32_t thread_group_count_y, uint32_t thread_group_count_z);
+	void SetGraphicsRootShaderResourceView(uint32_t root_parameter_index, D3D12_GPU_VIRTUAL_ADDRESS buffer_location);
 
 	ComPtr<ID3D12GraphicsCommandList6>& GetRawCommandList() { return m_command_list; }
 	GfxCommandQueue* GetQueue() { return m_queue; }

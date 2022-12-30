@@ -16,7 +16,7 @@
 #include "SSAO.h"
 #include "ImguiHelper.h"
 #include "Logger.h"
-
+#include "GpuDataManager.h"
 #include "WinPixEventRuntime/pix3.h"
 
 #if defined(USE_PIX) && defined(USE_PIX_DEBUG)
@@ -66,6 +66,8 @@ void DXAppImplementation::OnInit()
 	m_deferred_shading_quad->Initialize();
 	m_forward_quad->Initialize();
 	m_ssao->Initialize(m_width, m_height, L"SSAO_");
+
+	m_gpu_data_mgr->Initialize();
 
 	m_gui->Initialize(m_device, FrameCount);
 	ThrowIfFailed(m_device->CreateFence(m_fence_inter_queue_val, D3D12_FENCE_FLAG_SHARED, IID_PPV_ARGS(&m_fence_inter_queue)));
@@ -457,25 +459,25 @@ void DXAppImplementation::RenderPostProcessQuad(CommandList& command_list) {
 
 	if (std::shared_ptr<GpuResource> rt = m_post_process_quad->GetRt(m_frameIndex).lock()) {
 		if (std::shared_ptr<ResourceDescriptor> srv = rt->GetSRV().lock()) {
-			m_commandQueueGfx->GetGpuHeap().StageDesctriptor(bi_post_proc_input_tex_table, tto_postp_input, srv->GetCPUhandle());
+			m_commandQueueGfx->GetGpuHeap().StageDesctriptorInTable(bi_post_proc_input_tex_table, tto_postp_input, srv->GetCPUhandle());
 		}
 	}
 
 	m_post_process_quad->LoadDataToGpu(command_list);
 	if (std::shared_ptr<GpuResource> rt = m_gui->GetGuiQuad()->GetRt(m_frameIndex).lock()) {
 		if (std::shared_ptr<ResourceDescriptor> srv = rt->GetSRV().lock()) {
-			m_commandQueueGfx->GetGpuHeap().StageDesctriptor(bi_post_proc_input_tex_table, tto_postp_gui, srv->GetCPUhandle());
+			m_commandQueueGfx->GetGpuHeap().StageDesctriptorInTable(bi_post_proc_input_tex_table, tto_postp_gui, srv->GetCPUhandle());
 		}
 	}
 
 	if (std::shared_ptr<GpuResource> rt = m_forward_quad->GetRt(m_frameIndex).lock()) {
 		if (std::shared_ptr<ResourceDescriptor> srv = rt->GetSRV().lock()) {
-			m_commandQueueGfx->GetGpuHeap().StageDesctriptor(bi_post_proc_input_tex_table, tto_postp_fwd, srv->GetCPUhandle());
+			m_commandQueueGfx->GetGpuHeap().StageDesctriptorInTable(bi_post_proc_input_tex_table, tto_postp_fwd, srv->GetCPUhandle());
 		}
 	}
 
 	if (std::shared_ptr<ResourceDescriptor> srv = m_ssao->GetSSAOres(1)->GetSRV().lock()) {
-		m_commandQueueGfx->GetGpuHeap().StageDesctriptor(bi_post_proc_input_tex_table, tto_postp_ssao, srv->GetCPUhandle());
+		m_commandQueueGfx->GetGpuHeap().StageDesctriptorInTable(bi_post_proc_input_tex_table, tto_postp_ssao, srv->GetCPUhandle());
 	}
 
 	CommitCB(command_list, cb_scene);
@@ -552,12 +554,12 @@ void DXAppImplementation::RenderDeferredShadingQuad(CommandList& command_list) {
 	for (uint32_t i = 0; i < rts_vec.size(); i++) {
 		std::shared_ptr<GpuResource>& rt = rts_vec[i];
 		if (std::shared_ptr<ResourceDescriptor> srv = rt->GetSRV().lock()) {
-			m_commandQueueGfx->GetGpuHeap().StageDesctriptor(bi_deferred_shading_tex_table, TextureTableOffset(i), srv->GetCPUhandle());
+			m_commandQueueGfx->GetGpuHeap().StageDesctriptorInTable(bi_deferred_shading_tex_table, TextureTableOffset(i), srv->GetCPUhandle());
 		}
 	}
 
 	if (std::shared_ptr<ResourceDescriptor> srv = m_ssao->GetSSAOres(1)->GetSRV().lock()) {
-		m_commandQueueGfx->GetGpuHeap().StageDesctriptor(bi_deferred_shading_tex_table, tto_gbuff_ssao, srv->GetCPUhandle());
+		m_commandQueueGfx->GetGpuHeap().StageDesctriptorInTable(bi_deferred_shading_tex_table, tto_gbuff_ssao, srv->GetCPUhandle());
 	}
 
 	m_commandQueueGfx->GetGpuHeap().CommitRootSignature(command_list);
@@ -578,22 +580,22 @@ void DXAppImplementation::RenderSSAOquad(CommandList& command_list) {
 
 	if (std::shared_ptr<GpuResource> rt = m_deferred_shading_quad->GetRt(m_frameIndex, 1).lock()) {
 		if (std::shared_ptr<ResourceDescriptor> srv = rt->GetSRV().lock()) {
-			m_commandQueueCompute->GetGpuHeap().StageDesctriptor(bi_ssao_input_tex, tto_ssao_normals, srv->GetCPUhandle());
+			m_commandQueueCompute->GetGpuHeap().StageDesctriptorInTable(bi_ssao_input_tex, tto_ssao_normals, srv->GetCPUhandle());
 		}
 	}
 	if (std::shared_ptr<GpuResource> rt = m_deferred_shading_quad->GetRt(m_frameIndex, 2).lock()) {
 		if (std::shared_ptr<ResourceDescriptor> srv = rt->GetSRV().lock()) {
-			m_commandQueueCompute->GetGpuHeap().StageDesctriptor(bi_ssao_input_tex, tto_ssao_positions, srv->GetCPUhandle());
+			m_commandQueueCompute->GetGpuHeap().StageDesctriptorInTable(bi_ssao_input_tex, tto_ssao_positions, srv->GetCPUhandle());
 		}
 	}
 	if (std::shared_ptr<ResourceDescriptor> srv = m_ssao->GetRandomVals()->GetSRV().lock()) {
-		m_commandQueueCompute->GetGpuHeap().StageDesctriptor(bi_ssao_input_tex, tto_ssao_random_vals, srv->GetCPUhandle());
+		m_commandQueueCompute->GetGpuHeap().StageDesctriptorInTable(bi_ssao_input_tex, tto_ssao_random_vals, srv->GetCPUhandle());
 	}
 	if (std::shared_ptr<ResourceDescriptor> depth_view = m_depthStencil->GetSRV().lock()) {
-		m_commandQueueCompute->GetGpuHeap().StageDesctriptor(bi_ssao_input_tex, tto_ssao_depth, depth_view->GetCPUhandle());
+		m_commandQueueCompute->GetGpuHeap().StageDesctriptorInTable(bi_ssao_input_tex, tto_ssao_depth, depth_view->GetCPUhandle());
 	}
 	if (std::shared_ptr<ResourceDescriptor> uav = m_ssao->GetSSAOres(0)->GetUAV().lock()) {
-		m_commandQueueCompute->GetGpuHeap().StageDesctriptor(bi_ssao_uav_tex, tto_ssao_blur_uav, uav->GetCPUhandle());
+		m_commandQueueCompute->GetGpuHeap().StageDesctriptorInTable(bi_ssao_uav_tex, tto_ssao_blur_uav, uav->GetCPUhandle());
 	}
 
 	gD3DApp->CommitCB(command_list, cb_scene, false);
@@ -621,11 +623,11 @@ void DXAppImplementation::BlurSSAO(CommandList& command_list)
 	m_commandQueueCompute->GetGpuHeap().CacheRootSignature(gD3DApp->GetRootSignById(tech->root_signature));
 
 	if (std::shared_ptr<ResourceDescriptor> srv = m_ssao->GetSSAOres(0)->GetSRV().lock()) {
-		m_commandQueueCompute->GetGpuHeap().StageDesctriptor(bi_ssao_input_tex, tto_ssao_blur_srv, srv->GetCPUhandle());
+		m_commandQueueCompute->GetGpuHeap().StageDesctriptorInTable(bi_ssao_input_tex, tto_ssao_blur_srv, srv->GetCPUhandle());
 	}
 
 	if (std::shared_ptr<ResourceDescriptor> uav = m_ssao->GetSSAOres(1)->GetUAV().lock()) {
-		m_commandQueueCompute->GetGpuHeap().StageDesctriptor(bi_ssao_uav_tex, tto_ssao_blur_uav, uav->GetCPUhandle());
+		m_commandQueueCompute->GetGpuHeap().StageDesctriptorInTable(bi_ssao_uav_tex, tto_ssao_blur_uav, uav->GetCPUhandle());
 	}
 	// bind ssao cb
 	//m_ssao->GenerateSSAO(command_list, false);
@@ -641,11 +643,11 @@ void DXAppImplementation::BlurSSAO(CommandList& command_list)
 
 
 	if (std::shared_ptr<ResourceDescriptor> srv = m_ssao->GetSSAOres(1)->GetSRV().lock()) {
-		m_commandQueueCompute->GetGpuHeap().StageDesctriptor(bi_ssao_input_tex, tto_ssao_blur_srv, srv->GetCPUhandle());
+		m_commandQueueCompute->GetGpuHeap().StageDesctriptorInTable(bi_ssao_input_tex, tto_ssao_blur_srv, srv->GetCPUhandle());
 	}
 
 	if (std::shared_ptr<ResourceDescriptor> uav = m_ssao->GetSSAOres(2)->GetUAV().lock()) {
-		m_commandQueueCompute->GetGpuHeap().StageDesctriptor(bi_ssao_uav_tex, tto_ssao_blur_uav, uav->GetCPUhandle());
+		m_commandQueueCompute->GetGpuHeap().StageDesctriptorInTable(bi_ssao_uav_tex, tto_ssao_blur_uav, uav->GetCPUhandle());
 	}
 
 	m_commandQueueCompute->GetGpuHeap().CommitRootSignature(command_list, false);

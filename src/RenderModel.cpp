@@ -7,6 +7,7 @@
 #include "VertexFormats.h"
 #include "GfxCommandQueue.h"
 #include "DynamicGpuHeap.h"
+#include "GpuDataManager.h"
 
 extern DXAppImplementation *gD3DApp;
 
@@ -137,15 +138,6 @@ void RenderModel::Render(CommandList& command_list, const DirectX::XMFLOAT4X4 &p
     parent_xform_mx = DirectX::XMMatrixMultiply(m_transformations->GetModel(), parent_xform_mx);
 
     if (m_mesh && m_mesh->GetIndicesNum() > 0){
-        if (m_VertexBuffer) {
-            if (std::shared_ptr<D3D12_VERTEX_BUFFER_VIEW> vert_view = m_VertexBuffer->Get_Vertex_View().lock()) {
-                command_list.IASetVertexBuffers(0, 1, vert_view.get());
-            }
-            else {
-                assert(false);
-            }
-        }
-
         if (std::shared_ptr<D3D12_INDEX_BUFFER_VIEW> ind_view = m_IndexBuffer->Get_Index_View().lock()){
             command_list.IASetIndexBuffer(ind_view.get());
         }
@@ -157,36 +149,41 @@ void RenderModel::Render(CommandList& command_list, const DirectX::XMFLOAT4X4 &p
         if (std::shared_ptr<GfxCommandQueue> gfx_queue = gD3DApp->GetGfxQueue().lock()) {
             if (m_diffuse_tex) {
                 if (std::shared_ptr<ResourceDescriptor> srv = m_diffuse_tex->GetSRV().lock()) {
-                    gfx_queue->GetGpuHeap().StageDesctriptor(bi_g_buffer_tex_table, tto_albedo, srv->GetCPUhandle());
+                    gfx_queue->GetGpuHeap().StageDesctriptorInTable(bi_g_buffer_tex_table, tto_albedo, srv->GetCPUhandle());
                 }
             }
 
             if (m_normals_tex) {
                 if (std::shared_ptr<ResourceDescriptor> srv = m_normals_tex->GetSRV().lock()) {
-                    gfx_queue->GetGpuHeap().StageDesctriptor(bi_g_buffer_tex_table, tto_normals, srv->GetCPUhandle());
+                    gfx_queue->GetGpuHeap().StageDesctriptorInTable(bi_g_buffer_tex_table, tto_normals, srv->GetCPUhandle());
                 }
             }
 
             if (m_metallic_tex) {
                 if (std::shared_ptr<ResourceDescriptor> srv = m_metallic_tex->GetSRV().lock()) {
-                    gfx_queue->GetGpuHeap().StageDesctriptor(bi_g_buffer_tex_table, tto_metallic, srv->GetCPUhandle());
+                    gfx_queue->GetGpuHeap().StageDesctriptorInTable(bi_g_buffer_tex_table, tto_metallic, srv->GetCPUhandle());
                 }
             }
 
             if (m_roughness_tex) {
                 if (std::shared_ptr<ResourceDescriptor> srv = m_roughness_tex->GetSRV().lock()) {
-                    gfx_queue->GetGpuHeap().StageDesctriptor(bi_g_buffer_tex_table, tto_roughness, srv->GetCPUhandle());
+                    gfx_queue->GetGpuHeap().StageDesctriptorInTable(bi_g_buffer_tex_table, tto_roughness, srv->GetCPUhandle());
                 }
             }
 
             gfx_queue->GetGpuHeap().CommitRootSignature(command_list);
         }
-
         
         if (m_constant_buffer) {
             gD3DApp->SetModelCB(m_constant_buffer.get());
             gD3DApp->SetMatrix4Constant(Constants::cM, parent_xform_mx);
             gD3DApp->SetUint32(Constants::cMat, m_material_id);
+            if (std::shared_ptr<GpuDataManager> gpu_res_mgr = gD3DApp->GetGpuDataManager().lock()) {
+                const uint64_t base = gpu_res_mgr->GetBase();
+                gD3DApp->SetUint32(Constants::cVertexBufferOffset, uint32_t(m_vertex_buffer_start - base));
+                gpu_res_mgr->GetVertexBuffer();
+            }
+            
             gD3DApp->CommitCB(command_list, cb_model);
         }
 
@@ -205,9 +202,9 @@ void RenderModel::LoadDataToGpu(CommandList& command_list){
     if (m_mesh && m_mesh->GetIndicesNum() > 0){
         if (m_dirty & db_vertex){
             FormVertexes();
+            m_dirty &= (~db_vertex);
         }
         const Techniques::Technique * tech = gD3DApp->GetTechniqueById(m_tech_id);
-        LoadVertexDataOnGpu(command_list, (const void*)m_vertex_buffer_start, GetSizeByVertexType(tech->vertex_type), m_mesh->GetVerticesNum());
         LoadIndexDataOnGpu(command_list);
         LoadTextures(command_list);
         LoadConstantData(command_list);

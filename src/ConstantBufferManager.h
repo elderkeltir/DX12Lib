@@ -12,23 +12,24 @@ using Microsoft::WRL::ComPtr;
 class CommandList;
 
 enum class Constants {
-    cCP,            // camera pos
-    cM,             // model matrix
-    cV,             // view matrix
-    cP,             // projection matrix
-    cMat,           // material id
-    cPinv,          // ViewProj inverted
-    cRTdim,         // rt size
-    cNearFar,       // x - Znear, y - Zfar, z - terrain_dim, w - render_mode (0 - default, 1 - ssao)
-    cTime,          // x - dt, y - total_time, zw - FREE
+    cCP,                    // camera pos
+    cM,                     // model matrix
+    cV,                     // view matrix
+    cP,                     // projection matrix
+    cMat,                   // material id
+    cPinv,                  // ViewProj inverted
+    cRTdim,                 // rt size
+    cNearFar,               // x - Znear, y - Zfar, z - terrain_dim, w - render_mode (0 - default, 1 - ssao)
+    cTime,                  // x - dt, y - total_time, zw - FREE
+    cVertexBufferOffset,    // 
 };
 
 enum BindingId {
     bi_model_cb                     = 0,
     bi_g_buffer_tex_table           = 1,
     bi_scene_cb                     = 2,
-    bi_vertex_buffer                = 3,
-    bi_materials_cb                 = 4,
+    bi_vertex_buffer                = 4,
+    bi_materials_cb                 = 3,
     bi_lights_cb                    = 3,
     bi_deferred_shading_tex_table   = 1,
     bi_post_proc_input_tex_table    = 0,
@@ -90,7 +91,8 @@ public:
     struct ModelCB {
         DirectX::XMFLOAT4X4 M;
         uint32_t material_id;
-        DirectX::XMFLOAT3 padding;
+        uint32_t vertex_buffer_offset;
+        DirectX::XMFLOAT2 padding;
     };
 
     // 1 x 256

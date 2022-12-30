@@ -1,5 +1,5 @@
-#include "constant_buffers.ihlsl"
-#include "shader_defs.ihlsl"
+#include "constant_buffers.hlsl"
+#include "shader_defs.hlsl"
 
 Texture2D height_map : register(t0);
 

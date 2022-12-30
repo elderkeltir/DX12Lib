@@ -22,7 +22,8 @@ struct Light
 cbuffer ModelCB : register(b0) {
     float4x4 M;
     uint material_id;
-    float3 padding;
+	uint vertex_offset;
+    float2 padding;
 };
 
 // 1 x 256

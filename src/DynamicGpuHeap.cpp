@@ -48,7 +48,7 @@ void DynamicGpuHeap::CacheRootSignature(const RootSignature * root_sig) {
     }
 }
 
-void DynamicGpuHeap::StageDesctriptor(uint32_t root_id, uint32_t offset, CD3DX12_CPU_DESCRIPTOR_HANDLE &desc_handle)
+void DynamicGpuHeap::StageDesctriptorInTable(uint32_t root_id, uint32_t offset, CD3DX12_CPU_DESCRIPTOR_HANDLE &desc_handle)
 {
 	m_root_sig_cache[root_id].staged[offset] = desc_handle;
 	m_dirty_table_mask[root_id] |= (1ull << offset);

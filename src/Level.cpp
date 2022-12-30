@@ -26,6 +26,7 @@
 #include "SkyBox.h"
 #include "DynamicGpuHeap.h"
 #include "Plane.h"
+#include "GpuDataManager.h"
 
 extern DXAppImplementation *gD3DApp;
 using rapidjson::Document;
@@ -198,15 +199,15 @@ void Level::Render(CommandList& command_list){
     {
         uint32_t terrain_tech_id = m_terrain->GetTerrainTechId();
         const Techniques::Technique* tech = gD3DApp->GetTechniqueById(terrain_tech_id);
-        if (std::shared_ptr<GfxCommandQueue> gfx_queue = gD3DApp->GetGfxQueue().lock()) {
-            if (gfx_queue->GetPSO() != terrain_tech_id) {
-                gfx_queue->SetPSO(terrain_tech_id);
-            }
-            if (gfx_queue->GetRootSign() != tech->root_signature) {
-                gfx_queue->SetRootSign(tech->root_signature);
-            }
-            gfx_queue->GetGpuHeap().CacheRootSignature(gD3DApp->GetRootSignById(tech->root_signature));
+        GfxCommandQueue* gfx_queue = command_list.GetQueue();
+        if (gfx_queue->GetPSO() != terrain_tech_id) {
+            gfx_queue->SetPSO(terrain_tech_id);
         }
+        if (gfx_queue->GetRootSign() != tech->root_signature) {
+            gfx_queue->SetRootSign(tech->root_signature);
+        }
+        gfx_queue->GetGpuHeap().CacheRootSignature(gD3DApp->GetRootSignById(tech->root_signature));
+
         gD3DApp->CommitCB(command_list, cb_scene);
         m_terrain->Render(command_list);
     }
@@ -216,15 +217,14 @@ void Level::RenderEntity(CommandList& command_list, LevelEntity & ent, bool &is_
     ent.LoadDataToGpu(command_list);
 
     const Techniques::Technique *tech = gD3DApp->GetTechniqueById(ent.GetTechniqueId());
-    if (std::shared_ptr<GfxCommandQueue> gfx_queue = gD3DApp->GetGfxQueue().lock()){
-        if (gfx_queue->GetPSO() != ent.GetTechniqueId()){
-            gfx_queue->SetPSO(ent.GetTechniqueId());
-        }
-        if (gfx_queue->GetRootSign() != tech->root_signature){
-            gfx_queue->SetRootSign(tech->root_signature);
-        }
-        gfx_queue->GetGpuHeap().CacheRootSignature(gD3DApp->GetRootSignById(tech->root_signature));
+    GfxCommandQueue* gfx_queue = command_list.GetQueue();
+    if (gfx_queue->GetPSO() != ent.GetTechniqueId()){
+        gfx_queue->SetPSO(ent.GetTechniqueId());
     }
+    if (gfx_queue->GetRootSign() != tech->root_signature){
+        gfx_queue->SetRootSign(tech->root_signature);
+    }
+    gfx_queue->GetGpuHeap().CacheRootSignature(gD3DApp->GetRootSignById(tech->root_signature));
 
     if (!is_scene_constants_set){
         gD3DApp->CommitCB(command_list, cb_scene);
@@ -250,6 +250,13 @@ void Level::RenderEntity(CommandList& command_list, LevelEntity & ent, bool &is_
 
         DirectX::XMFLOAT4 time_vec(gD3DApp->FrameTime().count(), gD3DApp->TotalTime().count(), 0, 0);
         gD3DApp->SetVector4Constant(Constants::cTime, time_vec);
+
+        if (std::shared_ptr<GpuDataManager> gpu_res_mgr = gD3DApp->GetGpuDataManager().lock()) {
+            gpu_res_mgr->UploadToGpu(command_list);
+            if (std::shared_ptr<HeapBuffer> buff = gpu_res_mgr->GetVertexBuffer()->GetBuffer().lock()) {
+                command_list.SetGraphicsRootShaderResourceView(bi_vertex_buffer, buff->GetResource()->GetGPUVirtualAddress());
+            }
+        }
 		
         // update material CBs
 		if (std::shared_ptr<MaterialManager> mat_mgr = gD3DApp->GetMaterialManager().lock()) {
@@ -278,7 +285,7 @@ void Level::RenderWater(CommandList& command_list)
 
         GpuResource* skybox_tex = m_skybox_ent->GetTexture();
 		if (std::shared_ptr<ResourceDescriptor> srv = skybox_tex->GetSRV().lock()) {
-			gfx_queue->GetGpuHeap().StageDesctriptor(bi_fwd_tex, tto_fwd_skybox, srv->GetCPUhandle());
+			gfx_queue->GetGpuHeap().StageDesctriptorInTable(bi_fwd_tex, tto_fwd_skybox, srv->GetCPUhandle());
 		}
         gD3DApp->CommitCB(command_list, cb_scene);
         BindLights(command_list);

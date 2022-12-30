@@ -74,3 +74,8 @@ void CommandList::Dispatch(uint32_t thread_group_count_x, uint32_t thread_group_
 {
 	m_command_list->Dispatch(thread_group_count_x, thread_group_count_y, thread_group_count_z);
 }
+
+void CommandList::SetGraphicsRootShaderResourceView(uint32_t root_parameter_index, D3D12_GPU_VIRTUAL_ADDRESS buffer_location)
+{
+	m_command_list->SetGraphicsRootShaderResourceView(root_parameter_index, buffer_location);
+}

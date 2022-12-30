@@ -1,5 +1,5 @@
-#include "shader_defs.ihlsl"
-#include "constant_buffers.ihlsl"
+#include "shader_defs.hlsl"
+#include "constant_buffers.hlsl"
 
 Texture2D offScreenTexture : register(t0);
 Texture2D gui_texture : register(t1);

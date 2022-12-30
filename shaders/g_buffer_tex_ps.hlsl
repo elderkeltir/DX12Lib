@@ -1,5 +1,5 @@
-#include "shader_defs.ihlsl"
-#include "constant_buffers.ihlsl"
+#include "shader_defs.hlsl"
+#include "constant_buffers.hlsl"
 
 struct PixelShaderInput
 {

@@ -1,4 +1,4 @@
-#include "constant_buffers.ihlsl"
+#include "constant_buffers.hlsl"
 
 struct VS_IN
 {

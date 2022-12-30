@@ -86,17 +86,9 @@ static Techniques::Technique CreateTechnique_0(ComPtr<ID3D12Device2> &device, Ro
     tech.vertex_type = 0;
     tech.root_signature = root_sign.id;
 
-    // Create the vertex input layout
-    D3D12_INPUT_ELEMENT_DESC inputLayout[] = {
-        { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
-        { "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
-        { "COLOR", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
-    };
-
     struct PipelineStateStream
     {
         CD3DX12_PIPELINE_STATE_STREAM_ROOT_SIGNATURE pRootSignature;
-        CD3DX12_PIPELINE_STATE_STREAM_INPUT_LAYOUT InputLayout;
         CD3DX12_PIPELINE_STATE_STREAM_PRIMITIVE_TOPOLOGY PrimitiveTopologyType;
         CD3DX12_PIPELINE_STATE_STREAM_VS VS;
         CD3DX12_PIPELINE_STATE_STREAM_PS PS;
@@ -120,7 +112,6 @@ static Techniques::Technique CreateTechnique_0(ComPtr<ID3D12Device2> &device, Ro
     }
 
     pipelineStateStream.pRootSignature = root_sign.GetRootSignature().Get();
-    pipelineStateStream.InputLayout = { inputLayout, _countof(inputLayout) };
     pipelineStateStream.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
     pipelineStateStream.VS = vs;
     pipelineStateStream.PS = ps;
@@ -143,19 +134,9 @@ static Techniques::Technique CreateTechnique_1(ComPtr<ID3D12Device2> &device, Ro
     tech.vertex_type = 1;
     tech.root_signature = root_sign.id;
 
-    // Create the vertex input layout
-    D3D12_INPUT_ELEMENT_DESC inputLayout[] = {
-        { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
-		{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
-        { "TANGENTS", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
-        { "BITANGENTS", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
-		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
-    };
-
     struct PipelineStateStream
     {
         CD3DX12_PIPELINE_STATE_STREAM_ROOT_SIGNATURE pRootSignature;
-        CD3DX12_PIPELINE_STATE_STREAM_INPUT_LAYOUT InputLayout;
         CD3DX12_PIPELINE_STATE_STREAM_PRIMITIVE_TOPOLOGY PrimitiveTopologyType;
         CD3DX12_PIPELINE_STATE_STREAM_VS VS;
         CD3DX12_PIPELINE_STATE_STREAM_PS PS;
@@ -179,7 +160,6 @@ static Techniques::Technique CreateTechnique_1(ComPtr<ID3D12Device2> &device, Ro
     }
 
     pipelineStateStream.pRootSignature = root_sign.GetRootSignature().Get();
-    pipelineStateStream.InputLayout = { inputLayout, _countof(inputLayout) };
     pipelineStateStream.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
     pipelineStateStream.VS = vs;
     pipelineStateStream.PS = ps;
@@ -310,15 +290,9 @@ static Techniques::Technique CreateTechnique_4(ComPtr<ID3D12Device2> &device, Ro
     tech.vertex_type = 3;
     tech.root_signature = root_sign.id;
 
-    // Create the vertex input layout
-    D3D12_INPUT_ELEMENT_DESC inputLayout[] = {
-        { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
-    };
-
     struct PipelineStateStream
     {
         CD3DX12_PIPELINE_STATE_STREAM_ROOT_SIGNATURE pRootSignature;
-        CD3DX12_PIPELINE_STATE_STREAM_INPUT_LAYOUT InputLayout;
         CD3DX12_PIPELINE_STATE_STREAM_PRIMITIVE_TOPOLOGY PrimitiveTopologyType;
         CD3DX12_PIPELINE_STATE_STREAM_VS VS;
         CD3DX12_PIPELINE_STATE_STREAM_PS PS;
@@ -350,7 +324,6 @@ static Techniques::Technique CreateTechnique_4(ComPtr<ID3D12Device2> &device, Ro
     rd.CullMode = D3D12_CULL_MODE_NONE;
 
     pipelineStateStream.pRootSignature = root_sign.GetRootSignature().Get();
-    pipelineStateStream.InputLayout = { inputLayout, _countof(inputLayout) };
     pipelineStateStream.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
     pipelineStateStream.VS = vs;
     pipelineStateStream.PS = ps;
@@ -635,8 +608,8 @@ void Techniques::CreateRootSignature_0(ComPtr<ID3D12Device2> &device, RootSignat
     root_params_vec[bi_model_cb].InitAsConstantBufferView     (cb_model, 0, D3D12_ROOT_DESCRIPTOR_FLAG_NONE, D3D12_SHADER_VISIBILITY_ALL);
     root_params_vec[bi_g_buffer_tex_table].InitAsDescriptorTable        (1, &tex_table_srv, D3D12_SHADER_VISIBILITY_PIXEL);
     root_params_vec[bi_scene_cb].InitAsConstantBufferView     (cb_scene, 0, D3D12_ROOT_DESCRIPTOR_FLAG_NONE);
-    root_params_vec[bi_vertex_buffer].InitAsShaderResourceView(tto_vertex_buffer);
     root_params_vec[bi_materials_cb].InitAsConstantBufferView (cb_materials, 0, D3D12_ROOT_DESCRIPTOR_FLAG_NONE, D3D12_SHADER_VISIBILITY_PIXEL);
+    root_params_vec[bi_vertex_buffer].InitAsShaderResourceView(tto_vertex_buffer);
     
 
     CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC rootSignatureDescription;
@@ -693,6 +666,7 @@ void Techniques::CreateRootSignature_1(ComPtr<ID3D12Device2> &device, RootSignat
     ThrowIfFailed(D3DX12SerializeVersionedRootSignature(&rootSignatureDescription,
         featureData.HighestVersion, &rootSignatureBlob, &errorBlob));
         if (errorBlob.Get()){
+            auto errors = (char*)errorBlob->GetBufferPointer();
             assert(false);
         }
     // Create the root signature.
@@ -765,12 +739,13 @@ void Techniques::CreateRootSignature_3(ComPtr<ID3D12Device2>& device, RootSignat
 	auto staticSamplers = GetStaticSamplers();
 
 	auto& root_params_vec = root_sign->GetRootParams();
-	root_params_vec.resize(4);
+	root_params_vec.resize(5);
 
     root_params_vec[bi_model_cb].InitAsConstantBufferView(cb_model, 0, D3D12_ROOT_DESCRIPTOR_FLAG_NONE);
     root_params_vec[bi_terrain_hm].InitAsDescriptorTable(1, &texTable); // Textures
 	root_params_vec[bi_scene_cb].InitAsConstantBufferView(cb_scene, 0, D3D12_ROOT_DESCRIPTOR_FLAG_NONE); // sceneCB
     root_params_vec[bi_lights_cb].InitAsConstantBufferView(cb_lights, 0, D3D12_ROOT_DESCRIPTOR_FLAG_NONE, D3D12_SHADER_VISIBILITY_PIXEL); // lights
+    root_params_vec[bi_vertex_buffer].InitAsShaderResourceView(tto_vertex_buffer);
 
 	CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC rootSignatureDescription;
 	rootSignatureDescription.Init_1_1((uint32_t)root_params_vec.size(), root_params_vec.data(), (uint32_t)staticSamplers.size(), staticSamplers.data(), rootSignatureFlags);

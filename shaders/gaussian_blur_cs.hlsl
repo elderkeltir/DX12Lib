@@ -1,4 +1,4 @@
-#include "constant_buffers.ihlsl"
+#include "constant_buffers.hlsl"
 
 static const int blur_radius = 5;
 

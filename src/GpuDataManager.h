@@ -14,9 +14,10 @@ public:
     uint64_t AllocateVertexBuffer(uint32_t size);
     void DeallocateVertexBuffer(uint64_t start, uint32_t size);
 
-    void Initialize(CommandList& command_list);
+    void Initialize();
     void UploadToGpu(CommandList& command_list);
     GpuResource* GetVertexBuffer() { return m_vertex_buffer_res.get(); }
+    uint64_t GetBase() const { return m_vertex_storage.begin(); }
 
 private:
     static const uint32_t vertex_storage_size = 1024 * 1024 * 32;
