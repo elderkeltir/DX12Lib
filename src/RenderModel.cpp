@@ -175,7 +175,9 @@ void RenderModel::Render(CommandList& command_list, const DirectX::XMFLOAT4X4 &p
         }
         
         if (m_constant_buffer) {
+            const Techniques::Technique* tech = gD3DApp->GetTechniqueById(m_tech_id);
             gD3DApp->SetModelCB(m_constant_buffer.get());
+            gD3DApp->SetUint32(Constants::cVertexType, tech->vertex_type);
             gD3DApp->SetMatrix4Constant(Constants::cM, parent_xform_mx);
             gD3DApp->SetUint32(Constants::cMat, m_material_id);
             if (std::shared_ptr<GpuDataManager> gpu_res_mgr = gD3DApp->GetGpuDataManager().lock()) {

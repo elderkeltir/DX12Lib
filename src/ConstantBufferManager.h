@@ -21,7 +21,8 @@ enum class Constants {
     cRTdim,                 // rt size
     cNearFar,               // x - Znear, y - Zfar, z - terrain_dim, w - render_mode (0 - default, 1 - ssao)
     cTime,                  // x - dt, y - total_time, zw - FREE
-    cVertexBufferOffset,    // 
+    cVertexBufferOffset,    // offset in bindless vertex buffer
+    cVertexType,            // vertex type for render model
 };
 
 enum BindingId {
@@ -92,7 +93,8 @@ public:
         DirectX::XMFLOAT4X4 M;
         uint32_t material_id;
         uint32_t vertex_buffer_offset;
-        DirectX::XMFLOAT2 padding;
+        uint32_t vertex_type;
+        float padding;
     };
 
     // 1 x 256

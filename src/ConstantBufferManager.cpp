@@ -153,6 +153,12 @@ void ConstantBufferManager::SetUint32(Constants id, uint32_t val)
             model_cb->vertex_buffer_offset = val;
         }
     }
+    else if (id == Constants::cVertexType) {
+        if (std::shared_ptr<HeapBuffer> buff = m_model_cb->GetBuffer().lock()) {
+            ModelCB* model_cb = (ModelCB*)buff->GetCpuData();
+            model_cb->vertex_type = val;
+        }
+    }
 }
 
 void ConstantBufferManager::CommitCB(CommandList& command_list, ConstantBuffers id, bool gfx)

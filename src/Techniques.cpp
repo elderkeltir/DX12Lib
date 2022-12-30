@@ -81,8 +81,8 @@ TODO("Minor. Implement PSO composition and serialization later. maybe.")
 // g-buffer color
 static Techniques::Technique CreateTechnique_0(ComPtr<ID3D12Device2> &device, RootSignature& root_sign, std::optional<std::wstring> dbg_name = std::nullopt){
     Techniques::Technique tech;
-    tech.vs = L"g_buffer_color_vs.hlsl";
-    tech.ps = L"g_buffer_color_ps.hlsl";
+    tech.vs = L"g_buffer_vs.hlsl";
+    tech.ps = L"g_buffer_ps.hlsl";
     tech.vertex_type = 0;
     tech.root_signature = root_sign.id;
 
@@ -129,8 +129,8 @@ static Techniques::Technique CreateTechnique_0(ComPtr<ID3D12Device2> &device, Ro
 // g-buffer texture
 static Techniques::Technique CreateTechnique_1(ComPtr<ID3D12Device2> &device, RootSignature& root_sign, std::optional<std::wstring> dbg_name = std::nullopt){
     Techniques::Technique tech;
-    tech.vs = L"g_buffer_tex_vs.hlsl";
-    tech.ps = L"g_buffer_tex_ps.hlsl";
+    tech.vs = L"g_buffer_vs.hlsl";
+    tech.ps = L"g_buffer_ps.hlsl";
     tech.vertex_type = 1;
     tech.root_signature = root_sign.id;
 
