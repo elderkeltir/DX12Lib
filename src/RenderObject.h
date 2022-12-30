@@ -25,7 +25,7 @@ public:
     virtual const std::wstring& GetName() const { return m_name; }
     virtual void Initialized() { m_is_initialized = true; m_dirty |= db_vertex; m_dirty |= db_index; }
     virtual bool IsInitialized() const { return m_is_initialized; }
-    virtual void LoadDataToGpu(CommandList& command_list) = 0;
+    virtual void LoadDataToGpu(CommandList& command_list) { };
     virtual void SetMesh(RenderMesh * mesh) { m_mesh = mesh; }
     virtual void SetTexture(TextureData * texture_data, TextureType type) {};
 

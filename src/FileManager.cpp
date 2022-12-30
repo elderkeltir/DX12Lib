@@ -101,8 +101,6 @@ FileManager::FileManager() :
 
 	CreateSphere(m_geoms[gt_sphere].vertices, m_geoms[gt_sphere].indices);
 	m_geoms[gt_sphere].type = gt_sphere;
-	CreateQuad(m_geoms[gt_quad].vertices, m_geoms[gt_quad].tex_coords, m_geoms[gt_quad].indices);
-	m_geoms[gt_quad].type = gt_quad;
 	CreateTriangle(m_geoms[gt_triangle].indices);
 	m_geoms[gt_triangle].type = gt_triangle;
 
@@ -402,14 +400,15 @@ void FileManager::CreateModel(const std::wstring &tex_name, Geom_type type, Rend
 		model->SetId(id);
 	}
 
-	const uint32_t idx = m_load_meshes.push_back(); 
-	RenderMesh* r_mesh = &m_load_meshes[idx];
-	r_mesh->SetId(idx); 
-
-	r_mesh->SetVertices(m_geoms[type].vertices);
-	r_mesh->SetIndices(m_geoms[type].indices);
-	r_mesh->SetTextureCoords(m_geoms[type].tex_coords);
-	model->SetMesh(r_mesh);
+	if (type != gt_quad) {
+		const uint32_t idx = m_load_meshes.push_back();
+		RenderMesh* r_mesh = &m_load_meshes[idx];
+		r_mesh->SetId(idx);
+		r_mesh->SetVertices(m_geoms[type].vertices);
+		r_mesh->SetIndices(m_geoms[type].indices);
+		r_mesh->SetTextureCoords(m_geoms[type].tex_coords);
+		model->SetMesh(r_mesh);
+	}
 
 	if (!tex_name.empty()){
 		TextureData *texture_data = LoadTexture(tex_name, aiTextureType_DIFFUSE);

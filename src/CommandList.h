@@ -18,7 +18,8 @@ public:
 	void IASetVertexBuffers(uint32_t start_slot, uint32_t num_views, const D3D12_VERTEX_BUFFER_VIEW* view); // TODO: remove when bindless vertex buffer implemented
 	void IASetIndexBuffer(const D3D12_INDEX_BUFFER_VIEW* view);
 	void IASetPrimitiveTopology(D3D12_PRIMITIVE_TOPOLOGY primirive_topology);
-	void DrawIndexedInstanced(uint32_t index_count_per_index, uint32_t instance_count, uint32_t start_index_location, int32_t base_vertex_location, uint32_t start_instance_location);
+	void DrawInstanced(uint32_t vertex_per_instance, uint32_t instance_count, uint32_t start_vertex_location, uint32_t start_instance_location);
+	void DrawIndexedInstanced(uint32_t index_count_per_instance, uint32_t instance_count, uint32_t start_index_location, int32_t base_vertex_location, uint32_t start_instance_location);
 	void SetDescriptorHeaps(uint32_t num_descriptor_heaps, ID3D12DescriptorHeap* const* descriptor_heap); // TODO: change second parameter to my own type?
 	void OMSetRenderTargets(uint32_t num_rt_descriptors, const D3D12_CPU_DESCRIPTOR_HANDLE* render_target_descriptors, bool rt_single_descriptor_for_range, const D3D12_CPU_DESCRIPTOR_HANDLE* depth_stencil_descriptor);
 	void ClearRenderTargetView(D3D12_CPU_DESCRIPTOR_HANDLE rtv, const float color[4], uint32_t num_rects, const D3D12_RECT* rect);

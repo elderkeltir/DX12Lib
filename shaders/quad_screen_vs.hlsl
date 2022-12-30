@@ -1,28 +1,34 @@
 #include "constant_buffers.hlsl"
 
-struct VS_IN
+static const float2 g_text_coords[6] =
 {
-	float3 position : POSITION;
-	float2 textCoord : TEXCOORD;
+    float2(0.0f, 1.0f),
+    float2(0.0f, 0.0f),
+    float2(1.0f, 0.0f),
+    float2(0.0f, 1.0f),
+    float2(1.0f, 0.0f),
+    float2(1.0f, 1.0f)
 };
 
-struct VS_OUT
+struct VertexShaderOutput
 {
-	float2 textCoord : TEXCOORD0;
-	float4 projPos : SV_POSITION;
-    float3 positionV : POSITION;
+	float2 tex_coord        : TEXCOORD0;
+    float3 position_view    : POSITION;
+    float4 position         : SV_POSITION;
 };
 
-VS_OUT main(VS_IN input)
+VertexShaderOutput main(uint vertex_id : SV_VertexID)
 {
-	VS_OUT output;
+    VertexShaderOutput output;
+	
+    output.tex_coord = g_text_coords[vertex_id];
 
-	output.textCoord = input.textCoord;
-	output.projPos = float4(input.position, 1);
+    // Quad covering screen in NDC space.
+    output.position = float4(2.0f * output.tex_coord.x - 1.0f, 1.0f - 2.0f * output.tex_coord.y, 0.0f, 1.0f);
 	
 	// Transform quad corners to view space near plane.
-    float4 ph = mul(output.projPos, Pinv);
-    output.positionV = ph.xyz / ph.w;
+    float4 ph = mul(output.position, Pinv);
+    output.position_view = ph.xyz / ph.w;
 	
 	return output;
 }

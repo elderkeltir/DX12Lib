@@ -45,9 +45,14 @@ void CommandList::IASetPrimitiveTopology(D3D12_PRIMITIVE_TOPOLOGY primirive_topo
 	m_command_list->IASetPrimitiveTopology(primirive_topology);
 }
 
-void CommandList::DrawIndexedInstanced(uint32_t index_count_per_index, uint32_t instance_count, uint32_t start_index_location, int32_t base_vertex_location, uint32_t start_instance_location)
+void CommandList::DrawInstanced(uint32_t vertex_per_instance, uint32_t instance_count, uint32_t start_vertex_location, uint32_t start_instance_location)
 {
-	m_command_list->DrawIndexedInstanced(index_count_per_index, instance_count, start_index_location, base_vertex_location, start_instance_location);
+	m_command_list->DrawInstanced(vertex_per_instance, instance_count, start_vertex_location, start_instance_location);
+}
+
+void CommandList::DrawIndexedInstanced(uint32_t index_count_per_instance, uint32_t instance_count, uint32_t start_index_location, int32_t base_vertex_location, uint32_t start_instance_location)
+{
+	m_command_list->DrawIndexedInstanced(index_count_per_instance, instance_count, start_index_location, base_vertex_location, start_instance_location);
 }
 
 void CommandList::SetDescriptorHeaps(uint32_t num_descriptor_heaps, ID3D12DescriptorHeap* const* descriptor_heap)

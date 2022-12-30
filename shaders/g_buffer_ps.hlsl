@@ -24,37 +24,37 @@ Texture2D    gNormalMap : register(t1);
 Texture2D    metallicness : register(t2);
 Texture2D    roughness : register(t3);
 
-ps_output main( PixelShaderInput IN )
+ps_output main( PixelShaderInput input )
 {
     ps_output output;
     
-    const uint vertex_type = uint(IN.tex_coord.z);
+    const uint vertex_type = uint(input.tex_coord.z);
     
     if (vertex_type == 0)
     {
-        output.albedo = IN.color;
+        output.albedo = input.color;
 
         // normal mapping
-        output.normal = float4(normalize(IN.normal), 0);
-        output.pos = float4(IN.world_position.xyz, (IN.world_position.w - NearFarZ.x) / (NearFarZ.y - NearFarZ.x));
+        output.normal = float4(normalize(input.normal), 0);
+        output.pos = float4(input.world_position.xyz, (input.world_position.w - NearFarZ.x) / (NearFarZ.y - NearFarZ.x));
         output.material = float4(materials[material_id].metal, materials[material_id].rough, 0, 0);
-        //output.pos.w = 1 - IN.Position.z / IN.Position.w;
+        //output.pos.w = 1 - input.Position.z / input.Position.w;
     }
     else if (vertex_type == 1)
     {
-        output.albedo = gDiffuseMap.Sample(anisotropicClamp, IN.tex_coord.xy);
+        output.albedo = gDiffuseMap.Sample(anisotropicClamp, input.tex_coord.xy);
 
         // normal mapping
-        float3 normal = gNormalMap.Sample(linearClamp, IN.tex_coord.xy).xyz;
+        float3 normal = gNormalMap.Sample(linearClamp, input.tex_coord.xy).xyz;
         //normal.x = normal.x * 2 - 1;
         //normal.y = -normal.y * 2 + 1;
         normal = normal * 2.0 - 1.0;
-        normal = normalize(mul(normal, IN.TBN));
+        normal = normalize(mul(normal, input.TBN));
         output.normal = float4(normal, 1.0);
-        output.pos = float4(IN.world_position.xyz, (IN.world_position.w - NearFarZ.x) / (NearFarZ.y - NearFarZ.x));
+        output.pos = float4(input.world_position.xyz, (input.world_position.w - NearFarZ.x) / (NearFarZ.y - NearFarZ.x));
     
-        float met = metallicness.Sample(linearClamp, IN.tex_coord.xy).r;
-        float rough = roughness.Sample(linearClamp, IN.tex_coord.xy).r;
+        float met = metallicness.Sample(linearClamp, input.tex_coord.xy).r;
+        float rough = roughness.Sample(linearClamp, input.tex_coord.xy).r;
         output.material = float4(met, rough, 1, 0);
     }
 

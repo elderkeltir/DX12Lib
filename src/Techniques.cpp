@@ -181,16 +181,9 @@ static Techniques::Technique CreateTechnique_2(ComPtr<ID3D12Device2> &device, Ro
     tech.vertex_type = 2;
     tech.root_signature = root_sign.id;
 
-    // Create the vertex input layout
-    D3D12_INPUT_ELEMENT_DESC inputLayout[] = {
-        { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
-        { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
-    };
-
     struct PipelineStateStream
     {
         CD3DX12_PIPELINE_STATE_STREAM_ROOT_SIGNATURE pRootSignature;
-        CD3DX12_PIPELINE_STATE_STREAM_INPUT_LAYOUT InputLayout;
         CD3DX12_PIPELINE_STATE_STREAM_PRIMITIVE_TOPOLOGY PrimitiveTopologyType;
         CD3DX12_PIPELINE_STATE_STREAM_VS VS;
         CD3DX12_PIPELINE_STATE_STREAM_PS PS;
@@ -214,7 +207,6 @@ static Techniques::Technique CreateTechnique_2(ComPtr<ID3D12Device2> &device, Ro
     }
 
     pipelineStateStream.pRootSignature = root_sign.GetRootSignature().Get();
-    pipelineStateStream.InputLayout = { inputLayout, _countof(inputLayout) };
     pipelineStateStream.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
     pipelineStateStream.VS = vs;
     pipelineStateStream.PS = ps;
@@ -236,16 +228,9 @@ static Techniques::Technique CreateTechnique_3(ComPtr<ID3D12Device2> &device, Ro
     tech.vertex_type = 2;
     tech.root_signature = root_sign.id;
 
-    // Create the vertex input layout
-    D3D12_INPUT_ELEMENT_DESC inputLayout[] = {
-        { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
-        { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
-    };
-
     struct PipelineStateStream
     {
         CD3DX12_PIPELINE_STATE_STREAM_ROOT_SIGNATURE pRootSignature;
-        CD3DX12_PIPELINE_STATE_STREAM_INPUT_LAYOUT InputLayout;
         CD3DX12_PIPELINE_STATE_STREAM_PRIMITIVE_TOPOLOGY PrimitiveTopologyType;
         CD3DX12_PIPELINE_STATE_STREAM_VS VS;
         CD3DX12_PIPELINE_STATE_STREAM_PS PS;
@@ -268,7 +253,6 @@ static Techniques::Technique CreateTechnique_3(ComPtr<ID3D12Device2> &device, Ro
     }
 
     pipelineStateStream.pRootSignature = root_sign.GetRootSignature().Get();
-    pipelineStateStream.InputLayout = { inputLayout, _countof(inputLayout) };
     pipelineStateStream.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
     pipelineStateStream.VS = vs;
     pipelineStateStream.PS = ps;

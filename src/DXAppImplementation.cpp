@@ -463,7 +463,6 @@ void DXAppImplementation::RenderPostProcessQuad(CommandList& command_list) {
 		}
 	}
 
-	m_post_process_quad->LoadDataToGpu(command_list);
 	if (std::shared_ptr<GpuResource> rt = m_gui->GetGuiQuad()->GetRt(m_frameIndex).lock()) {
 		if (std::shared_ptr<ResourceDescriptor> srv = rt->GetSRV().lock()) {
 			m_commandQueueGfx->GetGpuHeap().StageDesctriptorInTable(bi_post_proc_input_tex_table, tto_postp_gui, srv->GetCPUhandle());
@@ -546,7 +545,6 @@ void DXAppImplementation::RenderDeferredShadingQuad(CommandList& command_list) {
 		m_commandQueueGfx->GetGpuHeap().CacheRootSignature(gD3DApp->GetRootSignById(tech->root_signature));
 	}
 
-	m_deferred_shading_quad->LoadDataToGpu(command_list);
 	gD3DApp->CommitCB(command_list, cb_scene);
 	m_level->BindLights(command_list);
 

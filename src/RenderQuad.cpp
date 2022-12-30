@@ -26,25 +26,6 @@ void RenderQuad::Initialize() {
 
 RenderQuad::~RenderQuad() = default;
 
-void RenderQuad::FormVertex() {
-    if (m_dirty & db_vertex){
-        using Vertex = Vertex2;
-		AllocateVertexBuffer(vert_num * sizeof(Vertex));
-		Vertex* vertex_data_buffer = (Vertex*)m_vertex_buffer_start;
-
-		for (uint32_t i = 0; i < vert_num; i++) {
-			vertex_data_buffer[i] = Vertex{ m_mesh->GetVertex(i), m_mesh->GetTexCoord(i) };
-		}
-	}
-}
-
-void RenderQuad::LoadDataToGpu(CommandList& command_list) {
-    using Vertex = Vertex2;
-    FormVertex();
-    LoadVertexDataOnGpu(command_list, (const void*)m_vertex_buffer_start, (uint32_t)sizeof(Vertex), vert_num);
-    LoadIndexDataOnGpu(command_list);
-}
-
 bool RenderQuad::CreateQuadTexture(uint32_t width, uint32_t height, const std::vector<DXGI_FORMAT> &formats, uint32_t texture_num, uint32_t uavs, std::optional<std::wstring> dbg_name) {
     if (m_dirty & db_rt_tx){
         // Create a RTV for each frame.
@@ -96,22 +77,6 @@ std::weak_ptr<GpuResource> RenderQuad::GetRt(uint32_t set_idx, uint32_t idx_in_s
 }
 
 void RenderQuad::Render(CommandList& command_list) {
-    if (m_mesh->GetIndicesNum() > 0){
-        if (std::shared_ptr<D3D12_VERTEX_BUFFER_VIEW> vert_view = m_VertexBuffer->Get_Vertex_View().lock()){
-            command_list.IASetVertexBuffers(0, 1, vert_view.get());
-        }
-        else{
-            assert(false);
-        }
-
-        if (std::shared_ptr<D3D12_INDEX_BUFFER_VIEW> ind_view = m_IndexBuffer->Get_Index_View().lock()){
-            command_list.IASetIndexBuffer(ind_view.get());
-        }
-        else {
-            assert(false);
-        }
-        command_list.IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-        
-        command_list.DrawIndexedInstanced((UINT)m_mesh->GetIndicesNum(), 1, 0, 0, 0);
-    }
+    command_list.IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+    command_list.DrawInstanced(6, 1, 0, 0);
 }
