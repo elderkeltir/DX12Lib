@@ -27,6 +27,7 @@
 #include "DynamicGpuHeap.h"
 #include "Plane.h"
 #include "GpuDataManager.h"
+#include "Sun.h"
 
 extern DXAppImplementation *gD3DApp;
 using rapidjson::Document;
@@ -138,6 +139,8 @@ void Level::Load(const std::wstring& name) {
         D3D12_CONSTANT_BUFFER_VIEW_DESC desc;
         desc.SizeInBytes = cb_size;
         m_lights_res->Create_CBV(desc);
+
+        m_sun = std::make_unique<Sun>();
     }
 
     // Skybox
@@ -184,6 +187,9 @@ void Level::Update(float dt){
     for (auto &entity : m_entites){
         entity.Update(dt);
     }
+
+    // sun
+    m_sun->Update(dt);
 }
 
 void Level::Render(CommandList& command_list){
@@ -273,25 +279,42 @@ void Level::RenderWater(CommandList& command_list)
 {
     uint32_t tech_id = m_water->GetTerrainTechId();
 	const Techniques::Technique* tech = gD3DApp->GetTechniqueById(tech_id);
-    if (std::shared_ptr<GfxCommandQueue> gfx_queue = gD3DApp->GetGfxQueue().lock()) {
-        if (gfx_queue->GetPSO() != tech_id) {
-            gfx_queue->SetPSO(tech_id);
-        }
-        if (gfx_queue->GetRootSign() != tech->root_signature) {
-            gfx_queue->SetRootSign(tech->root_signature);
-        }
-        
-        gfx_queue->GetGpuHeap().CacheRootSignature(gD3DApp->GetRootSignById(tech->root_signature));
+    GfxCommandQueue * gfx_queue = command_list.GetQueue();
 
-        GpuResource* skybox_tex = m_skybox_ent->GetTexture();
-		if (std::shared_ptr<ResourceDescriptor> srv = skybox_tex->GetSRV().lock()) {
-			gfx_queue->GetGpuHeap().StageDesctriptorInTable(bi_fwd_tex, tto_fwd_skybox, srv->GetCPUhandle());
-		}
-        gD3DApp->CommitCB(command_list, cb_scene);
-        BindLights(command_list);
+    if (gfx_queue->GetPSO() != tech_id) {
+        gfx_queue->SetPSO(tech_id);
     }
+    if (gfx_queue->GetRootSign() != tech->root_signature) {
+        gfx_queue->SetRootSign(tech->root_signature);
+    }
+        
+    gfx_queue->GetGpuHeap().CacheRootSignature(gD3DApp->GetRootSignById(tech->root_signature));
+
+    GpuResource* skybox_tex = m_skybox_ent->GetTexture();
+	if (std::shared_ptr<ResourceDescriptor> srv = skybox_tex->GetSRV().lock()) {
+		gfx_queue->GetGpuHeap().StageDesctriptorInTable(bi_fwd_tex, tto_fwd_skybox, srv->GetCPUhandle());
+	}
+    gD3DApp->CommitCB(command_list, cb_scene);
+    BindLights(command_list);
 
     m_water->Render(command_list);
+}
+
+void Level::RenderShadowMap(CommandList& command_list)
+{
+    m_sun->SetupShadowMap(command_list);
+
+    if (std::shared_ptr<GpuDataManager> gpu_res_mgr = gD3DApp->GetGpuDataManager().lock()) {
+        gpu_res_mgr->UploadToGpu(command_list);
+        if (std::shared_ptr<HeapBuffer> buff = gpu_res_mgr->GetVertexBuffer()->GetBuffer().lock()) {
+            command_list.SetGraphicsRootShaderResourceView(bi_vertex_buffer, buff->GetResource()->GetGPUVirtualAddress());
+        }
+    }
+
+    for (uint32_t id = 0; id < m_entites.size(); id++) {
+        LevelEntity& ent = m_entites[id];
+        ent.Render(command_list);
+    }
 }
 
 void Level::BindLights(CommandList& command_list){
@@ -304,4 +327,9 @@ const std::filesystem::path& Level::GetLevelsDir() const{
 
 const std::filesystem::path& Level::GetEntitiesDir() const{
     return m_entities_dir;
+}
+
+std::weak_ptr<GpuResource> Level::GetSunShadowMap()
+{
+    return m_sun->GetShadowMap();
 }

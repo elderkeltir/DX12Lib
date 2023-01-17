@@ -145,34 +145,32 @@ void RenderModel::Render(CommandList& command_list, const DirectX::XMFLOAT4X4 &p
             assert(false);
         }
         command_list.IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-        
-        if (std::shared_ptr<GfxCommandQueue> gfx_queue = gD3DApp->GetGfxQueue().lock()) {
-            if (m_diffuse_tex) {
-                if (std::shared_ptr<ResourceDescriptor> srv = m_diffuse_tex->GetSRV().lock()) {
-                    gfx_queue->GetGpuHeap().StageDesctriptorInTable(bi_g_buffer_tex_table, tto_albedo, srv->GetCPUhandle());
-                }
+        GfxCommandQueue * gfx_queue = command_list.GetQueue();
+        if (m_diffuse_tex) {
+            if (std::shared_ptr<ResourceDescriptor> srv = m_diffuse_tex->GetSRV().lock()) {
+                gfx_queue->GetGpuHeap().StageDesctriptorInTable(bi_g_buffer_tex_table, tto_albedo, srv->GetCPUhandle());
             }
-
-            if (m_normals_tex) {
-                if (std::shared_ptr<ResourceDescriptor> srv = m_normals_tex->GetSRV().lock()) {
-                    gfx_queue->GetGpuHeap().StageDesctriptorInTable(bi_g_buffer_tex_table, tto_normals, srv->GetCPUhandle());
-                }
-            }
-
-            if (m_metallic_tex) {
-                if (std::shared_ptr<ResourceDescriptor> srv = m_metallic_tex->GetSRV().lock()) {
-                    gfx_queue->GetGpuHeap().StageDesctriptorInTable(bi_g_buffer_tex_table, tto_metallic, srv->GetCPUhandle());
-                }
-            }
-
-            if (m_roughness_tex) {
-                if (std::shared_ptr<ResourceDescriptor> srv = m_roughness_tex->GetSRV().lock()) {
-                    gfx_queue->GetGpuHeap().StageDesctriptorInTable(bi_g_buffer_tex_table, tto_roughness, srv->GetCPUhandle());
-                }
-            }
-
-            gfx_queue->GetGpuHeap().CommitRootSignature(command_list);
         }
+
+        if (m_normals_tex) {
+            if (std::shared_ptr<ResourceDescriptor> srv = m_normals_tex->GetSRV().lock()) {
+                gfx_queue->GetGpuHeap().StageDesctriptorInTable(bi_g_buffer_tex_table, tto_normals, srv->GetCPUhandle());
+            }
+        }
+
+        if (m_metallic_tex) {
+            if (std::shared_ptr<ResourceDescriptor> srv = m_metallic_tex->GetSRV().lock()) {
+                gfx_queue->GetGpuHeap().StageDesctriptorInTable(bi_g_buffer_tex_table, tto_metallic, srv->GetCPUhandle());
+            }
+        }
+
+        if (m_roughness_tex) {
+            if (std::shared_ptr<ResourceDescriptor> srv = m_roughness_tex->GetSRV().lock()) {
+                gfx_queue->GetGpuHeap().StageDesctriptorInTable(bi_g_buffer_tex_table, tto_roughness, srv->GetCPUhandle());
+            }
+        }
+
+        gfx_queue->GetGpuHeap().CommitRootSignature(command_list);
         
         if (m_constant_buffer) {
             const Techniques::Technique* tech = gD3DApp->GetTechniqueById(m_tech_id);

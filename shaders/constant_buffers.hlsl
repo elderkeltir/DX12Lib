@@ -36,6 +36,8 @@ cbuffer SceneCB : register(b1){
     float4 RTdim;
     float4 NearFarZ;
     float4 Time;
+    float4x4 SunV;
+    float4x4 SunP;
 };
 
 // 3 x 256

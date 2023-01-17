@@ -292,6 +292,14 @@ void DXAppImplementation::OnRender()
 	// send G-buffer to execute
 	m_commandQueueGfx->ExecuteActiveCL();
 	m_commandQueueGfx->Signal(m_fence_inter_queue, ++m_fence_inter_queue_val);
+
+	// shadow map
+	command_list_gfx = InitCmdList();
+	BEGIN_EVENT(command_list_gfx.GetRawCommandList(), "ShadowMap");
+	m_level->RenderShadowMap(command_list_gfx);
+	END_EVENT(command_list_gfx.GetRawCommandList());
+	m_commandQueueGfx->ExecuteActiveCL();
+	
 	m_commandQueueCompute->WaitOnGPU(m_fence_inter_queue, m_fence_inter_queue_val);
 
 	CommandList& command_list_compute = m_commandQueueCompute->ResetActiveCL();
@@ -479,6 +487,12 @@ void DXAppImplementation::RenderPostProcessQuad(CommandList& command_list) {
 		m_commandQueueGfx->GetGpuHeap().StageDesctriptorInTable(bi_post_proc_input_tex_table, tto_postp_ssao, srv->GetCPUhandle());
 	}
 
+	if (std::shared_ptr<GpuResource> rt = m_level->GetSunShadowMap().lock()) {
+		if (std::shared_ptr<ResourceDescriptor> srv = rt->GetSRV().lock()) {
+			m_commandQueueGfx->GetGpuHeap().StageDesctriptorInTable(bi_post_proc_input_tex_table, tto_postp_sun_sm, srv->GetCPUhandle());
+		}
+	}
+
 	CommitCB(command_list, cb_scene);
 
 	m_commandQueueGfx->GetGpuHeap().CommitRootSignature(command_list);
@@ -547,6 +561,13 @@ void DXAppImplementation::RenderDeferredShadingQuad(CommandList& command_list) {
 
 	gD3DApp->CommitCB(command_list, cb_scene);
 	m_level->BindLights(command_list);
+
+	if (std::shared_ptr<GpuResource> rt = m_level->GetSunShadowMap().lock()) {
+		if (std::shared_ptr<ResourceDescriptor> srv = rt->GetSRV().lock()) {
+			m_commandQueueGfx->ResourceBarrier(rt, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_DEPTH_READ);
+			//m_commandQueueGfx->GetGpuHeap().StageDesctriptorInTable(bi_post_proc_input_tex_table, tto_postp_sun_sm, srv->GetCPUhandle());
+		}
+	}
 
 	auto& rts_vec = m_deferred_shading_quad->GetRts(m_frameIndex);
 	for (uint32_t i = 0; i < rts_vec.size(); i++) {

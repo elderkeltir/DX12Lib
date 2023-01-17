@@ -53,6 +53,18 @@ void ConstantBufferManager::SetMatrix4Constant(Constants id, const DirectX::XMMA
 			DirectX::XMStoreFloat4x4(&scene_cb->VPinv, matrix);
 		}
 	}
+    else if (id == Constants::cSunV) {
+        if (std::shared_ptr<HeapBuffer> buff = m_scene_cbs[frame_id].GetBuffer().lock()) {
+            SceneCB* scene_cb = (SceneCB*)buff->GetCpuData();
+            DirectX::XMStoreFloat4x4(&scene_cb->SunV, matrix);
+        }
+    }
+    else if (id == Constants::cSunP) {
+        if (std::shared_ptr<HeapBuffer> buff = m_scene_cbs[frame_id].GetBuffer().lock()) {
+            SceneCB* scene_cb = (SceneCB*)buff->GetCpuData();
+            DirectX::XMStoreFloat4x4(&scene_cb->SunP, matrix);
+        }
+    }
 }
 
 void ConstantBufferManager::SetMatrix4Constant(Constants id, const DirectX::XMFLOAT4X4 & matrix){
@@ -80,6 +92,18 @@ void ConstantBufferManager::SetMatrix4Constant(Constants id, const DirectX::XMFL
 			SceneCB* scene_cb = (SceneCB*)buff->GetCpuData();
 			scene_cb->VPinv = matrix;
 		}
+    }
+    else if (id == Constants::cSunV) {
+        if (std::shared_ptr<HeapBuffer> buff = m_scene_cbs[frame_id].GetBuffer().lock()) {
+            SceneCB* scene_cb = (SceneCB*)buff->GetCpuData();
+            scene_cb->SunV = matrix;
+        }
+    }
+    else if (id == Constants::cSunP) {
+        if (std::shared_ptr<HeapBuffer> buff = m_scene_cbs[frame_id].GetBuffer().lock()) {
+            SceneCB* scene_cb = (SceneCB*)buff->GetCpuData();
+            scene_cb->SunP = matrix;
+        }
     }
 }
 
@@ -187,15 +211,12 @@ void ConstantBufferManager::CommitCB(CommandList& command_list, ConstantBuffers 
 }
 
 void ConstantBufferManager::SyncCpuDataToCB(CommandList& command_list, GpuResource* res, void* cpu_data, uint32_t size, BindingId bind_point, bool gfx) {
+    GfxCommandQueue* queue = command_list.GetQueue();
     if (gfx) {
-        if (std::shared_ptr<GfxCommandQueue> queue = gD3DApp->GetGfxQueue().lock()) {
-            queue->ResourceBarrier(*res, D3D12_RESOURCE_STATE_COPY_DEST);
-        }
+        queue->ResourceBarrier(*res, D3D12_RESOURCE_STATE_COPY_DEST);
     }
     else {
-		if (std::shared_ptr<GfxCommandQueue> queue = gD3DApp->GetComputeQueue().lock()) {
-			queue->ResourceBarrier(*res, D3D12_RESOURCE_STATE_COPY_DEST);
-		}
+	    queue->ResourceBarrier(*res, D3D12_RESOURCE_STATE_COPY_DEST);
     }
 
 	if (std::shared_ptr<HeapBuffer> buff = res->GetBuffer().lock()) {
