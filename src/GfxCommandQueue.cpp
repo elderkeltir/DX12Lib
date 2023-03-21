@@ -75,7 +75,6 @@ void GfxCommandQueue::ExecuteActiveCL(){
 }
 
 void GfxCommandQueue::ResourceBarrier(std::shared_ptr<GpuResource> &res, D3D12_RESOURCE_STATES to){
-    TODO("Normal! Implement feasible way to store/get curent state of resource. later")
     if (std::shared_ptr<HeapBuffer> buff = res->GetBuffer().lock()){
         D3D12_RESOURCE_STATES calculated_from = res->GetState();
         m_command_list.m_command_list->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(buff->GetResource().Get(), calculated_from, to));

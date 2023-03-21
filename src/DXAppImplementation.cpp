@@ -12,7 +12,6 @@
 #include "GfxCommandQueue.h"
 #include "RenderQuad.h"
 #include "MaterialManager.h"
-#include "DynamicGpuHeap.h" // TODO: remove when encapsulate dynamic heap under queue
 #include "SSAO.h"
 #include "ImguiHelper.h"
 #include "Logger.h"
