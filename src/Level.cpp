@@ -329,7 +329,7 @@ const std::filesystem::path& Level::GetEntitiesDir() const{
     return m_entities_dir;
 }
 
-std::weak_ptr<GpuResource> Level::GetSunShadowMap()
+GpuResource& Level::GetSunShadowMap()
 {
     return m_sun->GetShadowMap();
 }

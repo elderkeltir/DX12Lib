@@ -487,10 +487,9 @@ void DXAppImplementation::RenderPostProcessQuad(CommandList& command_list) {
 		m_commandQueueGfx->GetGpuHeap().StageDesctriptorInTable(bi_post_proc_input_tex_table, tto_postp_ssao, srv->GetCPUhandle());
 	}
 
-	if (std::shared_ptr<GpuResource> rt = m_level->GetSunShadowMap().lock()) {
-		if (std::shared_ptr<ResourceDescriptor> srv = rt->GetSRV().lock()) {
-			m_commandQueueGfx->GetGpuHeap().StageDesctriptorInTable(bi_post_proc_input_tex_table, tto_postp_sun_sm, srv->GetCPUhandle());
-		}
+
+	if (std::shared_ptr<ResourceDescriptor> srv = m_level->GetSunShadowMap().GetSRV().lock()) {
+		m_commandQueueGfx->GetGpuHeap().StageDesctriptorInTable(bi_post_proc_input_tex_table, tto_postp_sun_sm, srv->GetCPUhandle());
 	}
 
 	CommitCB(command_list, cb_scene);
@@ -562,11 +561,9 @@ void DXAppImplementation::RenderDeferredShadingQuad(CommandList& command_list) {
 	gD3DApp->CommitCB(command_list, cb_scene);
 	m_level->BindLights(command_list);
 
-	if (std::shared_ptr<GpuResource> rt = m_level->GetSunShadowMap().lock()) {
-		if (std::shared_ptr<ResourceDescriptor> srv = rt->GetSRV().lock()) {
-			m_commandQueueGfx->ResourceBarrier(rt, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_DEPTH_READ);
-			//m_commandQueueGfx->GetGpuHeap().StageDesctriptorInTable(bi_post_proc_input_tex_table, tto_postp_sun_sm, srv->GetCPUhandle());
-		}
+	if (std::shared_ptr<ResourceDescriptor> srv = m_level->GetSunShadowMap().GetSRV().lock()) {
+		m_commandQueueGfx->ResourceBarrier(m_level->GetSunShadowMap(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_DEPTH_READ);
+		m_commandQueueGfx->GetGpuHeap().StageDesctriptorInTable(bi_deferred_shading_tex_table, tto_gbuff_sun_sm, srv->GetCPUhandle());
 	}
 
 	auto& rts_vec = m_deferred_shading_quad->GetRts(m_frameIndex);

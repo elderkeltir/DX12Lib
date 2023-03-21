@@ -507,6 +507,7 @@ static Techniques::Technique CreateTechnique_9(ComPtr<ID3D12Device2>& device, Ro
 		CD3DX12_PIPELINE_STATE_STREAM_VS VS;
 		CD3DX12_PIPELINE_STATE_STREAM_DEPTH_STENCIL_FORMAT DSVFormat;
 		CD3DX12_PIPELINE_STATE_STREAM_DEPTH_STENCIL ds_desc;
+        CD3DX12_PIPELINE_STATE_STREAM_RASTERIZER raster_dec;
 	} pipelineStateStream;
 
 	CD3DX12_SHADER_BYTECODE vs;
@@ -518,6 +519,12 @@ static Techniques::Technique CreateTechnique_9(ComPtr<ID3D12Device2>& device, Ro
 		assert(false);
 	}
 
+    CD3DX12_RASTERIZER_DESC rd(CD3DX12_DEFAULT{});
+    rd.CullMode = D3D12_CULL_MODE_NONE;
+    rd.DepthBias = D3D12_DEFAULT_DEPTH_BIAS;
+    rd.DepthBiasClamp = 0.f;
+    rd.SlopeScaledDepthBias = 1.f;
+
 	CD3DX12_DEPTH_STENCIL_DESC dsd(CD3DX12_DEFAULT{});
 	dsd.DepthFunc = D3D12_COMPARISON_FUNC_LESS_EQUAL;
 
@@ -526,6 +533,7 @@ static Techniques::Technique CreateTechnique_9(ComPtr<ID3D12Device2>& device, Ro
 	pipelineStateStream.VS = vs;
 	pipelineStateStream.DSVFormat = DXGI_FORMAT_D32_FLOAT;
 	pipelineStateStream.ds_desc = dsd;
+    pipelineStateStream.raster_dec = rd;
 
 	D3D12_PIPELINE_STATE_STREAM_DESC pipelineStateStreamDesc = {
 		sizeof(PipelineStateStream), &pipelineStateStream
@@ -644,7 +652,7 @@ void Techniques::CreateRootSignature_2(ComPtr<ID3D12Device2> &device, RootSignat
 
     // A single 32-bit constant root parameter that is used by the vertex shader.
     CD3DX12_DESCRIPTOR_RANGE1 &texTable = m_desc_ranges[m_desc_ranges.push_back()];
-	texTable.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 5, 0, 0, D3D12_DESCRIPTOR_RANGE_FLAG_DESCRIPTORS_VOLATILE);
+	texTable.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 6, 0, 0, D3D12_DESCRIPTOR_RANGE_FLAG_DESCRIPTORS_VOLATILE);
 
     auto staticSamplers = GetStaticSamplers();
 

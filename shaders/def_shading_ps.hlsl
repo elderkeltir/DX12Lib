@@ -12,7 +12,24 @@ Texture2D    normals : register(t1);
 Texture2D    positions : register(t2);
 Texture2D    material : register(t3);
 Texture2D    ssao : register(t4);
+Texture2D    sun_sm : register(t5);
 
+bool in_shadow(float3 world_pos)
+{
+    matrix MVP = mul(SunV, SunP);
+    float4 shadow_pos = mul(float4(world_pos, 1.0f), MVP);
+    shadow_pos /= shadow_pos.w;
+    
+    float2 shadow_uv;
+    shadow_uv.x = (shadow_pos.x + 1) / 2;
+    shadow_uv.y = (1 - shadow_pos.y) / 2;
+    
+    float depth_actual = sun_sm.Sample(depthMapSam, shadow_uv).r;
+    float depth_expected = shadow_pos.z;
+    
+    return (depth_actual < depth_expected + 0.0000001);
+    
+}
 
 float4 main(PixelShaderInput IN ) : SV_Target
 {
@@ -78,12 +95,16 @@ float4 main(PixelShaderInput IN ) : SV_Target
             float NdotL = max(dot(N, L), 0.0);                
             Lo += (kD * albedo / PI + specular) * radiance * NdotL; 
         }
-    }   
+    }
+    
+    float shadowed = in_shadow(WorldPos);
   
     float3 ambient = float3(0.03, 0.03, 0.03) * albedo * ao;
     float3 color = ambient + Lo;
    
     float4 FragColor = float4(color, 1.0);
+    if (shadowed)
+        FragColor = float4(0, 0, 0, 1.0);
 
     return FragColor;
 }

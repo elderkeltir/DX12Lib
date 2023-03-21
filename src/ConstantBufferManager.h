@@ -53,6 +53,7 @@ enum TextureTableOffset {
     tto_gbuff_positions             = 2,
     tto_gbuff_materials             = 3,
     tto_gbuff_ssao                  = 4,
+    tto_gbuff_sun_sm                = 5,
     tto_postp_input                 = 0,
     tto_postp_gui                   = 1,
     tto_postp_fwd                   = 2,

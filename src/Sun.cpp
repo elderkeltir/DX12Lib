@@ -17,31 +17,34 @@ void Sun::Initialize(CommandList& command_list)
 		m_sun_viewport = CD3DX12_VIEWPORT(0.0f, 0.0f, static_cast<float>(width), static_cast<float>(height));
 		m_sun_scissorRect = CD3DX12_RECT(0, 0, static_cast<LONG>(width), static_cast<LONG>(height));
 
-		m_shadow_map = std::make_shared<GpuResource>();
+		m_shadow_map = std::make_unique<GpuResource[]>(rt_num);
 
-		D3D12_CLEAR_VALUE depthOptimizedClearValue = {};
-		depthOptimizedClearValue.Format = DXGI_FORMAT_D32_FLOAT;
-		depthOptimizedClearValue.DepthStencil.Depth = 1.0f;
-		depthOptimizedClearValue.DepthStencil.Stencil = 0;
-		CD3DX12_RESOURCE_DESC res_desc = CD3DX12_RESOURCE_DESC::Tex2D(DXGI_FORMAT_D32_FLOAT, (uint64_t)width, (uint32_t)height, 1, 0, 1, 0, D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL);
+		for (uint32_t i = 0; i < rt_num; i++) {
 
-		m_shadow_map->CreateTexture(HeapBuffer::BufferType::bt_default, res_desc, D3D12_RESOURCE_STATE_DEPTH_READ, &depthOptimizedClearValue, L"sun_shadow_map");
+			D3D12_CLEAR_VALUE depthOptimizedClearValue = {};
+			depthOptimizedClearValue.Format = DXGI_FORMAT_D32_FLOAT;
+			depthOptimizedClearValue.DepthStencil.Depth = 1.0f;
+			depthOptimizedClearValue.DepthStencil.Stencil = 0;
+			CD3DX12_RESOURCE_DESC res_desc = CD3DX12_RESOURCE_DESC::Tex2D(DXGI_FORMAT_D32_FLOAT, (uint64_t)width, (uint32_t)height, 1, 0, 1, 0, D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL);
 
-		D3D12_DEPTH_STENCIL_VIEW_DESC depthStencilDesc = {};
-		depthStencilDesc.Format = DXGI_FORMAT_D32_FLOAT;
-		depthStencilDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D;
-		depthStencilDesc.Flags = D3D12_DSV_FLAG_NONE;
+			m_shadow_map[i].CreateTexture(HeapBuffer::BufferType::bt_default, res_desc, D3D12_RESOURCE_STATE_DEPTH_READ, &depthOptimizedClearValue, L"sun_shadow_map");
 
-		m_shadow_map->Create_DSV(depthStencilDesc);
+			D3D12_DEPTH_STENCIL_VIEW_DESC depthStencilDesc = {};
+			depthStencilDesc.Format = DXGI_FORMAT_D32_FLOAT;
+			depthStencilDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D;
+			depthStencilDesc.Flags = D3D12_DSV_FLAG_NONE;
 
-		D3D12_SHADER_RESOURCE_VIEW_DESC srv_desc = {};
-		srv_desc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-		srv_desc.Format = DXGI_FORMAT_R32_FLOAT;
-		srv_desc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
-		srv_desc.Texture2D.MostDetailedMip = 0;
-		srv_desc.Texture2D.MipLevels = 1;
-		srv_desc.Texture2D.ResourceMinLODClamp = 0.0f;
-		m_shadow_map->Create_SRV(srv_desc);
+			m_shadow_map[i].Create_DSV(depthStencilDesc);
+
+			D3D12_SHADER_RESOURCE_VIEW_DESC srv_desc = {};
+			srv_desc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+			srv_desc.Format = DXGI_FORMAT_R32_FLOAT;
+			srv_desc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+			srv_desc.Texture2D.MostDetailedMip = 0;
+			srv_desc.Texture2D.MipLevels = 1;
+			srv_desc.Texture2D.ResourceMinLODClamp = 0.0f;
+			m_shadow_map[i].Create_SRV(srv_desc);
+		}
 
 		m_dirty &= (~df_init);
 	}
@@ -93,13 +96,14 @@ void Sun::Update(float dt)
 
 void Sun::SetupShadowMap(CommandList& command_list)
 {
+	m_current_id = (m_current_id+1) % rt_num;
 	Initialize(command_list);
 
-	command_list.GetQueue()->ResourceBarrier(m_shadow_map, D3D12_RESOURCE_STATE_DEPTH_WRITE);
+	command_list.GetQueue()->ResourceBarrier(m_shadow_map[m_current_id], D3D12_RESOURCE_STATE_DEPTH_WRITE);
 	
 	// set dsv and viewport
 	CD3DX12_CPU_DESCRIPTOR_HANDLE dsvHandle;
-	if (std::shared_ptr<ResourceDescriptor> depth_view = m_shadow_map->GetDSV().lock()) {
+	if (std::shared_ptr<ResourceDescriptor> depth_view = m_shadow_map[m_current_id].GetDSV().lock()) {
 		dsvHandle = depth_view->GetCPUhandle();
 		command_list.ClearDepthStencilView(dsvHandle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
 	}

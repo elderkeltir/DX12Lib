@@ -33,7 +33,7 @@ public:
     const std::filesystem::path& GetEntitiesDir() const;
 
     const LevelLight& GetSunParams() const { return m_lights[0]; }
-    std::weak_ptr<GpuResource> GetSunShadowMap();
+    GpuResource& GetSunShadowMap();
 
 private:
     void RenderEntity(CommandList& command_list, LevelEntity & ent, bool &is_scene_constants_set);

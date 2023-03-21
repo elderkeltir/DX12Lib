@@ -42,7 +42,7 @@ public:
     }
 private:
     static const uint32_t rtvHeap_size = 32;
-    static const uint32_t dsvHeap_size = 2;
+    static const uint32_t dsvHeap_size = 5;
     static const uint32_t srvUavCbvHeap_size = 256;
     static const uint32_t srvUavCbvHeap_visible_size = 8;
 
