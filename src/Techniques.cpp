@@ -846,6 +846,6 @@ void Techniques::RebuildShaders(std::optional<std::wstring> dbg_name)
 	m_techniques[7].id = 7;
 	m_techniques[8] = CreateTechnique_8(device, m_root_signatures[3], dbg_name);
 	m_techniques[8].id = 8;
-    m_techniques[9] = CreateTechnique_8(device, m_root_signatures[3], dbg_name);
+    m_techniques[9] = CreateTechnique_9(device, m_root_signatures[3], dbg_name);
     m_techniques[9].id = 9;
 }

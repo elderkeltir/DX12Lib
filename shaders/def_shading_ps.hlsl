@@ -31,6 +31,16 @@ bool in_shadow(float3 world_pos)
     
 }
 
+#define NB_STEPS 128
+#define G_SCATTERING 0.05
+
+float ComputeScattering(float lightDotView)
+{
+    float result = 1.0f - G_SCATTERING * G_SCATTERING;
+    result /= (4.0f * PI * pow(1.0f + G_SCATTERING * G_SCATTERING - (2.0f * G_SCATTERING) * lightDotView, 1.5f));
+    return result;
+}
+
 float4 main(PixelShaderInput IN ) : SV_Target
 {
 
@@ -98,13 +108,54 @@ float4 main(PixelShaderInput IN ) : SV_Target
     }
     
     float shadowed = in_shadow(WorldPos);
+    
+    //
+    float3 startPosition = CamPos.xyz;
+
+    float3 rayVector = WorldPos.xyz - startPosition;
+
+    float rayLength = length(rayVector);
+    float3 rayDirection = rayVector / rayLength;
+
+    float stepLength = rayLength / NB_STEPS;
+
+    float3 step = rayDirection * stepLength;
+
+    float3 currentPosition = startPosition;
+
+    float3 accumFog = 0.0f.xxx;
+    matrix MVP_sun = mul(SunV, SunP);
+    
+    for (int j = 0; j < NB_STEPS; j++)
+    {
+        float4 worldInShadowCameraSpace = mul(float4(currentPosition, 1.0f), MVP_sun);
+        worldInShadowCameraSpace /= worldInShadowCameraSpace.w;
+        float2 shadow_uv;
+        shadow_uv.x = (worldInShadowCameraSpace.x + 1) / 2;
+        shadow_uv.y = (1 - worldInShadowCameraSpace.y) / 2;
+
+        float shadowMapValue = sun_sm.Sample(depthMapSam, shadow_uv).r;
+
+        if (shadowMapValue > worldInShadowCameraSpace.z + 0.0000001)
+        {
+            Light light = lights[0];
+            accumFog += ComputeScattering(dot(rayDirection, normalize(-light.Direction))).xxx * light.Color;
+
+        }
+        currentPosition += step;
+    }
+    accumFog /= NB_STEPS;
+    //
   
     float3 ambient = float3(0.03, 0.03, 0.03) * albedo * ao;
-    float3 color = ambient + Lo;
+    //float3 ambient = accumFog;
+    float3 color = ambient + Lo + accumFog;
    
     float4 FragColor = float4(color, 1.0);
     if (shadowed)
-        FragColor = float4(0, 0, 0, 1.0);
+    {
+        FragColor *= 0.2;
+    }
 
     return FragColor;
 }
