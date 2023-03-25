@@ -35,8 +35,7 @@ void main(int3 group_thread_id : SV_GroupThreadID,
 		
 		while (current_ray_len < max_ray_length)
 		{
-			float3 next_point = current_pos + mul(ray_dir, ray_step);
-			float3 next_point_view = mul(float4(next_point, 1), V).rgb;
+			float3 next_point = current_pos + ray_dir * ray_step;
 			
 			float4 next_uv = mul(float4(next_point, 1.0), VP);
 			next_uv.xyz /= next_uv.w;
@@ -44,10 +43,11 @@ void main(int3 group_thread_id : SV_GroupThreadID,
 			next_uv.y = (1 - next_uv.y) * 0.5;
 			
 			float3 next_point_real = world_poses.SampleLevel(pointClamp, next_uv.xy, 0).rgb;
-			float3 next_point_real_view = mul(float4(next_point_real, 1), V).rgb;
 			
+            float len_expected = length(next_point - current_pos);
+            float len_actual = length(next_point_real - current_pos);
 			
-			if (next_point_real_view.z < next_point_view.z)
+            if (len_expected > len_actual)
 			{
 				color.rgb = colors.SampleLevel(pointClamp, next_uv.xy, 0).rgb;
 				color.a = reflectivity;
