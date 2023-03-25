@@ -115,6 +115,12 @@ void ConstantBufferManager::SetVector4Constant(Constants id, const DirectX::XMVE
             DirectX::XMStoreFloat4(&scene_cb->CamPos, vec);
         }
     }
+    else if (id == Constants::cCD) {
+        if (std::shared_ptr<HeapBuffer> buff = m_scene_cbs[frame_id].GetBuffer().lock()) {
+            SceneCB* scene_cb = (SceneCB*)buff->GetCpuData();
+            DirectX::XMStoreFloat4(&scene_cb->CamDir, vec);
+        }
+    }
 	else if (id == Constants::cRTdim) {
 		if (std::shared_ptr<HeapBuffer> buff = m_scene_cbs[frame_id].GetBuffer().lock()) {
 			SceneCB* scene_cb = (SceneCB*)buff->GetCpuData();
@@ -141,6 +147,12 @@ void ConstantBufferManager::SetVector4Constant(Constants id, const DirectX::XMFL
         if (std::shared_ptr<HeapBuffer> buff = m_scene_cbs[frame_id].GetBuffer().lock()){
             SceneCB* scene_cb = (SceneCB*) buff->GetCpuData();
             scene_cb->CamPos = vec;
+        }
+    }
+    else if (id == Constants::cCD) {
+        if (std::shared_ptr<HeapBuffer> buff = m_scene_cbs[frame_id].GetBuffer().lock()) {
+            SceneCB* scene_cb = (SceneCB*)buff->GetCpuData();
+            scene_cb->CamDir = vec;
         }
     }
 	else if (id == Constants::cRTdim) {

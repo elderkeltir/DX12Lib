@@ -33,6 +33,7 @@ cbuffer SceneCB : register(b1){
     float4x4 V;
     float4x4 P;
     float4 CamPos;
+    float4 CamDir;
     float4x4 Pinv;
     float4 RTdim;
     float4 NearFarZ;

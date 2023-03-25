@@ -245,6 +245,8 @@ void Level::RenderEntity(CommandList& command_list, LevelEntity & ent, bool &is_
 
         DirectX::XMFLOAT4 cam_pos(m_camera->GetPosition().x, m_camera->GetPosition().y, m_camera->GetPosition().z, 1);
         gD3DApp->SetVector4Constant(Constants::cCP, cam_pos);
+        DirectX::XMFLOAT4 cam_dir(m_camera->GetDirection().x, m_camera->GetDirection().y, m_camera->GetDirection().z, 1);
+        gD3DApp->SetVector4Constant(Constants::cCD, cam_dir);
 
         float w = (float)gD3DApp->GetWidth();
         float h = (float)gD3DApp->GetHeight();

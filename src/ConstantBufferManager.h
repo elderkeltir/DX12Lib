@@ -13,6 +13,7 @@ class CommandList;
 
 enum class Constants {
     cCP,                    // camera pos
+    cCD,                    // camera dir
     cM,                     // model matrix
     cV,                     // view matrix
     cP,                     // projection matrix
@@ -114,6 +115,7 @@ public:
         DirectX::XMFLOAT4X4 V;
         DirectX::XMFLOAT4X4 P;
         DirectX::XMFLOAT4 CamPos;
+        DirectX::XMFLOAT4 CamDir;
         DirectX::XMFLOAT4X4 VPinv;
         DirectX::XMFLOAT4 RTdim; // x=width, y=height, z=1/wisth, w=1/height
         DirectX::XMFLOAT4 NearFarZ; // x - Znear, y - Zfar, zw - free
