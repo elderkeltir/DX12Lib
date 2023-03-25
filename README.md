@@ -16,10 +16,12 @@ Supports:
 * Forward rendering (water as an example)
 * Terrain generation using GPU instancing
 * Water generation and animation using GPU instancing (very simple aproach)
+* SSR
+* Volume lightning
+* Shadow Maps
 
 
 Expected to be added:
-* CSM
 * IBL
 * TAA
 * Culling
