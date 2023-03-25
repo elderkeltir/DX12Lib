@@ -8,14 +8,14 @@ extern DXAppImplementation *gD3DApp;
 
 MaterialManager::~MaterialManager() = default;
 
-uint32_t MaterialManager::CreateMaterial(float metallic, float roughness) {
+uint32_t MaterialManager::CreateMaterial(float metallic, float roughness, float reflectivity) {
     for (uint32_t i = 0; i < m_materials.size(); i++){
-        if (cmpf(metallic, m_materials[i].metallic) && cmpf(roughness, m_materials[i].roughness)){
+        if (cmpf(metallic, m_materials[i].metallic) && cmpf(roughness, m_materials[i].roughness) && cmpf(reflectivity, m_materials[i].reflectivity)){
             return i;
         }
     }
 
-    Material m{ metallic, roughness };
+    Material m{ metallic, roughness, reflectivity };
     return m_materials.push_back(m);
 }
 

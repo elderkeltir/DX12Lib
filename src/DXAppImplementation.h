@@ -19,6 +19,7 @@ class RenderQuad;
 class DynamicGpuHeap;
 class SSAO;
 class ImguiHelper;
+class Reflections;
 
 
 class DXAppImplementation : public DXApp, public ResourceManager, public ConstantBufferManager, public Techniques
@@ -68,6 +69,7 @@ private:
     void RenderDeferredShadingQuad(CommandList& command_list);
     void RenderSSAOquad(CommandList& command_list);
     void BlurSSAO(CommandList& command_list);
+    void GenerateReflections(CommandList& command_list);
 
     void UpdateCamera(std::shared_ptr<FreeCamera> &camera, float dt);
 
@@ -89,6 +91,7 @@ private:
     std::unique_ptr<RenderQuad> m_deferred_shading_quad;
     std::unique_ptr<RenderQuad> m_forward_quad;
     std::unique_ptr<SSAO> m_ssao;
+    std::unique_ptr<Reflections> m_reflections;
     std::unique_ptr<ImguiHelper> m_gui;
     std::unique_ptr<logger> m_logger;
 

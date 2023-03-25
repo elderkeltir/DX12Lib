@@ -330,15 +330,15 @@ static Techniques::Technique CreateTechnique_5(ComPtr<ID3D12Device2>& device, Ro
 	tech.cs = L"ssao_cs.hlsl";
 	tech.root_signature = root_sign.id;
 
-	D3D12_COMPUTE_PIPELINE_STATE_DESC vertBlurPSO = {};
-	vertBlurPSO.pRootSignature = root_sign.GetRootSignature().Get();
+	D3D12_COMPUTE_PIPELINE_STATE_DESC ssaoPSO = {};
+    ssaoPSO.pRootSignature = root_sign.GetRootSignature().Get();
 	if (std::shared_ptr<ShaderManager> shader_mgr = gD3DApp->GetShaderManager().lock()) {
 		ShaderManager::ShaderBlob* cs_blob = shader_mgr->Load(tech.cs, L"main", ShaderManager::ShaderType::st_compute);
-		vertBlurPSO.CS = CD3DX12_SHADER_BYTECODE((const void*)cs_blob->data.data(), cs_blob->data.size());
+        ssaoPSO.CS = CD3DX12_SHADER_BYTECODE((const void*)cs_blob->data.data(), cs_blob->data.size());
 	}
-	vertBlurPSO.Flags = D3D12_PIPELINE_STATE_FLAG_NONE;
+    ssaoPSO.Flags = D3D12_PIPELINE_STATE_FLAG_NONE;
 
-	ThrowIfFailed(device->CreateComputePipelineState(&vertBlurPSO, IID_PPV_ARGS(&tech.pipeline_state)));
+	ThrowIfFailed(device->CreateComputePipelineState(&ssaoPSO, IID_PPV_ARGS(&tech.pipeline_state)));
     SetName(tech.pipeline_state, dbg_name.value_or(L"").append(L"_pso_5").c_str());
 
 	return tech;
@@ -349,15 +349,15 @@ static Techniques::Technique CreateTechnique_6(ComPtr<ID3D12Device2>& device, Ro
 	tech.cs = L"gaussian_blur_cs.hlsl";
 	tech.root_signature = root_sign.id;
 
-	D3D12_COMPUTE_PIPELINE_STATE_DESC vertBlurPSO = {};
-	vertBlurPSO.pRootSignature = root_sign.GetRootSignature().Get();
+	D3D12_COMPUTE_PIPELINE_STATE_DESC blurPSO = {};
+	blurPSO.pRootSignature = root_sign.GetRootSignature().Get();
     if (std::shared_ptr<ShaderManager> shader_mgr = gD3DApp->GetShaderManager().lock()) {
 		ShaderManager::ShaderBlob* cs_blob = shader_mgr->Load(tech.cs, L"main", ShaderManager::ShaderType::st_compute);
-        vertBlurPSO.CS = CD3DX12_SHADER_BYTECODE((const void*)cs_blob->data.data(), cs_blob->data.size());
+        blurPSO.CS = CD3DX12_SHADER_BYTECODE((const void*)cs_blob->data.data(), cs_blob->data.size());
     }
-	vertBlurPSO.Flags = D3D12_PIPELINE_STATE_FLAG_NONE;
+	blurPSO.Flags = D3D12_PIPELINE_STATE_FLAG_NONE;
 
-    ThrowIfFailed(device->CreateComputePipelineState(&vertBlurPSO, IID_PPV_ARGS(&tech.pipeline_state)));
+    ThrowIfFailed(device->CreateComputePipelineState(&blurPSO, IID_PPV_ARGS(&tech.pipeline_state)));
     SetName(tech.pipeline_state, dbg_name.value_or(L"").append(L"_pso_6").c_str());
 
     return tech;
@@ -543,6 +543,25 @@ static Techniques::Technique CreateTechnique_9(ComPtr<ID3D12Device2>& device, Ro
 
 	return tech;
 }
+// refl
+static Techniques::Technique CreateTechnique_10(ComPtr<ID3D12Device2>& device, RootSignature& root_sign, std::optional<std::wstring> dbg_name = std::nullopt) {
+    Techniques::Technique tech;
+    tech.cs = L"refl_cs.hlsl";
+    tech.root_signature = root_sign.id;
+
+    D3D12_COMPUTE_PIPELINE_STATE_DESC reflPSO = {};
+    reflPSO.pRootSignature = root_sign.GetRootSignature().Get();
+    if (std::shared_ptr<ShaderManager> shader_mgr = gD3DApp->GetShaderManager().lock()) {
+        ShaderManager::ShaderBlob* cs_blob = shader_mgr->Load(tech.cs, L"main", ShaderManager::ShaderType::st_compute);
+        reflPSO.CS = CD3DX12_SHADER_BYTECODE((const void*)cs_blob->data.data(), cs_blob->data.size());
+    }
+    reflPSO.Flags = D3D12_PIPELINE_STATE_FLAG_NONE;
+
+    ThrowIfFailed(device->CreateComputePipelineState(&reflPSO, IID_PPV_ARGS(&tech.pipeline_state)));
+    SetName(tech.pipeline_state, dbg_name.value_or(L"").append(L"_pso_5").c_str());
+
+    return tech;
+}
 
 // root sign for g-buffer
 void Techniques::CreateRootSignature_0(ComPtr<ID3D12Device2> &device, RootSignature* root_sign, std::optional<std::wstring> dbg_name){
@@ -608,7 +627,7 @@ void Techniques::CreateRootSignature_1(ComPtr<ID3D12Device2> &device, RootSignat
 
     // A single 32-bit constant root parameter that is used by the vertex shader.
     CD3DX12_DESCRIPTOR_RANGE1 &texTable = m_desc_ranges[m_desc_ranges.push_back()];
-	texTable.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 5, 0, 0, D3D12_DESCRIPTOR_RANGE_FLAG_DESCRIPTORS_VOLATILE);
+	texTable.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 6, 0, 0, D3D12_DESCRIPTOR_RANGE_FLAG_DESCRIPTORS_VOLATILE);
 
     auto staticSamplers = GetStaticSamplers();
 
@@ -808,6 +827,8 @@ void Techniques::OnInit(ComPtr<ID3D12Device2> &device, std::optional<std::wstrin
 		m_techniques[id].id = id;
         id = m_techniques.push_back(CreateTechnique_9(device, m_root_signatures[0], dbg_name));
         m_techniques[id].id = id;
+        id = m_techniques.push_back(CreateTechnique_10(device, m_root_signatures[4], dbg_name));
+        m_techniques[id].id = id;
     }
 }
 
@@ -848,4 +869,6 @@ void Techniques::RebuildShaders(std::optional<std::wstring> dbg_name)
 	m_techniques[8].id = 8;
     m_techniques[9] = CreateTechnique_9(device, m_root_signatures[0], dbg_name);
     m_techniques[9].id = 9;
+    m_techniques[10] = CreateTechnique_10(device, m_root_signatures[4], dbg_name);
+    m_techniques[10].id = 10;
 }

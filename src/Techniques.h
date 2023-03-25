@@ -29,6 +29,7 @@ public:
         tt_ssao                             = 5,
         tt_blur                             = 6,
         tt_shadow_map                       = 9,
+        tt_reflection_map                   = 10,
     };
 public:
     virtual void OnInit(ComPtr<ID3D12Device2> &device, std::optional<std::wstring> dbg_name = std::nullopt);

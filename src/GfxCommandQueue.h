@@ -13,7 +13,7 @@ public:
     virtual void OnInit(ComPtr<ID3D12Device2> device, D3D12_COMMAND_LIST_TYPE type, uint32_t command_list_num, std::optional<std::wstring> dbg_name = std::nullopt) override;
     CommandList& ResetActiveCL(ID3D12PipelineState *pipeline_state = nullptr);
     virtual void SetPSO(uint32_t id) override;
-    virtual void SetRootSign(uint32_t id) override;
+    virtual void SetRootSign(uint32_t id, bool gfx = true) override;
     CommandList& GetActiveCL();
     void ExecuteActiveCL();
     void ResourceBarrier(std::shared_ptr<GpuResource> &res, D3D12_RESOURCE_STATES to);

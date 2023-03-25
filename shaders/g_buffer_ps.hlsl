@@ -37,7 +37,7 @@ ps_output main( PixelShaderInput input )
         // normal mapping
         output.normal = float4(normalize(input.normal), 0);
         output.pos = float4(input.world_position.xyz, (input.world_position.w - NearFarZ.x) / (NearFarZ.y - NearFarZ.x));
-        output.material = float4(materials[material_id].metal, materials[material_id].rough, 0, 0);
+        output.material = float4(materials[material_id].metal, materials[material_id].rough, materials[material_id].reflectivity, 0);
         //output.pos.w = 1 - input.Position.z / input.Position.w;
     }
     else if (vertex_type == 1)
@@ -55,7 +55,7 @@ ps_output main( PixelShaderInput input )
     
         float met = metallicness.Sample(linearClamp, input.tex_coord.xy).r;
         float rough = roughness.Sample(linearClamp, input.tex_coord.xy).r;
-        output.material = float4(met, rough, 1, 0);
+        output.material = float4(met, rough, materials[material_id].reflectivity, 0);
     }
 
     return output;

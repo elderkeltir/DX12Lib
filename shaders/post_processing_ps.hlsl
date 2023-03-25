@@ -6,6 +6,7 @@ Texture2D gui_texture : register(t1);
 Texture2D fwd_tex : register(t2);
 Texture2D ssao_tex : register(t3);
 Texture2D sun_sm_tex : register(t4);
+Texture2D ssr_tex : register(t5);
 
 static const float3 GrayScaleIntensity = { 0.299f, 0.587f, 0.114f };
 static const float3x3 SepiaFilter = { 0.393f, 0.349f, 0.272f,
@@ -27,6 +28,11 @@ float4 main(PS_INPUT input) : SV_TARGET
     if (fwd_pix_color.a > 0)
     {
         pix_color.rgb = (fwd_pix_color.rgb * fwd_pix_color.a) + (pix_color.rgb * (pix_color.a - fwd_pix_color.a));
+    }
+    float4 reflection = ssr_tex.Sample(pointWrap, input.textCoord);
+    if (reflection.a > 0)
+    {
+        pix_color.rgb += (reflection.rgb * reflection.a);
     }
 
 	// grayscale //

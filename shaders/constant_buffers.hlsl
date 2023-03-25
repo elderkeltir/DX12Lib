@@ -4,7 +4,8 @@
 struct Material {
     float metal;
     float rough;
-    float2 padding;
+    float reflectivity;
+    float padding;
 };
 
 struct Light

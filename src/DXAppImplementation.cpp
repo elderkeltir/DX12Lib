@@ -16,6 +16,7 @@
 #include "ImguiHelper.h"
 #include "Logger.h"
 #include "GpuDataManager.h"
+#include "Reflections.h"
 #include "WinPixEventRuntime/pix3.h"
 
 #if defined(USE_PIX) && defined(USE_PIX_DEBUG)
@@ -38,6 +39,7 @@ DXAppImplementation::DXAppImplementation(uint32_t width, uint32_t height, std::w
 	m_forward_quad(std::make_unique<RenderQuad>()),
 	m_deferred_shading_quad(std::make_unique<RenderQuad>()),
 	m_ssao(std::make_unique<SSAO>()),
+	m_reflections(std::make_unique<Reflections>()),
 	m_gui(std::make_unique<ImguiHelper>()),
 	m_logger(std::make_unique<logger>("app.log", logger::log_level::ll_INFO))
 {
@@ -65,6 +67,7 @@ void DXAppImplementation::OnInit()
 	m_deferred_shading_quad->Initialize();
 	m_forward_quad->Initialize();
 	m_ssao->Initialize(m_width, m_height, L"SSAO_");
+	m_reflections->Initialize();
 
 	m_gpu_data_mgr->Initialize();
 
@@ -297,6 +300,7 @@ void DXAppImplementation::OnRender()
 	BEGIN_EVENT(command_list_gfx.GetRawCommandList(), "ShadowMap");
 	m_level->RenderShadowMap(command_list_gfx);
 	END_EVENT(command_list_gfx.GetRawCommandList());
+
 	m_commandQueueGfx->ExecuteActiveCL();
 	
 	m_commandQueueCompute->WaitOnGPU(m_fence_inter_queue, m_fence_inter_queue_val);
@@ -318,6 +322,11 @@ void DXAppImplementation::OnRender()
 	// deferred shading
 	BEGIN_EVENT(command_list_gfx.GetRawCommandList(), "Deferred Shading");
 	RenderDeferredShadingQuad(command_list_gfx);
+	END_EVENT(command_list_gfx.GetRawCommandList());
+
+	// ssr
+	BEGIN_EVENT(command_list_gfx.GetRawCommandList(), "SSR");
+	GenerateReflections(command_list_gfx);
 	END_EVENT(command_list_gfx.GetRawCommandList());
 
 	// forward pass
@@ -486,9 +495,13 @@ void DXAppImplementation::RenderPostProcessQuad(CommandList& command_list) {
 		m_commandQueueGfx->GetGpuHeap().StageDesctriptorInTable(bi_post_proc_input_tex_table, tto_postp_ssao, srv->GetCPUhandle());
 	}
 
-
 	if (std::shared_ptr<ResourceDescriptor> srv = m_level->GetSunShadowMap().GetSRV().lock()) {
 		m_commandQueueGfx->GetGpuHeap().StageDesctriptorInTable(bi_post_proc_input_tex_table, tto_postp_sun_sm, srv->GetCPUhandle());
+	}
+
+	if (std::shared_ptr<ResourceDescriptor> srv = m_reflections->GetReflectionMap().GetSRV().lock()) {
+		m_commandQueueGfx->ResourceBarrier(m_reflections->GetReflectionMap(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+		m_commandQueueGfx->GetGpuHeap().StageDesctriptorInTable(bi_post_proc_input_tex_table, tto_postp_ssr, srv->GetCPUhandle());
 	}
 
 	CommitCB(command_list, cb_scene);
@@ -557,7 +570,7 @@ void DXAppImplementation::RenderDeferredShadingQuad(CommandList& command_list) {
 		m_commandQueueGfx->GetGpuHeap().CacheRootSignature(gD3DApp->GetRootSignById(tech->root_signature));
 	}
 
-	gD3DApp->CommitCB(command_list, cb_scene);
+	CommitCB(command_list, cb_scene);
 	m_level->BindLights(command_list);
 
 	if (std::shared_ptr<ResourceDescriptor> srv = m_level->GetSunShadowMap().GetSRV().lock()) {
@@ -613,7 +626,7 @@ void DXAppImplementation::RenderSSAOquad(CommandList& command_list) {
 		m_commandQueueCompute->GetGpuHeap().StageDesctriptorInTable(bi_ssao_uav_tex, tto_ssao_blur_uav, uav->GetCPUhandle());
 	}
 
-	gD3DApp->CommitCB(command_list, cb_scene, false);
+	CommitCB(command_list, cb_scene, false);
 	// bind ssao cb
 	m_ssao->GenerateSSAO(command_list, false);
 
@@ -667,6 +680,52 @@ void DXAppImplementation::BlurSSAO(CommandList& command_list)
 
 	m_commandQueueCompute->GetGpuHeap().CommitRootSignature(command_list, false);
 
+	command_list.Dispatch((uint32_t)ceilf(float(m_width) / threads_num), (uint32_t)ceilf(float(m_height) / threads_num), 1);
+}
+
+void DXAppImplementation::GenerateReflections(CommandList& command_list)
+{
+	const Techniques::Technique* tech = GetTechniqueById(tt_reflection_map);
+	if (m_commandQueueGfx->GetPSO() != tt_reflection_map) {
+		m_commandQueueGfx->SetPSO(tt_reflection_map);
+	}
+	if (m_commandQueueGfx->GetRootSign() != tech->root_signature) {
+		m_commandQueueGfx->SetRootSign(tech->root_signature, false);
+	}
+	m_commandQueueGfx->GetGpuHeap().CacheRootSignature(gD3DApp->GetRootSignById(tech->root_signature));
+
+	// resources
+	std::vector< std::shared_ptr<GpuResource>>& rts = m_deferred_shading_quad->GetRts(m_frameIndex);
+	for (uint32_t i = 1; i < 4; i++) {
+		m_commandQueueGfx->ResourceBarrier(rts[i], D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+	}
+	m_commandQueueGfx->ResourceBarrier(m_post_process_quad->GetRts(m_frameIndex).at(0), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+
+	if (std::shared_ptr<ResourceDescriptor> srv = m_post_process_quad->GetRts(m_frameIndex).at(0)->GetSRV().lock()) {
+		m_commandQueueGfx->GetGpuHeap().StageDesctriptorInTable(bi_refl_srv, tto_refl_colors, srv->GetCPUhandle());
+	}
+
+	if (std::shared_ptr<ResourceDescriptor> srv = rts[1]->GetSRV().lock()) {
+		m_commandQueueGfx->GetGpuHeap().StageDesctriptorInTable(bi_refl_srv, tto_refl_normals, srv->GetCPUhandle());
+	}
+
+	if (std::shared_ptr<ResourceDescriptor> srv = rts[2]->GetSRV().lock()) {
+		m_commandQueueGfx->GetGpuHeap().StageDesctriptorInTable(bi_refl_srv, tto_refl_world_poses, srv->GetCPUhandle());
+	}
+
+	if (std::shared_ptr<ResourceDescriptor> srv = rts[3]->GetSRV().lock()) {
+		m_commandQueueGfx->GetGpuHeap().StageDesctriptorInTable(bi_refl_srv, tto_refl_materials, srv->GetCPUhandle());
+	}
+
+	if (std::shared_ptr<ResourceDescriptor> uav = m_reflections->GetReflectionMap().GetUAV().lock()) {
+		m_commandQueueGfx->GetGpuHeap().StageDesctriptorInTable(bi_refl_uav, tto_refl_uav, uav->GetCPUhandle());
+	}
+
+	CommitCB(command_list, cb_scene, false);
+	m_commandQueueGfx->GetGpuHeap().CommitRootSignature(command_list, false);
+
+	// dispatch
+	const float threads_num = 32.f;
 	command_list.Dispatch((uint32_t)ceilf(float(m_width) / threads_num), (uint32_t)ceilf(float(m_height) / threads_num), 1);
 }
 

@@ -11,12 +11,12 @@ public:
     struct Material {
         float metallic;
         float roughness;
-        float padding1;
+        float reflectivity;
         float padding2;
     };
 public:
     ~MaterialManager();
-    uint32_t CreateMaterial(float metallic, float roughness);
+    uint32_t CreateMaterial(float metallic, float roughness, float reflectivity);
     Material& GetMaterial(uint32_t id) { return m_materials[id]; }
     void LoadMaterials();
     void BindMaterials(CommandList& command_list);

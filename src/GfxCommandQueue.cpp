@@ -77,16 +77,20 @@ void GfxCommandQueue::ExecuteActiveCL(){
 void GfxCommandQueue::ResourceBarrier(std::shared_ptr<GpuResource> &res, D3D12_RESOURCE_STATES to){
     if (std::shared_ptr<HeapBuffer> buff = res->GetBuffer().lock()){
         D3D12_RESOURCE_STATES calculated_from = res->GetState();
-        m_command_list.m_command_list->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(buff->GetResource().Get(), calculated_from, to));
-        res->UpdateState(to);
+        if (calculated_from != to) {
+            m_command_list.m_command_list->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(buff->GetResource().Get(), calculated_from, to));
+            res->UpdateState(to);
+        }
     }
 }
 
 void GfxCommandQueue::ResourceBarrier(GpuResource &res, D3D12_RESOURCE_STATES to) {
     if (std::shared_ptr<HeapBuffer> buff = res.GetBuffer().lock()){
         D3D12_RESOURCE_STATES calculated_from = res.GetState();
-        m_command_list.m_command_list->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(buff->GetResource().Get(), calculated_from, to));
-        res.UpdateState(to);
+        if (calculated_from != to) {
+            m_command_list.m_command_list->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(buff->GetResource().Get(), calculated_from, to));
+            res.UpdateState(to);
+        }
     }
 }
 
@@ -96,8 +100,10 @@ void GfxCommandQueue::ResourceBarrier(std::vector<std::shared_ptr<GpuResource>>&
     for (auto gpu_res : res){
         if (std::shared_ptr<HeapBuffer> buff = gpu_res->GetBuffer().lock()){
             D3D12_RESOURCE_STATES calculated_from = gpu_res->GetState();
-            resources.push_back(CD3DX12_RESOURCE_BARRIER::Transition(buff->GetResource().Get(), calculated_from, to));
-            gpu_res->UpdateState(to);
+            if (calculated_from != to) {
+                resources.push_back(CD3DX12_RESOURCE_BARRIER::Transition(buff->GetResource().Get(), calculated_from, to));
+                gpu_res->UpdateState(to);
+            }
         }
     }
 
@@ -116,15 +122,15 @@ void GfxCommandQueue::SetPSO(uint32_t id) {
     }
 }
 
-void GfxCommandQueue::SetRootSign(uint32_t id) {
+void GfxCommandQueue::SetRootSign(uint32_t id, bool gfx) {
     m_root_sign = id;
 
     auto root_sign = gD3DApp->GetRootSignById(id);
     auto &r = root_sign->GetRootSignature();
-    if (m_type == D3D12_COMMAND_LIST_TYPE_DIRECT) {
+    if (m_type == D3D12_COMMAND_LIST_TYPE_DIRECT && gfx) {
         m_command_list.m_command_list->SetGraphicsRootSignature(r.Get());
     }
-    else if (m_type == D3D12_COMMAND_LIST_TYPE_COMPUTE){
+    else {
         m_command_list.m_command_list->SetComputeRootSignature(r.Get());
     }
 }

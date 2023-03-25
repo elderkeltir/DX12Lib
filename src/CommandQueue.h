@@ -14,7 +14,7 @@ public:
     virtual void OnInit(ComPtr<ID3D12Device2> device, D3D12_COMMAND_LIST_TYPE type, uint32_t command_list_num, std::optional<std::wstring> dbg_name = std::nullopt) = 0;
     virtual void OnDestroy() { Flush(); CloseHandle(m_fenceEvent); }
     virtual void SetPSO(uint32_t id) = 0;
-    virtual void SetRootSign(uint32_t id) = 0;
+    virtual void SetRootSign(uint32_t id, bool gfx) = 0;
     uint64_t Signal();
     void Signal(ComPtr<ID3D12Fence>& fence, uint64_t fence_value);
     void WaitOnCPU(uint64_t fence_value);

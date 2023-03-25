@@ -66,8 +66,9 @@ void LevelEntity::Load(const std::wstring &name){
 			const Value& material = d["material"];
 			const Value& metallic = material["metallic"];
 			const Value& roughness = material["roughness"];
+            const Value& reflectivity = material["reflectivity"];
 			if (std::shared_ptr<MaterialManager> mat_mgr = gD3DApp->GetMaterialManager().lock()) {
-				uint32_t mat_id = mat_mgr->CreateMaterial(metallic.GetFloat(), roughness.GetFloat());
+				uint32_t mat_id = mat_mgr->CreateMaterial(metallic.GetFloat(), roughness.GetFloat(), reflectivity.GetFloat());
 				m_model->SetMaterial(mat_id);
 			}
         }
