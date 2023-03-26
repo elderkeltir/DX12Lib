@@ -7,3 +7,4 @@ SamplerState linearClamp  : register(s3);
 SamplerState anisotropicWrap  : register(s4);
 SamplerState anisotropicClamp  : register(s5);
 SamplerState depthMapSam  : register(s6);
+SamplerState depthMap2Sam : register(s7);

@@ -9,7 +9,7 @@ Texture2D world_poses : register(t3);
 RWTexture2D<float4> output_tex : register(u0);
 
 static const float max_ray_length = 50.f;
-static const float ray_step = 0.1f;
+static const float ray_step = 0.25f;
 
 #define N 32
 
@@ -33,7 +33,7 @@ void main(int3 group_thread_id : SV_GroupThreadID,
 		
 		matrix VP = mul(V, P);
 		
-		while (current_ray_len < max_ray_length)
+		while (current_ray_len < max_ray_length )
 		{
 			float3 next_point = current_pos + ray_dir * ray_step;
 			
@@ -47,7 +47,7 @@ void main(int3 group_thread_id : SV_GroupThreadID,
             float len_expected = length(next_point - current_pos);
             float len_actual = length(next_point_real - current_pos);
 			
-            if (len_expected > len_actual)
+            if (len_expected > len_actual + 0.001)
 			{
 				color.rgb = colors.SampleLevel(pointClamp, next_uv.xy, 0).rgb;
 				color.a = reflectivity;

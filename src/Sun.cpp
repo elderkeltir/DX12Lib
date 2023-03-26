@@ -64,7 +64,7 @@ void Sun::Update(float dt)
 
 			if (std::shared_ptr<FreeCamera> camera = level->GetCamera().lock()) {
 				const DirectX::XMFLOAT3 &cam_pos = camera->GetPosition();
-				const float sun_dist = 20;
+				const float sun_dist = 120;
 				pos.x = cam_pos.x + (pos.x * sun_dist);
 				pos.y = cam_pos.y + (pos.y * sun_dist);
 				pos.z = cam_pos.z + (pos.z * sun_dist);
@@ -85,7 +85,7 @@ void Sun::Update(float dt)
 				DirectX::XMStoreFloat4x4(&m_sun_view, sun_v);
 
 				// P
-				DirectX::XMMATRIX sun_p = DirectX::XMMatrixOrthographicLH(((float)gD3DApp->GetWidth() / (float)gD3DApp->GetHeight()) * 100, 100, 0, 100);
+				DirectX::XMMATRIX sun_p = DirectX::XMMatrixOrthographicLH(((float)gD3DApp->GetWidth() / (float)gD3DApp->GetHeight()) * 100, 100, 10, 500);
 				DirectX::XMStoreFloat4x4(&m_sun_projection, sun_p);
 			}
 		}

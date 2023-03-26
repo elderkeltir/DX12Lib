@@ -24,15 +24,15 @@ bool in_shadow(float3 world_pos)
     shadow_uv.x = (shadow_pos.x + 1) / 2;
     shadow_uv.y = (1 - shadow_pos.y) / 2;
     
-    float depth_actual = sun_sm.Sample(depthMapSam, shadow_uv).r;
+    float depth_actual = sun_sm.Sample(pointWrap, shadow_uv).r;
     float depth_expected = shadow_pos.z;
     
-    return (depth_actual < depth_expected + 0.0000001);
+    return (depth_expected <= 1 && depth_actual < depth_expected + 0.0000001);
     
 }
 
 #define NB_STEPS 128
-#define G_SCATTERING 0.05
+#define G_SCATTERING 1.00
 
 float ComputeScattering(float lightDotView)
 {
