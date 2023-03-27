@@ -9,7 +9,7 @@ Texture2D world_poses : register(t3);
 RWTexture2D<float4> output_tex : register(u0);
 
 static const float max_ray_length = 50.f;
-static const float ray_step = 0.25f;
+static const float ray_step = 0.2f;
 
 #define N 32
 
@@ -32,7 +32,7 @@ void main(int3 group_thread_id : SV_GroupThreadID,
 		float current_ray_len = ray_step;
 		
 		matrix VP = mul(V, P);
-		
+        current_pos += current_nm * 0.05;
 		while (current_ray_len < max_ray_length )
 		{
 			float3 next_point = current_pos + ray_dir * ray_step;
