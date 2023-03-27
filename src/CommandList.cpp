@@ -1,4 +1,5 @@
 #include "CommandList.h"
+#include "defines.h"
 
 void CommandList::RSSetViewports(uint32_t num_viewports, const D3D12_VIEWPORT* viewports)
 {
@@ -30,7 +31,7 @@ void CommandList::SetComputeRootConstantBufferView(uint32_t root_parameter_index
 	m_command_list->SetComputeRootConstantBufferView(root_parameter_index, buffer_location);
 }
 
-void CommandList::IASetIndexBuffer(const IGpuResource::IndexVufferView* view)
+void CommandList::IASetIndexBuffer(const IndexVufferView* view)
 {
 	D3D12_INDEX_BUFFER_VIEW view_native;
 	view_native.BufferLocation = view->buffer_location;

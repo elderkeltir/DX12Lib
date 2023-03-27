@@ -139,7 +139,7 @@ void RenderModel::Render(CommandList& command_list, const DirectX::XMFLOAT4X4 &p
     parent_xform_mx = DirectX::XMMatrixMultiply(m_transformations->GetModel(), parent_xform_mx);
 
     if (m_mesh && m_mesh->GetIndicesNum() > 0){
-        if (std::shared_ptr<GpuResource::IndexVufferView> ind_view = m_IndexBuffer->Get_Index_View().lock()){
+        if (std::shared_ptr<IndexVufferView> ind_view = m_IndexBuffer->Get_Index_View().lock()){
             command_list.IASetIndexBuffer(ind_view.get());
         }
         else {

@@ -236,6 +236,25 @@ struct CBVdesc {
     uint32_t size_in_bytes;
 };
 
+struct DSVdesc {
+    ResourceFormat format;
+    enum class DSVdimensionType {
+        dsv_dt_unknown = 0,
+        dsv_dt_texture1d = 1,
+        dsv_dt_texture1darray = 2,
+        dsv_dt_texture2d = 3,
+        dsv_dt_texture2darray = 4,
+        dsv_dt_texture2dms = 5,
+        dsv_dt_texture2dmsarray = 6
+    } dimension;
+    enum class Flags {
+        f_none = 0,
+        f_read_only_depth = 0x1,
+        f_read_only_stencil = 0x2
+    };
+    Flags flags{ Flags::f_none };
+};
+
 struct ResourceDesc {
     enum class ResourcesDimension {
         rd_unknown = 0,
@@ -371,4 +390,10 @@ struct SubresourceData {
     const void* data;
     uint64_t row_pitch;
     uint64_t slice_pitch;
+};
+
+struct IndexVufferView {
+    uint64_t buffer_location;
+    uint32_t size_in_bytes;
+    ResourceFormat format;
 };
