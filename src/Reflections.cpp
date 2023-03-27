@@ -14,27 +14,22 @@ void Reflections::Initialize()
 
 		for (uint32_t i = 0; i < rt_num; i++) {
 			auto& res = m_reflection_map[i];
-			
 
-			D3D12_RESOURCE_FLAGS res_flags = D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
-			D3D12_RESOURCE_STATES res_state = D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
+			ResourceDesc res_desc = ResourceDesc::tex_2d(ResourceFormat::rf_r16g16b16a16_float, width, height, 1, 0, 1, 0, ResourceDesc::ResourceFlags::rf_allow_unordered_access);
+			res.CreateTexture(HeapType::ht_default, res_desc, ResourceState::rs_resource_state_pixel_shader_resource, nullptr, std::optional<std::wstring>().value_or(L"reflection_map").append(std::to_wstring(i).append(L"-")).append(std::to_wstring(i)));
 
-			CD3DX12_RESOURCE_DESC res_desc = CD3DX12_RESOURCE_DESC::Tex2D(DXGI_FORMAT_R16G16B16A16_FLOAT, width, height, 1, 0, 1, 0, res_flags);
-			res.CreateTexture(HeapBuffer::BufferType::bt_default, res_desc, res_state, nullptr, std::optional<std::wstring>().value_or(L"reflection_map").append(std::to_wstring(i).append(L"-")).append(std::to_wstring(i)));
-
-			D3D12_SHADER_RESOURCE_VIEW_DESC srv_desc = {};
-			srv_desc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-			srv_desc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
-			srv_desc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
-			srv_desc.Texture2D.MostDetailedMip = 0;
-			srv_desc.Texture2D.MipLevels = 1;
-			srv_desc.Texture2D.ResourceMinLODClamp = 0.0f;
+			SRVdesc srv_desc = {};
+			srv_desc.format = ResourceFormat::rf_r16g16b16a16_float;
+			srv_desc.dimension = SRVdesc::SRVdimensionType::srv_dt_texture2d;
+			srv_desc.texture2d.most_detailed_mip = 0;
+			srv_desc.texture2d.mip_levels = 1;
+			srv_desc.texture2d.res_min_lod_clamp = 0.0f;
 			res.Create_SRV(srv_desc);
 
-			D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc = {};
-			uavDesc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
-			uavDesc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE2D;
-			uavDesc.Texture2D.MipSlice = 0;
+			UAVdesc uavDesc = {};
+			uavDesc.format = ResourceFormat::rf_r16g16b16a16_float;
+			uavDesc.dimension = UAVdesc::UAVdimensionType::uav_dt_texture2d;
+			uavDesc.texture2d.mip_slice = 0;
 			res.Create_UAV(uavDesc);
 		}
 

@@ -35,7 +35,7 @@ void ImguiHelper::Initialize(ComPtr<ID3D12Device2>& device, uint32_t frames_num)
 	m_frames_num = frames_num;
 	auto hwnd = Application::GetHwnd();
 	m_rt->Initialize();
-	std::vector<DXGI_FORMAT> formats{ DXGI_FORMAT_R8G8B8A8_UNORM };
+	std::vector<ResourceFormat> formats{ ResourceFormat::rf_r8g8b8a8_unorm };
 	m_rt->CreateQuadTexture(gD3DApp->GetWidth(), gD3DApp->GetHeight(), formats, m_frames_num, 0, L"imgui_quad");
 	CD3DX12_CPU_DESCRIPTOR_HANDLE srvuacbvHandle;
 	CD3DX12_GPU_DESCRIPTOR_HANDLE srvuacbvHandle_gpu;
@@ -61,7 +61,7 @@ void ImguiHelper::Initialize(ComPtr<ID3D12Device2>& device, uint32_t frames_num)
 	// Setup Platform/Renderer backends
 	ImGui_ImplWin32_Init(hwnd);
 	ImGui_ImplDX12_Init(m_device.Get(), m_frames_num,
-		formats.front(), m_gpu_visible_heap.Get(),
+		(DXGI_FORMAT)formats.front(), m_gpu_visible_heap.Get(),
 		srvuacbvHandle,
 		srvuacbvHandle_gpu);
 
@@ -101,7 +101,7 @@ void ImguiHelper::Render(uint32_t frame_id)
 
 	UINT backBufferIdx = frame_id;
 	if (std::shared_ptr<GpuResource> rt = m_rt->GetRt(frame_id).lock()) {
-		m_commandQueueGfx->ResourceBarrier(rt, D3D12_RESOURCE_STATE_RENDER_TARGET);
+		m_commandQueueGfx->ResourceBarrier(rt, ResourceState::rs_resource_state_render_target);
 		if (std::shared_ptr<ResourceDescriptor> render_target_view = rt->GetRTV().lock()) {
 			CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle = render_target_view->GetCPUhandle();
 			command_list.OMSetRenderTargets(1, &rtvHandle, FALSE, NULL);
@@ -115,7 +115,7 @@ void ImguiHelper::Render(uint32_t frame_id)
 	ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), command_list.GetRawCommandList().Get());
 
 	if (std::shared_ptr<GpuResource> rt = m_rt->GetRt(frame_id).lock()) {
-		m_commandQueueGfx->ResourceBarrier(rt, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+		m_commandQueueGfx->ResourceBarrier(rt, ResourceState::rs_resource_state_pixel_shader_resource);
 	}
 
 	m_commandQueueGfx->ExecuteActiveCL();

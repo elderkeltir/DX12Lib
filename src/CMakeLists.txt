@@ -23,6 +23,7 @@ set(THIRD_PARTY_IMGUI_DIR ${THIRD_PARTY_DIR}/imgui)
 
 # include directories
 include_directories(${PROJECT_SOURCE_DIR})
+include_directories(${PROJECT_SOURCE_DIR}/backend_interface)
 include_directories(${THIRD_PARTY_DIR}/DirectX-Headers/include)
 include_directories(${THIRD_PARTY_DIR}/DirectXTex/DirectXTex)
 include_directories(${THIRD_PARTY_DIR}/assimp/include)

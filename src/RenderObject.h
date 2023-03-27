@@ -8,6 +8,7 @@
 #include <memory>
 #include "TextureData.h"
 #include "RenderMesh.h"
+#include "defines.h"
 
 using Microsoft::WRL::ComPtr;
 
@@ -30,9 +31,8 @@ public:
     virtual void SetTexture(TextureData * texture_data, TextureType type) {};
 
 protected:
-    virtual void LoadVertexDataOnGpu(CommandList& command_list, const void* data, uint32_t size_of_vertex, uint32_t vertex_count);
     virtual void LoadIndexDataOnGpu(CommandList& command_list);
-    void Loadtexture(CommandList& command_list, GpuResource* res, TextureData* tex_data, const CD3DX12_RESOURCE_DESC &tex_desc, const D3D12_SRV_DIMENSION &srv_dim, uint32_t idx) const;
+    void Loadtexture(CommandList& command_list, GpuResource* res, TextureData* tex_data, const ResourceDesc &tex_desc, const SRVdesc::SRVdimensionType &srv_dim, uint32_t idx) const;
     void AllocateVertexBuffer(uint32_t size);
 
     enum dirty_bits {

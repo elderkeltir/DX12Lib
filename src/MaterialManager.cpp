@@ -3,6 +3,7 @@
 #include "GfxCommandQueue.h"
 #include "ResourceDescriptor.h"
 #include "DXHelper.h"
+#include "defines.h"
 
 extern DXAppImplementation *gD3DApp;
 
@@ -22,9 +23,9 @@ uint32_t MaterialManager::CreateMaterial(float metallic, float roughness, float 
 void MaterialManager::LoadMaterials() {
     m_materials_res = std::make_unique<GpuResource>();
     uint32_t cb_size = calc_cb_size(materials_num * sizeof(Material));
-    m_materials_res->CreateBuffer(HeapBuffer::BufferType::bt_default, cb_size, HeapBuffer::UseFlag::uf_none, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER, std::wstring(L"materials_buffer"));
-    D3D12_CONSTANT_BUFFER_VIEW_DESC desc;
-    desc.SizeInBytes = cb_size;
+    m_materials_res->CreateBuffer(HeapType::ht_default, cb_size, ResourceState::rs_resource_state_vertex_and_constant_buffer, std::wstring(L"materials_buffer"));
+    CBVdesc desc;
+    desc.size_in_bytes = cb_size;
     m_materials_res->Create_CBV(desc);
 }
 

@@ -74,35 +74,38 @@ void GfxCommandQueue::ExecuteActiveCL(){
     m_commandQueue->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
 }
 
-void GfxCommandQueue::ResourceBarrier(std::shared_ptr<GpuResource> &res, D3D12_RESOURCE_STATES to){
+void GfxCommandQueue::ResourceBarrier(std::shared_ptr<GpuResource> &res, uint32_t to){
     if (std::shared_ptr<HeapBuffer> buff = res->GetBuffer().lock()){
-        D3D12_RESOURCE_STATES calculated_from = res->GetState();
-        if (calculated_from != to) {
-            m_command_list.m_command_list->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(buff->GetResource().Get(), calculated_from, to));
-            res->UpdateState(to);
+        D3D12_RESOURCE_STATES calculated_from = (D3D12_RESOURCE_STATES)res->GetState();
+        D3D12_RESOURCE_STATES to_native = (D3D12_RESOURCE_STATES)to;
+        if (calculated_from != to_native) {
+            m_command_list.m_command_list->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(buff->GetResource().Get(), calculated_from, to_native));
+            res->UpdateState((ResourceState)to);
         }
     }
 }
 
-void GfxCommandQueue::ResourceBarrier(GpuResource &res, D3D12_RESOURCE_STATES to) {
+void GfxCommandQueue::ResourceBarrier(GpuResource &res, uint32_t to) {
     if (std::shared_ptr<HeapBuffer> buff = res.GetBuffer().lock()){
-        D3D12_RESOURCE_STATES calculated_from = res.GetState();
-        if (calculated_from != to) {
-            m_command_list.m_command_list->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(buff->GetResource().Get(), calculated_from, to));
-            res.UpdateState(to);
+        D3D12_RESOURCE_STATES calculated_from = (D3D12_RESOURCE_STATES)res.GetState();
+        D3D12_RESOURCE_STATES to_native = (D3D12_RESOURCE_STATES)to;
+        if (calculated_from != to_native) {
+            m_command_list.m_command_list->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(buff->GetResource().Get(), calculated_from, to_native));
+            res.UpdateState((ResourceState)to);
         }
     }
 }
 
-void GfxCommandQueue::ResourceBarrier(std::vector<std::shared_ptr<GpuResource>>& res, D3D12_RESOURCE_STATES to) {
+void GfxCommandQueue::ResourceBarrier(std::vector<std::shared_ptr<GpuResource>>& res, uint32_t to) {
     std::vector<CD3DX12_RESOURCE_BARRIER> resources;
     resources.reserve(res.size());
     for (auto gpu_res : res){
         if (std::shared_ptr<HeapBuffer> buff = gpu_res->GetBuffer().lock()){
-            D3D12_RESOURCE_STATES calculated_from = gpu_res->GetState();
-            if (calculated_from != to) {
-                resources.push_back(CD3DX12_RESOURCE_BARRIER::Transition(buff->GetResource().Get(), calculated_from, to));
-                gpu_res->UpdateState(to);
+            D3D12_RESOURCE_STATES calculated_from = (D3D12_RESOURCE_STATES)gpu_res->GetState();
+            D3D12_RESOURCE_STATES to_native = (D3D12_RESOURCE_STATES)to;
+            if (calculated_from != to_native) {
+                resources.push_back(CD3DX12_RESOURCE_BARRIER::Transition(buff->GetResource().Get(), calculated_from, to_native));
+                gpu_res->UpdateState((ResourceState)to);
             }
         }
     }

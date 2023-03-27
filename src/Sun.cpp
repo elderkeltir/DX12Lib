@@ -21,28 +21,27 @@ void Sun::Initialize(CommandList& command_list)
 
 		for (uint32_t i = 0; i < rt_num; i++) {
 
-			D3D12_CLEAR_VALUE depthOptimizedClearValue = {};
-			depthOptimizedClearValue.Format = DXGI_FORMAT_D32_FLOAT;
-			depthOptimizedClearValue.DepthStencil.Depth = 1.0f;
-			depthOptimizedClearValue.DepthStencil.Stencil = 0;
-			CD3DX12_RESOURCE_DESC res_desc = CD3DX12_RESOURCE_DESC::Tex2D(DXGI_FORMAT_D32_FLOAT, (uint64_t)width, (uint32_t)height, 1, 0, 1, 0, D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL);
+			ClearColor depthOptimizedClearValue = {};
+			depthOptimizedClearValue.format = ResourceFormat::rf_d32_float;
+			depthOptimizedClearValue.isDepth = true;
+			depthOptimizedClearValue.depth_tencil.depth = 1.0f;
+			depthOptimizedClearValue.depth_tencil.stencil = 0;
+			ResourceDesc res_desc = ResourceDesc::tex_2d(ResourceFormat::rf_d32_float, (uint64_t)width, (uint32_t)height, 1, 0, 1, 0, ResourceDesc::rf_allow_depth_stencil);
 
-			m_shadow_map[i].CreateTexture(HeapBuffer::BufferType::bt_default, res_desc, D3D12_RESOURCE_STATE_DEPTH_READ, &depthOptimizedClearValue, L"sun_shadow_map");
+			m_shadow_map[i].CreateTexture(HeapType::ht_default, res_desc, ResourceState::rs_resource_state_depth_read, &depthOptimizedClearValue, L"sun_shadow_map");
 
-			D3D12_DEPTH_STENCIL_VIEW_DESC depthStencilDesc = {};
-			depthStencilDesc.Format = DXGI_FORMAT_D32_FLOAT;
-			depthStencilDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D;
-			depthStencilDesc.Flags = D3D12_DSV_FLAG_NONE;
+			DSVdesc depthStencilDesc = {};
+			depthStencilDesc.format = ResourceFormat::rf_d32_float;
+			depthStencilDesc.dimension = DSVdesc::DSVdimensionType::dsv_dt_texture2d;
 
 			m_shadow_map[i].Create_DSV(depthStencilDesc);
 
-			D3D12_SHADER_RESOURCE_VIEW_DESC srv_desc = {};
-			srv_desc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-			srv_desc.Format = DXGI_FORMAT_R32_FLOAT;
-			srv_desc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
-			srv_desc.Texture2D.MostDetailedMip = 0;
-			srv_desc.Texture2D.MipLevels = 1;
-			srv_desc.Texture2D.ResourceMinLODClamp = 0.0f;
+			SRVdesc srv_desc = {};
+			srv_desc.format = ResourceFormat::rf_r32_float;
+			srv_desc.dimension = SRVdesc::SRVdimensionType::srv_dt_texture2d;
+			srv_desc.texture2d.most_detailed_mip = 0;
+			srv_desc.texture2d.mip_levels = 1;
+			srv_desc.texture2d.res_min_lod_clamp = 0.0f;
 			m_shadow_map[i].Create_SRV(srv_desc);
 		}
 
@@ -99,7 +98,7 @@ void Sun::SetupShadowMap(CommandList& command_list)
 	m_current_id = (m_current_id+1) % rt_num;
 	Initialize(command_list);
 
-	command_list.GetQueue()->ResourceBarrier(m_shadow_map[m_current_id], D3D12_RESOURCE_STATE_DEPTH_WRITE);
+	command_list.GetQueue()->ResourceBarrier(m_shadow_map[m_current_id], ResourceState::rs_resource_state_depth_write);
 	
 	// set dsv and viewport
 	CD3DX12_CPU_DESCRIPTOR_HANDLE dsvHandle;

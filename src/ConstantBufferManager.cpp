@@ -10,9 +10,9 @@ extern DXAppImplementation* gD3DApp;
 void ConstantBufferManager::OnInit() {
 	for (uint32_t i = 0; i < 2; i++) {
         GpuResource& m_scene_cb = m_scene_cbs[i];
-		m_scene_cb.CreateBuffer(HeapBuffer::BufferType::bt_upload, calc_cb_size(sizeof(SceneCB)), HeapBuffer::UseFlag::uf_none, D3D12_RESOURCE_STATE_GENERIC_READ, L"Scene_cb");
-		D3D12_CONSTANT_BUFFER_VIEW_DESC desc;
-		desc.SizeInBytes = calc_cb_size(sizeof(SceneCB));
+		m_scene_cb.CreateBuffer(HeapType::ht_upload, calc_cb_size(sizeof(SceneCB)), ResourceState::rs_resource_state_generic_read, L"Scene_cb");
+		CBVdesc desc;
+		desc.size_in_bytes = calc_cb_size(sizeof(SceneCB));
 		m_scene_cb.Create_CBV(desc);
 		if (std::shared_ptr<HeapBuffer> buff = m_scene_cb.GetBuffer().lock()) {
 			buff->Map();
@@ -225,10 +225,10 @@ void ConstantBufferManager::CommitCB(CommandList& command_list, ConstantBuffers 
 void ConstantBufferManager::SyncCpuDataToCB(CommandList& command_list, GpuResource* res, void* cpu_data, uint32_t size, BindingId bind_point, bool gfx) {
     GfxCommandQueue* queue = command_list.GetQueue();
     if (gfx) {
-        queue->ResourceBarrier(*res, D3D12_RESOURCE_STATE_COPY_DEST);
+        queue->ResourceBarrier(*res, ResourceState::rs_resource_state_copy_dest);
     }
     else {
-	    queue->ResourceBarrier(*res, D3D12_RESOURCE_STATE_COPY_DEST);
+	    queue->ResourceBarrier(*res, ResourceState::rs_resource_state_copy_dest);
     }
 
 	if (std::shared_ptr<HeapBuffer> buff = res->GetBuffer().lock()) {
@@ -238,12 +238,12 @@ void ConstantBufferManager::SyncCpuDataToCB(CommandList& command_list, GpuResour
 
     if (gfx) {
         if (std::shared_ptr<GfxCommandQueue> queue = gD3DApp->GetGfxQueue().lock()) {
-            queue->ResourceBarrier(*res, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER);
+            queue->ResourceBarrier(*res, ResourceState::rs_resource_state_vertex_and_constant_buffer);
         }
     }
     else {
 		if (std::shared_ptr<GfxCommandQueue> queue = gD3DApp->GetComputeQueue().lock()) {
-			queue->ResourceBarrier(*res, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER);
+			queue->ResourceBarrier(*res, ResourceState::rs_resource_state_vertex_and_constant_buffer);
 		}
     }
 

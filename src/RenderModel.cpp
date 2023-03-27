@@ -8,6 +8,7 @@
 #include "GfxCommandQueue.h"
 #include "DynamicGpuHeap.h"
 #include "GpuDataManager.h"
+#include "defines.h"
 
 extern DXAppImplementation *gD3DApp;
 
@@ -105,22 +106,22 @@ void RenderModel::LoadTextures(CommandList& command_list){
         }
 
         if (res && m_dirty & flag){
-            D3D12_SRV_DIMENSION srv_dim = D3D12_SRV_DIMENSION_TEXTURE2D;
+            SRVdesc::SRVdimensionType srv_dim = SRVdesc::SRVdimensionType::srv_dt_texture2d;
+            ResourceDesc tex_desc;
 
-            CD3DX12_RESOURCE_DESC tex_desc = {};
             switch (m_textures_data[idx]->meta_data.dimension)
             {
                 case DirectX::TEX_DIMENSION_TEXTURE1D:
-                    tex_desc = CD3DX12_RESOURCE_DESC::Tex1D(m_textures_data[idx]->meta_data.format, static_cast<UINT64>( m_textures_data[idx]->meta_data.width ), static_cast<UINT16>(m_textures_data[idx]->meta_data.arraySize) );
-                    srv_dim = D3D12_SRV_DIMENSION_TEXTURE1D;
+                    tex_desc = ResourceDesc::tex_1d((ResourceFormat)m_textures_data[idx]->meta_data.format, static_cast<UINT64>( m_textures_data[idx]->meta_data.width ), static_cast<UINT16>(m_textures_data[idx]->meta_data.arraySize) );
+                    srv_dim = SRVdesc::SRVdimensionType::srv_dt_texture1d;
                     break;
                 case DirectX::TEX_DIMENSION_TEXTURE2D:
-                    tex_desc = CD3DX12_RESOURCE_DESC::Tex2D(m_textures_data[idx]->meta_data.format, static_cast<UINT64>( m_textures_data[idx]->meta_data.width ), static_cast<UINT>(m_textures_data[idx]->meta_data.height), static_cast<UINT16>(m_textures_data[idx]->meta_data.arraySize) );
-                    srv_dim = (m_textures_data[idx]->meta_data.arraySize > 1) ? D3D12_SRV_DIMENSION_TEXTURECUBE : D3D12_SRV_DIMENSION_TEXTURE2D;
+                    tex_desc = ResourceDesc::tex_2d((ResourceFormat)m_textures_data[idx]->meta_data.format, static_cast<UINT64>( m_textures_data[idx]->meta_data.width ), static_cast<UINT>(m_textures_data[idx]->meta_data.height), static_cast<UINT16>(m_textures_data[idx]->meta_data.arraySize) );
+                    srv_dim = (m_textures_data[idx]->meta_data.arraySize > 1) ? SRVdesc::SRVdimensionType::srv_dt_texturecube : SRVdesc::SRVdimensionType::srv_dt_texture2d;
                     break;
                 case DirectX::TEX_DIMENSION_TEXTURE3D:
-                    srv_dim = D3D12_SRV_DIMENSION_TEXTURE3D;
-                    tex_desc = CD3DX12_RESOURCE_DESC::Tex3D(m_textures_data[idx]->meta_data.format, static_cast<UINT64>( m_textures_data[idx]->meta_data.width ), static_cast<UINT>(m_textures_data[idx]->meta_data.height), static_cast<UINT16>(m_textures_data[idx]->meta_data.depth) );
+                    srv_dim = SRVdesc::SRVdimensionType::srv_dt_texture3d;
+                    tex_desc = ResourceDesc::tex_3d((ResourceFormat)m_textures_data[idx]->meta_data.format, static_cast<UINT64>( m_textures_data[idx]->meta_data.width ), static_cast<UINT>(m_textures_data[idx]->meta_data.height), static_cast<UINT16>(m_textures_data[idx]->meta_data.depth) );
                     break;
                 default:
                     throw std::exception( "Invalid texture dimension." );
@@ -138,7 +139,7 @@ void RenderModel::Render(CommandList& command_list, const DirectX::XMFLOAT4X4 &p
     parent_xform_mx = DirectX::XMMatrixMultiply(m_transformations->GetModel(), parent_xform_mx);
 
     if (m_mesh && m_mesh->GetIndicesNum() > 0){
-        if (std::shared_ptr<D3D12_INDEX_BUFFER_VIEW> ind_view = m_IndexBuffer->Get_Index_View().lock()){
+        if (std::shared_ptr<GpuResource::IndexVufferView> ind_view = m_IndexBuffer->Get_Index_View().lock()){
             command_list.IASetIndexBuffer(ind_view.get());
         }
         else {
@@ -248,9 +249,9 @@ void RenderModel::LoadConstantData(CommandList& command_list){
     if (m_dirty & db_rt_cbv){
         m_constant_buffer = std::make_unique<GpuResource>();
         uint32_t cb_size = calc_cb_size(sizeof(ConstantBufferManager::ModelCB));
-        m_constant_buffer->CreateBuffer(HeapBuffer::BufferType::bt_upload, cb_size, HeapBuffer::UseFlag::uf_none, D3D12_RESOURCE_STATE_GENERIC_READ, std::wstring(L"models_cbv_").append(m_name));
-        D3D12_CONSTANT_BUFFER_VIEW_DESC desc;
-        desc.SizeInBytes = cb_size;
+        m_constant_buffer->CreateBuffer(HeapType::ht_upload, cb_size, ResourceState::rs_resource_state_generic_read, std::wstring(L"models_cbv_").append(m_name));
+        CBVdesc desc;
+        desc.size_in_bytes = cb_size;
         m_constant_buffer->Create_CBV(desc);
 		if (std::shared_ptr<HeapBuffer> buff = m_constant_buffer->GetBuffer().lock()) {
 			buff->Map();

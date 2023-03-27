@@ -13,6 +13,7 @@
 #include <rapidjson/stringbuffer.h>
 #include <fstream>
 
+#include "defines.h"
 #include "FreeCamera.h"
 #include "DXAppImplementation.h"
 #include "FileManager.h"
@@ -135,9 +136,9 @@ void Level::Load(const std::wstring& name) {
 
         m_lights_res = std::make_unique<GpuResource>();
         uint32_t cb_size = calc_cb_size(LightsNum * sizeof(LevelLight));
-        m_lights_res->CreateBuffer(HeapBuffer::BufferType::bt_default, cb_size, HeapBuffer::UseFlag::uf_none, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER, std::wstring(L"lights_buffer_").append(m_name));
-        D3D12_CONSTANT_BUFFER_VIEW_DESC desc;
-        desc.SizeInBytes = cb_size;
+        m_lights_res->CreateBuffer(HeapType::ht_default, cb_size, ResourceState::rs_resource_state_vertex_and_constant_buffer, std::wstring(L"lights_buffer_").append(m_name));
+        CBVdesc desc;
+        desc.size_in_bytes = cb_size;
         m_lights_res->Create_CBV(desc);
 
         m_sun = std::make_unique<Sun>();

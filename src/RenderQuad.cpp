@@ -26,7 +26,7 @@ void RenderQuad::Initialize() {
 
 RenderQuad::~RenderQuad() = default;
 
-bool RenderQuad::CreateQuadTexture(uint32_t width, uint32_t height, const std::vector<DXGI_FORMAT> &formats, uint32_t texture_num, uint32_t uavs, std::optional<std::wstring> dbg_name) {
+bool RenderQuad::CreateQuadTexture(uint32_t width, uint32_t height, const std::vector<ResourceFormat> &formats, uint32_t texture_num, uint32_t uavs, std::optional<std::wstring> dbg_name) {
     if (m_dirty & db_rt_tx){
         // Create a RTV for each frame.
         m_textures.resize(texture_num);
@@ -38,28 +38,27 @@ bool RenderQuad::CreateQuadTexture(uint32_t width, uint32_t height, const std::v
                 set_resources[m] = std::make_shared<GpuResource>();
                 std::shared_ptr<GpuResource>& res = set_resources[m];
 
-                D3D12_RESOURCE_FLAGS res_flags = D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
-                D3D12_RESOURCE_STATES res_state = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+                uint32_t res_flags = ResourceDesc::ResourceFlags::rf_allow_render_target;
+
                 if (uavs << m)
-                    res_flags |= D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
-                CD3DX12_RESOURCE_DESC res_desc = CD3DX12_RESOURCE_DESC::Tex2D(formats[m], width, height, 1, 0, 1, 0, res_flags);
-                res->CreateTexture(HeapBuffer::BufferType::bt_default, res_desc, res_state, nullptr, dbg_name.value_or(L"quad_tex_").append(std::to_wstring(n).append(L"-")).append(std::to_wstring(m)));
+                    res_flags |= ResourceDesc::ResourceFlags::rf_allow_unordered_access;
+                ResourceDesc res_desc = ResourceDesc::tex_2d(formats[m], width, height, 1, 0, 1, 0, (ResourceDesc::ResourceFlags)res_flags);
+                res->CreateTexture(HeapType::ht_default, res_desc, ResourceState::rs_resource_state_pixel_shader_resource, nullptr, dbg_name.value_or(L"quad_tex_").append(std::to_wstring(n).append(L"-")).append(std::to_wstring(m)));
                 res->CreateRTV();
 
-                D3D12_SHADER_RESOURCE_VIEW_DESC srv_desc = {};
-                srv_desc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-                srv_desc.Format = formats[m];
-                srv_desc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
-                srv_desc.Texture2D.MostDetailedMip = 0;
-                srv_desc.Texture2D.MipLevels = 1;
-                srv_desc.Texture2D.ResourceMinLODClamp = 0.0f;
+                SRVdesc srv_desc = {};
+                srv_desc.format = formats[m];
+                srv_desc.dimension = SRVdesc::SRVdimensionType::srv_dt_texture2d;
+                srv_desc.texture2d.most_detailed_mip = 0;
+                srv_desc.texture2d.mip_levels = 1;
+                srv_desc.texture2d.res_min_lod_clamp = 0.0f;
                 res->Create_SRV(srv_desc);
 
                 if (uavs & 1 << m) {
-					D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc = {};
-					uavDesc.Format = formats[m];
-					uavDesc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE2D;
-					uavDesc.Texture2D.MipSlice = 0;
+					UAVdesc uavDesc = {};
+					uavDesc.format = formats[m];
+					uavDesc.dimension = UAVdesc::UAVdimensionType::uav_dt_texture2d;
+					uavDesc.texture2d.mip_slice = 0;
                     res->Create_UAV(uavDesc);
                 }
             }

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <directx/d3dx12.h>
+#include "IGpuResource.h"
 
 using Microsoft::WRL::ComPtr;
 
@@ -15,8 +16,7 @@ public:
 	void SetComputeRootDescriptorTable(uint32_t root_parameter_index, D3D12_GPU_DESCRIPTOR_HANDLE base_descriptor);
 	void SetGraphicsRootConstantBufferView(uint32_t root_parameter_index, D3D12_GPU_VIRTUAL_ADDRESS buffer_location);
 	void SetComputeRootConstantBufferView(uint32_t root_parameter_index, D3D12_GPU_VIRTUAL_ADDRESS buffer_location);
-	void IASetVertexBuffers(uint32_t start_slot, uint32_t num_views, const D3D12_VERTEX_BUFFER_VIEW* view);
-	void IASetIndexBuffer(const D3D12_INDEX_BUFFER_VIEW* view);
+	void IASetIndexBuffer(const IGpuResource::IndexVufferView* view);
 	void IASetPrimitiveTopology(D3D12_PRIMITIVE_TOPOLOGY primirive_topology);
 	void DrawInstanced(uint32_t vertex_per_instance, uint32_t instance_count, uint32_t start_vertex_location, uint32_t start_instance_location);
 	void DrawIndexedInstanced(uint32_t index_count_per_instance, uint32_t instance_count, uint32_t start_index_location, int32_t base_vertex_location, uint32_t start_instance_location);

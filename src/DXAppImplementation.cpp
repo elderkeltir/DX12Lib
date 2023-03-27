@@ -216,28 +216,28 @@ void DXAppImplementation::CreateSwapChain(std::optional<std::wstring> dbg_name) 
 
 	// Create the depth stencil view.
 	{
-		D3D12_CLEAR_VALUE depthOptimizedClearValue = {};
-		depthOptimizedClearValue.Format = DXGI_FORMAT_D32_FLOAT;
-		depthOptimizedClearValue.DepthStencil.Depth = 1.0f;
-		depthOptimizedClearValue.DepthStencil.Stencil = 0;
-		CD3DX12_RESOURCE_DESC res_desc = CD3DX12_RESOURCE_DESC::Tex2D(DXGI_FORMAT_D32_FLOAT, m_width, m_height, 1, 0, 1, 0, D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL);
+		ClearColor depthOptimizedClearValue = {};
+		depthOptimizedClearValue.format = ResourceFormat::rf_d32_float;
+		depthOptimizedClearValue.isDepth = true;
+		depthOptimizedClearValue.depth_tencil.depth = 1.0f;
+		depthOptimizedClearValue.depth_tencil.stencil = 0;
+		ResourceDesc res_desc = ResourceDesc::tex_2d(ResourceFormat::rf_d32_float, m_width, m_height, 1, 0, 1, 0, ResourceDesc::ResourceFlags::rf_allow_depth_stencil);
 
-		m_depthStencil->CreateTexture(HeapBuffer::BufferType::bt_default, res_desc, D3D12_RESOURCE_STATE_DEPTH_WRITE, &depthOptimizedClearValue, L"depth_stencil");
+		m_depthStencil->CreateTexture(HeapType::ht_default, res_desc, ResourceState::rs_resource_state_depth_write, &depthOptimizedClearValue, L"depth_stencil");
 
-		D3D12_DEPTH_STENCIL_VIEW_DESC depthStencilDesc = {};
-		depthStencilDesc.Format = DXGI_FORMAT_D32_FLOAT;
-		depthStencilDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D;
-		depthStencilDesc.Flags = D3D12_DSV_FLAG_NONE;
+		DSVdesc depthStencilDesc = {};
+		depthStencilDesc.format = ResourceFormat::rf_d32_float;
+		depthStencilDesc.dimension = DSVdesc::DSVdimensionType::dsv_dt_texture2d;
 
 		m_depthStencil->Create_DSV(depthStencilDesc);
 
-		D3D12_SHADER_RESOURCE_VIEW_DESC srv_desc = {};
-		srv_desc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-		srv_desc.Format = DXGI_FORMAT_R32_FLOAT;
-		srv_desc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
-		srv_desc.Texture2D.MostDetailedMip = 0;
-		srv_desc.Texture2D.MipLevels = 1;
-		srv_desc.Texture2D.ResourceMinLODClamp = 0.0f;
+		SRVdesc srv_desc = {};
+
+		srv_desc.format = ResourceFormat::rf_r32_float;
+		srv_desc.dimension = SRVdesc::SRVdimensionType::srv_dt_texture2d;
+		srv_desc.texture2d.most_detailed_mip = 0;
+		srv_desc.texture2d.mip_levels = 1;
+		srv_desc.texture2d.res_min_lod_clamp = 0.0f;
 		m_depthStencil->Create_SRV(srv_desc);
 	}
 }
@@ -288,7 +288,7 @@ void DXAppImplementation::OnRender()
 	// Render scene
 	BEGIN_EVENT(command_list_gfx.GetRawCommandList(), "G-Buffer");
 	RenderLevel(command_list_gfx);
-	m_commandQueueGfx->ResourceBarrier(*m_ssao->GetSSAOres(2), D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+	m_commandQueueGfx->ResourceBarrier(*m_ssao->GetSSAOres(2), ResourceState::rs_resource_state_unordered_access);
 	END_EVENT(command_list_gfx.GetRawCommandList());
 	
 	// send G-buffer to execute
@@ -340,7 +340,7 @@ void DXAppImplementation::OnRender()
 	END_EVENT(command_list_gfx.GetRawCommandList());
 
 	// Indicate that the back buffer will now be used to present.
-	m_commandQueueGfx->ResourceBarrier(m_renderTargets[m_frameIndex], D3D12_RESOURCE_STATE_PRESENT);
+	m_commandQueueGfx->ResourceBarrier(m_renderTargets[m_frameIndex], ResourceState::rs_resource_state_present);
 	m_commandQueueGfx->ExecuteActiveCL();
 
 	// Present the frame.
@@ -429,25 +429,25 @@ void DXAppImplementation::PrepareRenderTarget(CommandList& command_list, GpuReso
 }
 
 void DXAppImplementation::RenderLevel(CommandList& command_list) {
-	std::vector<DXGI_FORMAT> formats = { DXGI_FORMAT_R16G16B16A16_FLOAT, DXGI_FORMAT_R16G16B16A16_FLOAT, DXGI_FORMAT_R16G16B16A16_FLOAT, DXGI_FORMAT_R16G16B16A16_FLOAT };
+	std::vector<ResourceFormat> formats = { ResourceFormat::rf_r16g16b16a16_float, ResourceFormat::rf_r16g16b16a16_float, ResourceFormat::rf_r16g16b16a16_float, ResourceFormat::rf_r16g16b16a16_float };
 	m_deferred_shading_quad->CreateQuadTexture(m_width, m_height, formats, FrameCount, 0, L"m_deferred_shading_quad_");
 	{
 		std::vector<std::shared_ptr<GpuResource>>& rts = m_deferred_shading_quad->GetRts(m_frameIndex);
-		m_commandQueueGfx->ResourceBarrier(rts, D3D12_RESOURCE_STATE_RENDER_TARGET);
+		m_commandQueueGfx->ResourceBarrier(rts, ResourceState::rs_resource_state_render_target);
 		PrepareRenderTarget(command_list, rts);
 	}
 
 	m_level->Render(command_list);
 
-	m_commandQueueGfx->ResourceBarrier(*m_depthStencil.get(), D3D12_RESOURCE_STATE_DEPTH_READ | D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+	m_commandQueueGfx->ResourceBarrier(*m_depthStencil.get(), ResourceState::rs_resource_state_depth_read | ResourceState::rs_resource_state_non_pixel_shader_resource);
 	{
 		std::vector< std::shared_ptr<GpuResource>>& rts = m_deferred_shading_quad->GetRts(m_frameIndex);
 		for (uint32_t i = 0; i < rts.size(); i++) {
 			if (i == 1 || i == 2) {
-				m_commandQueueGfx->ResourceBarrier(rts[i], D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+				m_commandQueueGfx->ResourceBarrier(rts[i], ResourceState::rs_resource_state_non_pixel_shader_resource);
 			}
 			else {
-				m_commandQueueGfx->ResourceBarrier(rts[i], D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+				m_commandQueueGfx->ResourceBarrier(rts[i], ResourceState::rs_resource_state_pixel_shader_resource);
 			}
 		}
 	}
@@ -455,13 +455,13 @@ void DXAppImplementation::RenderLevel(CommandList& command_list) {
 
 void DXAppImplementation::RenderPostProcessQuad(CommandList& command_list) {
 	if (std::shared_ptr<GpuResource> rt = m_post_process_quad->GetRt(m_frameIndex).lock()) {
-		m_commandQueueGfx->ResourceBarrier(rt, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+		m_commandQueueGfx->ResourceBarrier(rt, ResourceState::rs_resource_state_pixel_shader_resource);
 	}
 	else {
 		assert(false);
 	}
 
-	m_commandQueueGfx->ResourceBarrier(m_renderTargets[m_frameIndex], D3D12_RESOURCE_STATE_RENDER_TARGET);
+	m_commandQueueGfx->ResourceBarrier(m_renderTargets[m_frameIndex], ResourceState::rs_resource_state_render_target);
 	PrepareRenderTarget(command_list, m_renderTargets[m_frameIndex], false);
 
 	const Techniques::Technique* tech = GetTechniqueById(tt_post_processing);
@@ -500,7 +500,7 @@ void DXAppImplementation::RenderPostProcessQuad(CommandList& command_list) {
 	}
 
 	if (std::shared_ptr<ResourceDescriptor> srv = m_reflections->GetReflectionMap().GetSRV().lock()) {
-		m_commandQueueGfx->ResourceBarrier(m_reflections->GetReflectionMap(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+		m_commandQueueGfx->ResourceBarrier(m_reflections->GetReflectionMap(), ResourceState::rs_resource_state_pixel_shader_resource);
 		m_commandQueueGfx->GetGpuHeap().StageDesctriptorInTable(bi_post_proc_input_tex_table, tto_postp_ssr, srv->GetCPUhandle());
 	}
 
@@ -513,12 +513,12 @@ void DXAppImplementation::RenderPostProcessQuad(CommandList& command_list) {
 
 void DXAppImplementation::RenderForwardQuad(CommandList& command_list) {
 	{
-		std::vector<DXGI_FORMAT> formats = { DXGI_FORMAT_R16G16B16A16_FLOAT };
+		std::vector<ResourceFormat> formats = { ResourceFormat::rf_r16g16b16a16_float };
 		m_forward_quad->CreateQuadTexture(m_width, m_height, formats, FrameCount, 0, L"m_forward_quad_");
 	}
 
 	if (std::shared_ptr<GpuResource> rt = m_forward_quad->GetRt(m_frameIndex).lock()) {
-		m_commandQueueGfx->ResourceBarrier(rt, D3D12_RESOURCE_STATE_RENDER_TARGET);
+		m_commandQueueGfx->ResourceBarrier(rt, ResourceState::rs_resource_state_render_target);
 		PrepareRenderTarget(command_list, *rt.get(), true, false);
 	}
 	else {
@@ -529,30 +529,30 @@ void DXAppImplementation::RenderForwardQuad(CommandList& command_list) {
 	m_level->RenderWater(command_list);
 
 	if (std::shared_ptr<GpuResource> rt = m_forward_quad->GetRt(m_frameIndex).lock()) {
-		m_commandQueueGfx->ResourceBarrier(rt, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+		m_commandQueueGfx->ResourceBarrier(rt, ResourceState::rs_resource_state_pixel_shader_resource);
 	}
 
 	//m_post_process_quad->Render(command_list);
 }
 
 void DXAppImplementation::RenderDeferredShadingQuad(CommandList& command_list) {
-	m_commandQueueGfx->ResourceBarrier(*m_ssao->GetSSAOres(2), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
-	m_commandQueueGfx->ResourceBarrier(*m_depthStencil.get(), D3D12_RESOURCE_STATE_DEPTH_WRITE);
+	m_commandQueueGfx->ResourceBarrier(*m_ssao->GetSSAOres(2), ResourceState::rs_resource_state_pixel_shader_resource);
+	m_commandQueueGfx->ResourceBarrier(*m_depthStencil.get(), ResourceState::rs_resource_state_depth_write);
 
 	{
 		std::vector< std::shared_ptr<GpuResource>>& rts = m_deferred_shading_quad->GetRts(m_frameIndex);
 		for (uint32_t i = 0; i < rts.size(); i++) {
 			if (i == 1 || i == 2) {
-				m_commandQueueGfx->ResourceBarrier(rts[i], D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+				m_commandQueueGfx->ResourceBarrier(rts[i], ResourceState::rs_resource_state_pixel_shader_resource);
 			}
 		}
 	}
 
 	{
-		std::vector<DXGI_FORMAT> formats = { DXGI_FORMAT_R16G16B16A16_FLOAT };
+		std::vector<ResourceFormat> formats = { ResourceFormat::rf_r16g16b16a16_float };
 		m_post_process_quad->CreateQuadTexture(m_width, m_height, formats, FrameCount, 0, L"m_post_process_quad_");
 		if (std::shared_ptr<GpuResource> rt = m_post_process_quad->GetRt(m_frameIndex).lock()) {
-			m_commandQueueGfx->ResourceBarrier(rt, D3D12_RESOURCE_STATE_RENDER_TARGET);
+			m_commandQueueGfx->ResourceBarrier(rt, ResourceState::rs_resource_state_render_target);
 			PrepareRenderTarget(command_list, m_post_process_quad->GetRts(m_frameIndex), false);
 		}
 		else {
@@ -574,7 +574,7 @@ void DXAppImplementation::RenderDeferredShadingQuad(CommandList& command_list) {
 	m_level->BindLights(command_list);
 
 	if (std::shared_ptr<ResourceDescriptor> srv = m_level->GetSunShadowMap().GetSRV().lock()) {
-		m_commandQueueGfx->ResourceBarrier(m_level->GetSunShadowMap(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_DEPTH_READ);
+		m_commandQueueGfx->ResourceBarrier(m_level->GetSunShadowMap(), ResourceState::rs_resource_state_pixel_shader_resource | ResourceState::rs_resource_state_depth_read);
 		m_commandQueueGfx->GetGpuHeap().StageDesctriptorInTable(bi_deferred_shading_tex_table, tto_gbuff_sun_sm, srv->GetCPUhandle());
 	}
 
@@ -596,7 +596,7 @@ void DXAppImplementation::RenderDeferredShadingQuad(CommandList& command_list) {
 }
 
 void DXAppImplementation::RenderSSAOquad(CommandList& command_list) {
-	m_commandQueueCompute->ResourceBarrier(*m_ssao->GetSSAOres(0), D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+	m_commandQueueCompute->ResourceBarrier(*m_ssao->GetSSAOres(0), ResourceState::rs_resource_state_unordered_access);
 	const Techniques::Technique* tech = GetTechniqueById(tt_ssao);
 	if (m_commandQueueCompute->GetPSO() != tt_ssao) {
 		m_commandQueueCompute->SetPSO(tt_ssao);
@@ -635,8 +635,8 @@ void DXAppImplementation::RenderSSAOquad(CommandList& command_list) {
 	const float threads_num = 32.f;
 	command_list.Dispatch((uint32_t)ceilf(float(m_width) / threads_num), (uint32_t)ceilf(float(m_height) / threads_num), 1);
 
-	m_commandQueueCompute->ResourceBarrier(*m_ssao->GetSSAOres(0), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
-	m_commandQueueCompute->ResourceBarrier(*m_ssao->GetSSAOres(1), D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+	m_commandQueueCompute->ResourceBarrier(*m_ssao->GetSSAOres(0), ResourceState::rs_resource_state_non_pixel_shader_resource);
+	m_commandQueueCompute->ResourceBarrier(*m_ssao->GetSSAOres(1), ResourceState::rs_resource_state_unordered_access);
 }
 
 void DXAppImplementation::BlurSSAO(CommandList& command_list)
@@ -667,7 +667,7 @@ void DXAppImplementation::BlurSSAO(CommandList& command_list)
 	// vertical pass
 	m_commandQueueCompute->GetGpuHeap().CacheRootSignature(gD3DApp->GetRootSignById(tech->root_signature));
 
-	m_commandQueueCompute->ResourceBarrier(*m_ssao->GetSSAOres(1), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+	m_commandQueueCompute->ResourceBarrier(*m_ssao->GetSSAOres(1), ResourceState::rs_resource_state_non_pixel_shader_resource);
 
 
 	if (std::shared_ptr<ResourceDescriptor> srv = m_ssao->GetSSAOres(1)->GetSRV().lock()) {
@@ -697,9 +697,9 @@ void DXAppImplementation::GenerateReflections(CommandList& command_list)
 	// resources
 	std::vector< std::shared_ptr<GpuResource>>& rts = m_deferred_shading_quad->GetRts(m_frameIndex);
 	for (uint32_t i = 1; i < 4; i++) {
-		m_commandQueueGfx->ResourceBarrier(rts[i], D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+		m_commandQueueGfx->ResourceBarrier(rts[i], ResourceState::rs_resource_state_non_pixel_shader_resource);
 	}
-	m_commandQueueGfx->ResourceBarrier(m_post_process_quad->GetRts(m_frameIndex).at(0), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+	m_commandQueueGfx->ResourceBarrier(m_post_process_quad->GetRts(m_frameIndex).at(0), ResourceState::rs_resource_state_non_pixel_shader_resource);
 
 	if (std::shared_ptr<ResourceDescriptor> srv = m_post_process_quad->GetRts(m_frameIndex).at(0)->GetSRV().lock()) {
 		m_commandQueueGfx->GetGpuHeap().StageDesctriptorInTable(bi_refl_srv, tto_refl_colors, srv->GetCPUhandle());

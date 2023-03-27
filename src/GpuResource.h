@@ -1,40 +1,38 @@
 #pragma once
 
 #include <memory>
-
+#include "IGpuResource.h"
 #include "HeapBuffer.h"
 class ResourceDescriptor;
 class CommandList;
 
-class GpuResource {
+class GpuResource : public IGpuResource {
 public:
     ~GpuResource();
-    void CreateBuffer(HeapBuffer::BufferType type, uint32_t bufferSize, HeapBuffer::UseFlag flag, D3D12_RESOURCE_STATES initial_state, std::optional<std::wstring> dbg_name = std::nullopt);
-    void CreateTexture(HeapBuffer::BufferType type, const CD3DX12_RESOURCE_DESC &res_desc, D3D12_RESOURCE_STATES initial_state, const D3D12_CLEAR_VALUE *clear_val, std::optional<std::wstring> dbg_name = std::nullopt);
-    void SetBuffer(ComPtr<ID3D12Resource> res);
-    void LoadBuffer(CommandList& command_list, uint32_t numElements, uint32_t elementSize, const void* bufferData);
-    void LoadBuffer(CommandList& command_list, uint32_t firstSubresource, uint32_t numSubresources, D3D12_SUBRESOURCE_DATA* subresourceData);
+    void CreateBuffer(HeapType type, uint32_t bufferSize, ResourceState initial_state, std::optional<std::wstring> dbg_name = std::nullopt) override;
+    void CreateTexture(HeapType type, const ResourceDesc &res_desc, ResourceState initial_state, const ClearColor *clear_val, std::optional<std::wstring> dbg_name = std::nullopt) override;
+    void SetBuffer(ComPtr<ID3D12Resource> res) override;
+    void LoadBuffer(CommandList& command_list, uint32_t numElements, uint32_t elementSize, const void* bufferData) override;
+    void LoadBuffer(CommandList& command_list, uint32_t firstSubresource, uint32_t numSubresources, SubresourceData* subresourceData) override;
     
-    void CreateRTV();
-    void Create_DSV(const D3D12_DEPTH_STENCIL_VIEW_DESC &desc);
-    void Create_SRV(const D3D12_SHADER_RESOURCE_VIEW_DESC &desc);
-    void Create_UAV(const D3D12_UNORDERED_ACCESS_VIEW_DESC &desc);
-    void Create_CBV(const D3D12_CONSTANT_BUFFER_VIEW_DESC &desc);
-    void Create_Vertex_View(uint32_t sizSizeInBytese, uint32_t StrideInBytes);
-    void Create_Index_View(DXGI_FORMAT format, uint32_t SizeInBytes);
+    void CreateRTV() override;
+    void Create_DSV(const DSVdesc&desc) override;
+    void Create_SRV(const SRVdesc &desc) override;
+    void Create_UAV(const UAVdesc &desc) override;
+    void Create_CBV(const CBVdesc &desc) override;
+    void Create_Index_View(ResourceFormat format, uint32_t SizeInBytes) override;
 
-    std::weak_ptr<HeapBuffer> GetBuffer() { return m_buffer; }
-    std::weak_ptr<ResourceDescriptor> GetRTV() { return m_rtv; }
-    std::weak_ptr<ResourceDescriptor> GetDSV() { return m_dsv; }
-    std::weak_ptr<ResourceDescriptor> GetSRV() { return m_srv; }
-    std::weak_ptr<ResourceDescriptor> GetUAV() { return m_uav; }
-    std::weak_ptr<ResourceDescriptor> GetCBV() { return m_cbv; }
-    std::weak_ptr<D3D12_VERTEX_BUFFER_VIEW> Get_Vertex_View() { return m_vertex_view; }
-    std::weak_ptr<D3D12_INDEX_BUFFER_VIEW> Get_Index_View() { return m_index_view; }
+    std::weak_ptr<HeapBuffer> GetBuffer() override { return m_buffer; }
+    std::weak_ptr<ResourceDescriptor> GetRTV() override { return m_rtv; }
+    std::weak_ptr<ResourceDescriptor> GetDSV() override { return m_dsv; }
+    std::weak_ptr<ResourceDescriptor> GetSRV() override { return m_srv; }
+    std::weak_ptr<ResourceDescriptor> GetUAV() override { return m_uav; }
+    std::weak_ptr<ResourceDescriptor> GetCBV() override { return m_cbv; }
+    std::weak_ptr<IndexVufferView> Get_Index_View() override { return m_index_view; }
 private:
     friend class GfxCommandQueue;
-    D3D12_RESOURCE_STATES GetState() const { return m_current_state; }
-    void UpdateState(D3D12_RESOURCE_STATES new_state) {
+    ResourceState GetState() const override { return m_current_state; }
+    void UpdateState(ResourceState new_state) override {
         m_current_state = new_state;
     }
     void ResetViews();
@@ -44,8 +42,7 @@ private:
     std::shared_ptr<ResourceDescriptor> m_srv;
     std::shared_ptr<ResourceDescriptor> m_uav;
     std::shared_ptr<ResourceDescriptor> m_cbv;
-    std::shared_ptr<D3D12_VERTEX_BUFFER_VIEW> m_vertex_view;
-    std::shared_ptr<D3D12_INDEX_BUFFER_VIEW> m_index_view;
+    std::shared_ptr<IndexVufferView> m_index_view;
 
-    D3D12_RESOURCE_STATES m_current_state{ D3D12_RESOURCE_STATE_COMMON };
+    ResourceState m_current_state{ ResourceState::rs_resource_state_common };
 };

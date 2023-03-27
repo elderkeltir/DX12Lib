@@ -30,14 +30,14 @@ void CommandList::SetComputeRootConstantBufferView(uint32_t root_parameter_index
 	m_command_list->SetComputeRootConstantBufferView(root_parameter_index, buffer_location);
 }
 
-void CommandList::IASetVertexBuffers(uint32_t start_slot, uint32_t num_views, const D3D12_VERTEX_BUFFER_VIEW* view)
+void CommandList::IASetIndexBuffer(const IGpuResource::IndexVufferView* view)
 {
-	m_command_list->IASetVertexBuffers(start_slot, num_views, view);
-}
+	D3D12_INDEX_BUFFER_VIEW view_native;
+	view_native.BufferLocation = view->buffer_location;
+	view_native.Format = (DXGI_FORMAT)view->format;
+	view_native.SizeInBytes = view->size_in_bytes;
 
-void CommandList::IASetIndexBuffer(const D3D12_INDEX_BUFFER_VIEW* view)
-{
-	m_command_list->IASetIndexBuffer(view);
+	m_command_list->IASetIndexBuffer(&view_native);
 }
 
 void CommandList::IASetPrimitiveTopology(D3D12_PRIMITIVE_TOPOLOGY primirive_topology)

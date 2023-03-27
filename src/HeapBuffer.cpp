@@ -7,45 +7,33 @@
 
 extern DXAppImplementation *gD3DApp;
 
-void HeapBuffer::Create(BufferType type, uint32_t bufferSize, UseFlag flags, D3D12_RESOURCE_STATES initial_state, std::optional<std::wstring> dbg_name) {
-    D3D12_HEAP_TYPE internal_type;
-    D3D12_RESOURCE_FLAGS internal_flags;
+void HeapBuffer::Create(HeapType type, uint32_t bufferSize, ResourceState initial_state, std::optional<std::wstring> dbg_name) {
+    D3D12_HEAP_TYPE internal_type{ (D3D12_HEAP_TYPE)type };
 
-    switch(type){
-        case BufferType::bt_default:
-            internal_type = D3D12_HEAP_TYPE_DEFAULT;
-            break;
-        case BufferType::bt_upload:
-            internal_type = D3D12_HEAP_TYPE_UPLOAD;
-            break;
-        case BufferType::bt_readback:
-            internal_type = D3D12_HEAP_TYPE_READBACK;
-            break;
-    };
-
-    switch(flags){
-        case UseFlag::uf_none:
-            internal_flags = D3D12_RESOURCE_FLAG_NONE;
-            break;
-        case UseFlag::uf_rt:
-            internal_flags = D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
-            break;
-        case UseFlag::uf_ds:
-            internal_flags = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
-            break;
-        case UseFlag::uf_srv:
-            internal_flags = D3D12_RESOURCE_FLAG_DENY_SHADER_RESOURCE;
-            break;
-        case UseFlag::uf_uav:
-            internal_flags = D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
-            break;
-    };
+    // TODO: remove?
+    //switch(flags){
+    //    case UseFlag::uf_none:
+    //        internal_flags = D3D12_RESOURCE_FLAG_NONE;
+    //        break;
+    //    case UseFlag::uf_rt:
+    //        internal_flags = D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
+    //        break;
+    //    case UseFlag::uf_ds:
+    //        internal_flags = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
+    //        break;
+    //    case UseFlag::uf_srv:
+    //        internal_flags = D3D12_RESOURCE_FLAG_DENY_SHADER_RESOURCE;
+    //        break;
+    //    case UseFlag::uf_uav:
+    //        internal_flags = D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
+    //        break;
+    //};
 
     ThrowIfFailed(gD3DApp->GetDevice()->CreateCommittedResource(
         &CD3DX12_HEAP_PROPERTIES(internal_type),
         D3D12_HEAP_FLAG_NONE,
-        &CD3DX12_RESOURCE_DESC::Buffer(bufferSize, internal_flags),
-        initial_state,
+        &CD3DX12_RESOURCE_DESC::Buffer(bufferSize, D3D12_RESOURCE_FLAG_NONE),
+        (D3D12_RESOURCE_STATES)initial_state,
         nullptr,
         IID_PPV_ARGS(&m_resourse)));
     SetName(m_resourse, dbg_name.value_or(L"").append(L"_buffer").c_str());
@@ -53,27 +41,43 @@ void HeapBuffer::Create(BufferType type, uint32_t bufferSize, UseFlag flags, D3D
     m_recreate_intermediate_res = true;
 }
 
-void HeapBuffer::CreateTexture(BufferType type, const CD3DX12_RESOURCE_DESC &res_desc, D3D12_RESOURCE_STATES initial_state, const D3D12_CLEAR_VALUE *clear_val, std::optional<std::wstring> dbg_name){
-    D3D12_HEAP_TYPE internal_type;
+void HeapBuffer::CreateTexture(HeapType type, const ResourceDesc &res_desc, ResourceState initial_state, const ClearColor *clear_val, std::optional<std::wstring> dbg_name){
+    D3D12_HEAP_TYPE internal_type{ (D3D12_HEAP_TYPE)type };
 
-    switch(type){
-        case BufferType::bt_default:
-            internal_type = D3D12_HEAP_TYPE_DEFAULT;
-            break;
-        case BufferType::bt_upload:
-            internal_type = D3D12_HEAP_TYPE_UPLOAD;
-            break;
-        case BufferType::bt_readback:
-            internal_type = D3D12_HEAP_TYPE_READBACK;
-            break;
-    };
+    CD3DX12_RESOURCE_DESC res_desc_native;
+    D3D12_CLEAR_VALUE clear_val_native;
+
+    {
+        res_desc_native.Alignment = res_desc.alignment;
+        res_desc_native.DepthOrArraySize = res_desc.depth_or_array_size;
+        res_desc_native.Dimension = (D3D12_RESOURCE_DIMENSION)res_desc.resource_dimension;
+        res_desc_native.Flags = (D3D12_RESOURCE_FLAGS)res_desc.resource_flags;
+        res_desc_native.Format = (DXGI_FORMAT)res_desc.format;
+        res_desc_native.Height = res_desc.height;
+        res_desc_native.Layout = (D3D12_TEXTURE_LAYOUT)res_desc.texture_layout;
+        res_desc_native.MipLevels = res_desc.mip_levels;
+        res_desc_native.SampleDesc.Count = res_desc.sample_desc.count;
+        res_desc_native.SampleDesc.Quality = res_desc.sample_desc.quality;
+        res_desc_native.Width = res_desc.width;
+
+        if (clear_val) {
+            clear_val_native.Format = (DXGI_FORMAT)clear_val->format;
+            if (clear_val->isDepth) {
+                clear_val_native.DepthStencil.Depth = clear_val->depth_tencil.depth;
+                clear_val_native.DepthStencil.Stencil = clear_val->depth_tencil.stencil;
+            }
+            else {
+                memcpy(clear_val_native.Color, clear_val->color, sizeof(float) * 4);
+            }
+        }
+    }
 
     ThrowIfFailed(gD3DApp->GetDevice()->CreateCommittedResource(
         &CD3DX12_HEAP_PROPERTIES(internal_type),
         D3D12_HEAP_FLAG_NONE,
-        &res_desc,
-        initial_state,
-        clear_val,
+        &res_desc_native,
+        (D3D12_RESOURCE_STATES)initial_state,
+        (clear_val ? &clear_val_native : nullptr),
         IID_PPV_ARGS(&m_resourse)
     ));
     SetName(m_resourse, dbg_name.value_or(L"").append(L"_texture").c_str());
@@ -112,7 +116,7 @@ void HeapBuffer::Load(CommandList& command_list, uint32_t numElements, uint32_t 
     }
 }
 
-void HeapBuffer::Load(CommandList& command_list, uint32_t firstSubresource, uint32_t numSubresources, D3D12_SUBRESOURCE_DATA* subresourceData){
+void HeapBuffer::Load(CommandList& command_list, uint32_t firstSubresource, uint32_t numSubresources, SubresourceData* subresourceData){
     if (subresourceData)
     {
         auto& device = gD3DApp->GetDevice();
@@ -134,7 +138,7 @@ void HeapBuffer::Load(CommandList& command_list, uint32_t firstSubresource, uint
 
         UpdateSubresources(command_list.GetRawCommandList().Get(),
             m_resourse.Get(), pIntermediateResource.Get(),
-            0, firstSubresource, numSubresources, subresourceData);
+            0, firstSubresource, numSubresources, (D3D12_SUBRESOURCE_DATA*)subresourceData);
     }
 }
 

@@ -6,16 +6,16 @@ GpuResource::~GpuResource(){
 
 }
 
-void GpuResource::CreateBuffer(HeapBuffer::BufferType type, uint32_t bufferSize, HeapBuffer::UseFlag flag, D3D12_RESOURCE_STATES initial_state, std::optional<std::wstring> dbg_name){
+void GpuResource::CreateBuffer(HeapType type, uint32_t bufferSize, ResourceState initial_state, std::optional<std::wstring> dbg_name){
     if (m_buffer){
         ResetViews();
     }
     m_buffer = std::make_shared<HeapBuffer>();
-    m_buffer->Create(type, bufferSize, flag, initial_state, dbg_name);
+    m_buffer->Create(type, bufferSize, initial_state, dbg_name);
     m_current_state = initial_state;
 }
 
-void GpuResource::CreateTexture(HeapBuffer::BufferType type, const CD3DX12_RESOURCE_DESC &res_desc, D3D12_RESOURCE_STATES initial_state, const D3D12_CLEAR_VALUE *clear_val, std::optional<std::wstring> dbg_name){
+void GpuResource::CreateTexture(HeapType type, const ResourceDesc &res_desc, ResourceState initial_state, const ClearColor *clear_val, std::optional<std::wstring> dbg_name){
     if (m_buffer){
         ResetViews();
     }
@@ -36,7 +36,7 @@ void GpuResource::LoadBuffer(CommandList& command_list, uint32_t numElements, ui
     m_buffer->Load(command_list, numElements, elementSize, bufferData);
 }
 
-void GpuResource::LoadBuffer(CommandList& command_list, uint32_t firstSubresource, uint32_t numSubresources, D3D12_SUBRESOURCE_DATA* subresourceData){
+void GpuResource::LoadBuffer(CommandList& command_list, uint32_t firstSubresource, uint32_t numSubresources, SubresourceData* subresourceData){
     m_buffer->Load(command_list, firstSubresource, numSubresources, subresourceData);
 }
 
@@ -45,44 +45,36 @@ void GpuResource::CreateRTV(){
     m_rtv->Create_RTV(m_buffer);
 }
 
-void GpuResource::Create_DSV(const D3D12_DEPTH_STENCIL_VIEW_DESC &desc){
+void GpuResource::Create_DSV(const DSVdesc &desc){
     m_dsv = std::make_shared<ResourceDescriptor>();
     m_dsv->Create_DSV(m_buffer, desc);
 }
 
-void GpuResource::Create_SRV(const D3D12_SHADER_RESOURCE_VIEW_DESC &desc){
+void GpuResource::Create_SRV(const SRVdesc &desc){
     m_srv = std::make_shared<ResourceDescriptor>();
     m_srv->Create_SRV(m_buffer, desc);
 }
 
-void GpuResource::Create_UAV(const D3D12_UNORDERED_ACCESS_VIEW_DESC &desc){
+void GpuResource::Create_UAV(const UAVdesc &desc){
     m_uav = std::make_shared<ResourceDescriptor>();
     m_uav->Create_UAV(m_buffer, desc);
 }
 
-void GpuResource::Create_CBV(const D3D12_CONSTANT_BUFFER_VIEW_DESC &desc) {
+void GpuResource::Create_CBV(const CBVdesc &desc) {
     m_cbv = std::make_shared<ResourceDescriptor>();
     m_cbv->Create_CBV(m_buffer, desc);
 }
 
-void GpuResource::Create_Vertex_View(uint32_t sizSizeInBytese, uint32_t StrideInBytes){
-    m_vertex_view = std::make_shared<D3D12_VERTEX_BUFFER_VIEW>();
-    m_vertex_view->BufferLocation = m_buffer->GetResource()->GetGPUVirtualAddress();
-    m_vertex_view->SizeInBytes = sizSizeInBytese;
-    m_vertex_view->StrideInBytes = StrideInBytes;
-}
-
-void GpuResource::Create_Index_View(DXGI_FORMAT format, uint32_t SizeInBytes){
-    m_index_view = std::make_shared<D3D12_INDEX_BUFFER_VIEW>();
-    m_index_view->BufferLocation = m_buffer->GetResource()->GetGPUVirtualAddress();
-    m_index_view->Format = format;
-    m_index_view->SizeInBytes = SizeInBytes;
+void GpuResource::Create_Index_View(ResourceFormat format, uint32_t SizeInBytes){
+    m_index_view = std::make_shared<IndexVufferView>();
+    m_index_view->buffer_location = m_buffer->GetResource()->GetGPUVirtualAddress();
+    m_index_view->format = format;
+    m_index_view->size_in_bytes = SizeInBytes;
 }
 
 void GpuResource::ResetViews(){
     m_rtv.reset();
     m_dsv.reset();
     m_srv.reset();
-    m_vertex_view.reset();
     m_index_view.reset();
 }

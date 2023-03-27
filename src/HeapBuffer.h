@@ -5,20 +5,23 @@
 #include <string>
 #include <directx/d3dx12.h>
 #include <wrl.h>
+#include "defines.h"
 using Microsoft::WRL::ComPtr;
 
 class CommandList;
+struct ClearColor;
+struct ResourceDesc;
 
 class HeapBuffer{
 public:
     enum class BufferType { bt_default, bt_upload, bt_readback };
     enum class UseFlag { uf_none, uf_rt, uf_ds, uf_srv, uf_uav };
 public:
-    void Create(BufferType type, uint32_t bufferSize, UseFlag flag, D3D12_RESOURCE_STATES initial_state, std::optional<std::wstring> dbg_name = std::nullopt);
-    void CreateTexture(BufferType type, const CD3DX12_RESOURCE_DESC &res_desc, D3D12_RESOURCE_STATES initial_state, const D3D12_CLEAR_VALUE *clear_val, std::optional<std::wstring> dbg_name = std::nullopt);
+    void Create(HeapType type, uint32_t bufferSize, ResourceState initial_state, std::optional<std::wstring> dbg_name = std::nullopt);
+    void CreateTexture(HeapType type, const ResourceDesc& res_desc, ResourceState initial_state, const ClearColor* clear_val, std::optional<std::wstring> dbg_name = std::nullopt);
     
     void Load(CommandList& command_list, uint32_t numElements, uint32_t elementSize, const void* bufferData);
-    void Load(CommandList& command_list, uint32_t firstSubresource, uint32_t numSubresources, D3D12_SUBRESOURCE_DATA* subresourceData);
+    void Load(CommandList& command_list, uint32_t firstSubresource, uint32_t numSubresources, SubresourceData* subresourceData);
     
     BYTE* Map();
     void Unmap();

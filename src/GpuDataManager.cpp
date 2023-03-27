@@ -15,15 +15,13 @@ void GpuDataManager::DeallocateVertexBuffer(uint64_t start, uint32_t size) {
 void GpuDataManager::Initialize()
 {
     m_vertex_buffer_res = std::make_unique<GpuResource>();
-    m_vertex_buffer_res->CreateBuffer(HeapBuffer::BufferType::bt_default, vertex_storage_size, HeapBuffer::UseFlag::uf_none, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, std::wstring(L"vertex_buffer"));
-    D3D12_SHADER_RESOURCE_VIEW_DESC desc;
-    desc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-    desc.Format = DXGI_FORMAT_R8_UINT;
-    desc.ViewDimension = D3D12_SRV_DIMENSION_BUFFER;
-    desc.Buffer.FirstElement = 0;
-    desc.Buffer.Flags = D3D12_BUFFER_SRV_FLAG_NONE;
-    desc.Buffer.NumElements = vertex_storage_size;
-    desc.Buffer.StructureByteStride = 0;
+    m_vertex_buffer_res->CreateBuffer(HeapType::ht_default, vertex_storage_size, ResourceState::rs_resource_state_all_shader_resource, std::wstring(L"vertex_buffer"));
+    SRVdesc desc;
+    desc.format = ResourceFormat::rf_r8_uint;
+    desc.dimension = SRVdesc::SRVdimensionType::srv_dt_buffer;
+    desc.buffer.first_element = 0;
+    desc.buffer.num_elements = vertex_storage_size;
+    desc.buffer.structure_byte_stride = 0;
 
     m_vertex_buffer_res->Create_SRV(desc);
 }
@@ -31,9 +29,9 @@ void GpuDataManager::Initialize()
 void GpuDataManager::UploadToGpu(CommandList& command_list)
 {
     if (m_dirty) {
-        command_list.GetQueue()->ResourceBarrier(*m_vertex_buffer_res, D3D12_RESOURCE_STATE_COPY_DEST);
+        command_list.GetQueue()->ResourceBarrier(*m_vertex_buffer_res, ResourceState::rs_resource_state_copy_dest);
         m_vertex_buffer_res->LoadBuffer(command_list, vertex_storage_size, 1, (void*)m_vertex_storage.begin());
-        command_list.GetQueue()->ResourceBarrier(*m_vertex_buffer_res, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+        command_list.GetQueue()->ResourceBarrier(*m_vertex_buffer_res, ResourceState::rs_resource_state_all_shader_resource);
 
         m_dirty = false;
     }
