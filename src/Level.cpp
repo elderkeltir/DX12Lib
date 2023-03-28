@@ -207,11 +207,11 @@ void Level::Render(CommandList& command_list){
         uint32_t terrain_tech_id = m_terrain->GetTerrainTechId();
         const Techniques::Technique* tech = gD3DApp->GetTechniqueById(terrain_tech_id);
         CommandQueue* gfx_queue = command_list.GetQueue();
-        if (gfx_queue->GetPSO() != terrain_tech_id) {
-            gfx_queue->SetPSO(terrain_tech_id);
+        if (command_list.GetPSO() != terrain_tech_id) {
+            command_list.SetPSO(terrain_tech_id);
         }
-        if (gfx_queue->GetRootSign() != tech->root_signature) {
-            gfx_queue->SetRootSign(tech->root_signature);
+        if (command_list.GetRootSign() != tech->root_signature) {
+            command_list.SetRootSign(tech->root_signature);
         }
         gfx_queue->GetGpuHeap().CacheRootSignature(gD3DApp->GetRootSignById(tech->root_signature));
 
@@ -225,11 +225,11 @@ void Level::RenderEntity(CommandList& command_list, LevelEntity & ent, bool &is_
 
     const Techniques::Technique *tech = gD3DApp->GetTechniqueById(ent.GetTechniqueId());
     CommandQueue* gfx_queue = command_list.GetQueue();
-    if (gfx_queue->GetPSO() != ent.GetTechniqueId()){
-        gfx_queue->SetPSO(ent.GetTechniqueId());
+    if (command_list.GetPSO() != ent.GetTechniqueId()){
+        command_list.SetPSO(ent.GetTechniqueId());
     }
-    if (gfx_queue->GetRootSign() != tech->root_signature){
-        gfx_queue->SetRootSign(tech->root_signature);
+    if (command_list.GetRootSign() != tech->root_signature){
+        command_list.SetRootSign(tech->root_signature);
     }
     gfx_queue->GetGpuHeap().CacheRootSignature(gD3DApp->GetRootSignById(tech->root_signature));
 
@@ -284,11 +284,11 @@ void Level::RenderWater(CommandList& command_list)
 	const Techniques::Technique* tech = gD3DApp->GetTechniqueById(tech_id);
     CommandQueue * gfx_queue = command_list.GetQueue();
 
-    if (gfx_queue->GetPSO() != tech_id) {
-        gfx_queue->SetPSO(tech_id);
+    if (command_list.GetPSO() != tech_id) {
+        command_list.SetPSO(tech_id);
     }
-    if (gfx_queue->GetRootSign() != tech->root_signature) {
-        gfx_queue->SetRootSign(tech->root_signature);
+    if (command_list.GetRootSign() != tech->root_signature) {
+        command_list.SetRootSign(tech->root_signature);
     }
         
     gfx_queue->GetGpuHeap().CacheRootSignature(gD3DApp->GetRootSignById(tech->root_signature));

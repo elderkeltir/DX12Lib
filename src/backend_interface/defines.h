@@ -397,3 +397,14 @@ struct IndexVufferView {
     uint32_t size_in_bytes;
     ResourceFormat format;
 };
+
+enum class CommandListType {
+    clt_direct = 0,
+    clt_bundle = 1,
+    clt_compute = 2,
+    clt_copy = 3,
+    clt_video_decode = 4,
+    clt_video_process = 5,
+    clt_video_encode = 6,
+    clt_none = -1
+};

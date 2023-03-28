@@ -109,9 +109,7 @@ void SSAO::GenerateRandomValuesTex(CommandList& command_list)
 		subResourceData.slice_pitch = subResourceData.row_pitch * noise_dim;
 		m_ssao_quad_random_vals->LoadBuffer(command_list, 0, 1, &subResourceData);
 
-		if (std::shared_ptr<CommandQueue> queue = gD3DApp->GetComputeQueue().lock()) {
-			queue->ResourceBarrier(*m_ssao_quad_random_vals.get(), ResourceState::rs_resource_state_non_pixel_shader_resource);
-		}
+		command_list.ResourceBarrier(*m_ssao_quad_random_vals.get(), ResourceState::rs_resource_state_non_pixel_shader_resource);
 
 		m_dirty &= ~df_generate;
 	}

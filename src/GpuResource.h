@@ -31,7 +31,7 @@ public:
     std::weak_ptr<ResourceDescriptor> GetCBV() { return m_cbv; }
     std::weak_ptr<IndexVufferView> Get_Index_View() { return m_index_view; }
 private:
-    friend class CommandQueue;
+    friend class CommandList;
     ResourceState GetState() const { return m_current_state; }
     void UpdateState(ResourceState new_state) {
         m_current_state = new_state;

@@ -1,15 +1,18 @@
 #pragma once
 
 #include <directx/d3dx12.h>
+#include "defines.h"
 
 using Microsoft::WRL::ComPtr;
 
 class CommandQueue;
 struct IndexVufferView;
+class GpuResource;
 
 class CommandList {
 	friend class CommandQueue;
 public:
+	void Reset();
 	void RSSetViewports(uint32_t num_viewports, const D3D12_VIEWPORT* viewports);
 	void RSSetScissorRects(uint32_t num_rects, const D3D12_RECT* rects);
 	void SetGraphicsRootDescriptorTable(uint32_t root_parameter_index, D3D12_GPU_DESCRIPTOR_HANDLE base_descriptor);
@@ -27,9 +30,22 @@ public:
 	void Dispatch(uint32_t thread_group_count_x, uint32_t thread_group_count_y, uint32_t thread_group_count_z);
 	void SetGraphicsRootShaderResourceView(uint32_t root_parameter_index, D3D12_GPU_VIRTUAL_ADDRESS buffer_location);
 
+	void ResourceBarrier(std::shared_ptr<GpuResource>& res, uint32_t to);
+	void ResourceBarrier(GpuResource& res, uint32_t to);
+	void ResourceBarrier(std::vector<std::shared_ptr<GpuResource>>& res, uint32_t to);
+	void SetPSO(uint32_t id);
+	void SetRootSign(uint32_t id, bool gfx = true);
+	uint32_t GetPSO() const { return m_pso; }
+	uint32_t GetRootSign() const { return m_root_sign; }
+
 	ComPtr<ID3D12GraphicsCommandList6>& GetRawCommandList() { return m_command_list; }
 	CommandQueue* GetQueue() { return m_queue; }
 private:
 	ComPtr<ID3D12GraphicsCommandList6> m_command_list;
 	CommandQueue* m_queue{ nullptr };
+
+	uint32_t m_pso{ uint32_t(-1) };
+	uint32_t m_root_sign{ uint32_t(-1) };
+
+	CommandListType m_type;
 };

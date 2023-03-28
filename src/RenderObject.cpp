@@ -15,7 +15,7 @@ void RenderObject::LoadIndexDataOnGpu(CommandList& command_list){
         m_IndexBuffer = std::make_unique<GpuResource>();
         m_IndexBuffer->CreateBuffer(HeapType::ht_default, (m_mesh->GetIndicesNum() * sizeof(uint16_t)), ResourceState::rs_resource_state_copy_dest, std::wstring(L"index_buffer").append(m_name));
         m_IndexBuffer->LoadBuffer(command_list, m_mesh->GetIndicesNum(), sizeof(uint16_t), m_mesh->GetIndicesData());
-        command_list.GetQueue()->ResourceBarrier(*m_IndexBuffer, ResourceState::rs_resource_state_index_buffer);
+        command_list.ResourceBarrier(*m_IndexBuffer, ResourceState::rs_resource_state_index_buffer);
         m_IndexBuffer->Create_Index_View(ResourceFormat::rf_r16_uint, (m_mesh->GetIndicesNum() * sizeof(uint16_t)));
         m_dirty &= (~db_index);
     }
@@ -34,7 +34,7 @@ void RenderObject::Loadtexture(CommandList& command_list, GpuResource* res, Text
         subresource.data = pImages[i].pixels;
     }
     res->LoadBuffer(command_list, 0, (uint32_t)subresources.size(), subresources.data());
-    command_list.GetQueue()->ResourceBarrier(*res, ResourceState::rs_resource_state_pixel_shader_resource);
+    command_list.ResourceBarrier(*res, ResourceState::rs_resource_state_pixel_shader_resource);
 
     SRVdesc srv_desc = {};
 

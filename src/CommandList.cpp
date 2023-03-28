@@ -1,5 +1,15 @@
 #include "CommandList.h"
 #include "defines.h"
+#include "GpuResource.h"
+#include "DXAppImplementation.h"
+
+extern DXAppImplementation* gD3DApp;
+
+void CommandList::Reset()
+{
+    m_pso = uint32_t(-1);
+    m_root_sign = uint32_t(-1);
+}
 
 void CommandList::RSSetViewports(uint32_t num_viewports, const D3D12_VIEWPORT* viewports)
 {
@@ -84,4 +94,63 @@ void CommandList::Dispatch(uint32_t thread_group_count_x, uint32_t thread_group_
 void CommandList::SetGraphicsRootShaderResourceView(uint32_t root_parameter_index, D3D12_GPU_VIRTUAL_ADDRESS buffer_location)
 {
 	m_command_list->SetGraphicsRootShaderResourceView(root_parameter_index, buffer_location);
+}
+
+void CommandList::ResourceBarrier(std::shared_ptr<GpuResource>& res, uint32_t to) {
+    if (std::shared_ptr<HeapBuffer> buff = res->GetBuffer().lock()) {
+        D3D12_RESOURCE_STATES calculated_from = (D3D12_RESOURCE_STATES)res->GetState();
+        D3D12_RESOURCE_STATES to_native = (D3D12_RESOURCE_STATES)to;
+        if (calculated_from != to_native) {
+            m_command_list->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(buff->GetResource().Get(), calculated_from, to_native));
+            res->UpdateState((ResourceState)to);
+        }
+    }
+}
+
+void CommandList::ResourceBarrier(GpuResource& res, uint32_t to) {
+    if (std::shared_ptr<HeapBuffer> buff = res.GetBuffer().lock()) {
+        D3D12_RESOURCE_STATES calculated_from = (D3D12_RESOURCE_STATES)res.GetState();
+        D3D12_RESOURCE_STATES to_native = (D3D12_RESOURCE_STATES)to;
+        if (calculated_from != to_native) {
+            m_command_list->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(buff->GetResource().Get(), calculated_from, to_native));
+            res.UpdateState((ResourceState)to);
+        }
+    }
+}
+
+void CommandList::ResourceBarrier(std::vector<std::shared_ptr<GpuResource>>& res, uint32_t to) {
+    std::vector<CD3DX12_RESOURCE_BARRIER> resources;
+    resources.reserve(res.size());
+    for (auto gpu_res : res) {
+        if (std::shared_ptr<HeapBuffer> buff = gpu_res->GetBuffer().lock()) {
+            D3D12_RESOURCE_STATES calculated_from = (D3D12_RESOURCE_STATES)gpu_res->GetState();
+            D3D12_RESOURCE_STATES to_native = (D3D12_RESOURCE_STATES)to;
+            if (calculated_from != to_native) {
+                resources.push_back(CD3DX12_RESOURCE_BARRIER::Transition(buff->GetResource().Get(), calculated_from, to_native));
+                gpu_res->UpdateState((ResourceState)to);
+            }
+        }
+    }
+
+    m_command_list->ResourceBarrier((uint32_t)resources.size(), resources.data());
+}
+
+void CommandList::SetPSO(uint32_t id) {
+    m_pso = id;
+    auto tech = gD3DApp->GetTechniqueById(id);
+
+    m_command_list->SetPipelineState(tech->pipeline_state.Get());
+}
+
+void CommandList::SetRootSign(uint32_t id, bool gfx) {
+    m_root_sign = id;
+
+    auto root_sign = gD3DApp->GetRootSignById(id);
+    auto& r = root_sign->GetRootSignature();
+    if (m_type == CommandListType::clt_direct && gfx) {
+        m_command_list->SetGraphicsRootSignature(r.Get());
+    }
+    else {
+        m_command_list->SetComputeRootSignature(r.Get());
+    }
 }

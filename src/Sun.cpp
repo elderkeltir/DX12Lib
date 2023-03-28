@@ -98,7 +98,7 @@ void Sun::SetupShadowMap(CommandList& command_list)
 	m_current_id = (m_current_id+1) % rt_num;
 	Initialize(command_list);
 
-	command_list.GetQueue()->ResourceBarrier(m_shadow_map[m_current_id], ResourceState::rs_resource_state_depth_write);
+	command_list.ResourceBarrier(m_shadow_map[m_current_id], ResourceState::rs_resource_state_depth_write);
 	
 	// set dsv and viewport
 	CD3DX12_CPU_DESCRIPTOR_HANDLE dsvHandle;
@@ -114,11 +114,11 @@ void Sun::SetupShadowMap(CommandList& command_list)
 
 	const Techniques::Technique* tech = gD3DApp->GetTechniqueById(Techniques::tt_shadow_map);
 	CommandQueue* queue = command_list.GetQueue();
-	if (queue->GetPSO() != Techniques::tt_shadow_map) {
-		queue->SetPSO(Techniques::tt_shadow_map);
+	if (command_list.GetPSO() != Techniques::tt_shadow_map) {
+		command_list.SetPSO(Techniques::tt_shadow_map);
 	}
-	if (queue->GetRootSign() != tech->root_signature) {
-		queue->SetRootSign(tech->root_signature);
+	if (command_list.GetRootSign() != tech->root_signature) {
+		command_list.SetRootSign(tech->root_signature);
 		queue->GetGpuHeap().CacheRootSignature(gD3DApp->GetRootSignById(tech->root_signature));
 	}
 

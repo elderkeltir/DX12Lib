@@ -225,10 +225,10 @@ void ConstantBufferManager::CommitCB(CommandList& command_list, ConstantBuffers 
 void ConstantBufferManager::SyncCpuDataToCB(CommandList& command_list, GpuResource* res, void* cpu_data, uint32_t size, BindingId bind_point, bool gfx) {
     CommandQueue* queue = command_list.GetQueue();
     if (gfx) {
-        queue->ResourceBarrier(*res, ResourceState::rs_resource_state_copy_dest);
+        command_list.ResourceBarrier(*res, ResourceState::rs_resource_state_copy_dest);
     }
     else {
-	    queue->ResourceBarrier(*res, ResourceState::rs_resource_state_copy_dest);
+	    command_list.ResourceBarrier(*res, ResourceState::rs_resource_state_copy_dest);
     }
 
 	if (std::shared_ptr<HeapBuffer> buff = res->GetBuffer().lock()) {
@@ -238,12 +238,12 @@ void ConstantBufferManager::SyncCpuDataToCB(CommandList& command_list, GpuResour
 
     if (gfx) {
         if (std::shared_ptr<CommandQueue> queue = gD3DApp->GetGfxQueue().lock()) {
-            queue->ResourceBarrier(*res, ResourceState::rs_resource_state_vertex_and_constant_buffer);
+            command_list.ResourceBarrier(*res, ResourceState::rs_resource_state_vertex_and_constant_buffer);
         }
     }
     else {
 		if (std::shared_ptr<CommandQueue> queue = gD3DApp->GetComputeQueue().lock()) {
-			queue->ResourceBarrier(*res, ResourceState::rs_resource_state_vertex_and_constant_buffer);
+			command_list.ResourceBarrier(*res, ResourceState::rs_resource_state_vertex_and_constant_buffer);
 		}
     }
 

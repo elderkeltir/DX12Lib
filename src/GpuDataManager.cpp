@@ -29,9 +29,9 @@ void GpuDataManager::Initialize()
 void GpuDataManager::UploadToGpu(CommandList& command_list)
 {
     if (m_dirty) {
-        command_list.GetQueue()->ResourceBarrier(*m_vertex_buffer_res, ResourceState::rs_resource_state_copy_dest);
+        command_list.ResourceBarrier(*m_vertex_buffer_res, ResourceState::rs_resource_state_copy_dest);
         m_vertex_buffer_res->LoadBuffer(command_list, vertex_storage_size, 1, (void*)m_vertex_storage.begin());
-        command_list.GetQueue()->ResourceBarrier(*m_vertex_buffer_res, ResourceState::rs_resource_state_all_shader_resource);
+        command_list.ResourceBarrier(*m_vertex_buffer_res, ResourceState::rs_resource_state_all_shader_resource);
 
         m_dirty = false;
     }
