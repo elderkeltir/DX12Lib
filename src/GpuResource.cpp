@@ -1,6 +1,6 @@
 #include "GpuResource.h"
 #include "ResourceDescriptor.h"
-#include "GfxCommandQueue.h"
+#include "CommandQueue.h"
 
 GpuResource::~GpuResource(){
 

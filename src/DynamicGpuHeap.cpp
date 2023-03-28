@@ -1,7 +1,7 @@
 #include "DynamicGpuHeap.h"
 #include <string>
 #include "RootSignature.h"
-#include "GfxCommandQueue.h"
+#include "CommandQueue.h"
 #include "DXAppImplementation.h"
 #include "DXHelper.h"
 

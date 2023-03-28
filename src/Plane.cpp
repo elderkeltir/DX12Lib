@@ -1,6 +1,6 @@
 #include "Plane.h"
 #include "FileManager.h"
-#include "GfxCommandQueue.h"
+#include "CommandQueue.h"
 #include "DXAppImplementation.h"
 
 extern DXAppImplementation* gD3DApp;

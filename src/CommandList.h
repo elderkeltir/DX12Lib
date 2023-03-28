@@ -4,11 +4,11 @@
 
 using Microsoft::WRL::ComPtr;
 
-class GfxCommandQueue;
+class CommandQueue;
 struct IndexVufferView;
 
 class CommandList {
-	friend class GfxCommandQueue;
+	friend class CommandQueue;
 public:
 	void RSSetViewports(uint32_t num_viewports, const D3D12_VIEWPORT* viewports);
 	void RSSetScissorRects(uint32_t num_rects, const D3D12_RECT* rects);
@@ -28,8 +28,8 @@ public:
 	void SetGraphicsRootShaderResourceView(uint32_t root_parameter_index, D3D12_GPU_VIRTUAL_ADDRESS buffer_location);
 
 	ComPtr<ID3D12GraphicsCommandList6>& GetRawCommandList() { return m_command_list; }
-	GfxCommandQueue* GetQueue() { return m_queue; }
+	CommandQueue* GetQueue() { return m_queue; }
 private:
 	ComPtr<ID3D12GraphicsCommandList6> m_command_list;
-	GfxCommandQueue* m_queue{ nullptr };
+	CommandQueue* m_queue{ nullptr };
 };

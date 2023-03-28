@@ -1,5 +1,5 @@
 #include "GpuDataManager.h"
-#include "GfxCommandQueue.h"
+#include "CommandQueue.h"
 #include "GpuResource.h"
 
 uint64_t GpuDataManager::AllocateVertexBuffer(uint32_t size) {

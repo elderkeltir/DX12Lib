@@ -7,7 +7,7 @@
 using Microsoft::WRL::ComPtr;
 
 class GpuResource;
-class GfxCommandQueue;
+class CommandQueue;
 class CommandList;
 
 class Sun {

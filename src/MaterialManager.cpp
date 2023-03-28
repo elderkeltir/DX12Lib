@@ -1,6 +1,6 @@
 #include "MaterialManager.h"
 #include "DXAppImplementation.h"
-#include "GfxCommandQueue.h"
+#include "CommandQueue.h"
 #include "ResourceDescriptor.h"
 #include "DXHelper.h"
 #include "defines.h"

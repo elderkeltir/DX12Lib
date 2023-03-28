@@ -3,7 +3,7 @@
 #include "DXHelper.h"
 #include <directx/d3d12.h>
 #include "DXAppImplementation.h"
-#include "GfxCommandQueue.h"
+#include "CommandQueue.h"
 
 extern DXAppImplementation *gD3DApp;
 

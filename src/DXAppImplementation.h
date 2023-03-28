@@ -12,7 +12,7 @@ using Microsoft::WRL::ComPtr;
 class Level;
 class DescriptorHeapCollection;
 class GpuResource;
-class GfxCommandQueue;
+class CommandQueue;
 class CommandList;
 class FreeCamera;
 class RenderQuad;
@@ -42,8 +42,8 @@ public:
     uint32_t FrameNumber() const { return m_frame_id; }
     uint32_t FrameId() const { return m_frameIndex; }
     float GetAspectRatio() const { return m_width/(float)m_height; }
-    std::weak_ptr<GfxCommandQueue> GetGfxQueue() { return m_commandQueueGfx; }
-    std::weak_ptr<GfxCommandQueue> GetComputeQueue() { return m_commandQueueCompute; }
+    std::weak_ptr<CommandQueue> GetGfxQueue() { return m_commandQueueGfx; }
+    std::weak_ptr<CommandQueue> GetComputeQueue() { return m_commandQueueCompute; }
 
     // Events
     virtual void OnMouseMoved(WPARAM btnState, int x, int y) override;
@@ -83,8 +83,8 @@ private:
     ComPtr<ID3D12Fence> m_fence_inter_queue;
     uint64_t m_fence_inter_queue_val{ 0 };
     
-    std::shared_ptr<GfxCommandQueue> m_commandQueueGfx;
-    std::shared_ptr<GfxCommandQueue> m_commandQueueCompute;
+    std::shared_ptr<CommandQueue> m_commandQueueGfx;
+    std::shared_ptr<CommandQueue> m_commandQueueCompute;
     std::unique_ptr<GpuResource[]> m_renderTargets;
     std::unique_ptr<GpuResource> m_depthStencil;
     std::unique_ptr<RenderQuad> m_post_process_quad;

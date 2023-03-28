@@ -1,7 +1,7 @@
 #include "Sun.h"
 #include "Level.h"
 #include "GpuResource.h"
-#include "GfxCommandQueue.h"
+#include "CommandQueue.h"
 #include "DXAppImplementation.h"
 #include "FreeCamera.h"
 #include "ResourceDescriptor.h"
@@ -113,7 +113,7 @@ void Sun::SetupShadowMap(CommandList& command_list)
 	command_list.OMSetRenderTargets(0, NULL, FALSE, &dsvHandle);
 
 	const Techniques::Technique* tech = gD3DApp->GetTechniqueById(Techniques::tt_shadow_map);
-	GfxCommandQueue* queue = command_list.GetQueue();
+	CommandQueue* queue = command_list.GetQueue();
 	if (queue->GetPSO() != Techniques::tt_shadow_map) {
 		queue->SetPSO(Techniques::tt_shadow_map);
 	}

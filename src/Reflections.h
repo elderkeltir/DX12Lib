@@ -5,7 +5,7 @@
 #include <DirectXMath.h>
 
 class GpuResource;
-class GfxCommandQueue;
+class CommandQueue;
 class CommandList;
 
 class Reflections {

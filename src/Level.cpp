@@ -23,7 +23,7 @@
 #include "DescriptorHeapCollection.h"
 #include "ResourceDescriptor.h"
 #include "MaterialManager.h"
-#include "GfxCommandQueue.h"
+#include "CommandQueue.h"
 #include "SkyBox.h"
 #include "DynamicGpuHeap.h"
 #include "Plane.h"
@@ -206,7 +206,7 @@ void Level::Render(CommandList& command_list){
     {
         uint32_t terrain_tech_id = m_terrain->GetTerrainTechId();
         const Techniques::Technique* tech = gD3DApp->GetTechniqueById(terrain_tech_id);
-        GfxCommandQueue* gfx_queue = command_list.GetQueue();
+        CommandQueue* gfx_queue = command_list.GetQueue();
         if (gfx_queue->GetPSO() != terrain_tech_id) {
             gfx_queue->SetPSO(terrain_tech_id);
         }
@@ -224,7 +224,7 @@ void Level::RenderEntity(CommandList& command_list, LevelEntity & ent, bool &is_
     ent.LoadDataToGpu(command_list);
 
     const Techniques::Technique *tech = gD3DApp->GetTechniqueById(ent.GetTechniqueId());
-    GfxCommandQueue* gfx_queue = command_list.GetQueue();
+    CommandQueue* gfx_queue = command_list.GetQueue();
     if (gfx_queue->GetPSO() != ent.GetTechniqueId()){
         gfx_queue->SetPSO(ent.GetTechniqueId());
     }
@@ -282,7 +282,7 @@ void Level::RenderWater(CommandList& command_list)
 {
     uint32_t tech_id = m_water->GetTerrainTechId();
 	const Techniques::Technique* tech = gD3DApp->GetTechniqueById(tech_id);
-    GfxCommandQueue * gfx_queue = command_list.GetQueue();
+    CommandQueue * gfx_queue = command_list.GetQueue();
 
     if (gfx_queue->GetPSO() != tech_id) {
         gfx_queue->SetPSO(tech_id);

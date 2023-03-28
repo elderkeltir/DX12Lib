@@ -66,7 +66,6 @@ add_executable(DX12Lib WIN32 main.cpp
     LevelEntity.cpp
     ConstantBufferManager.cpp
     CommandQueue.cpp
-    GfxCommandQueue.cpp
     Techniques.cpp
     RenderQuad.cpp
     RenderObject.cpp

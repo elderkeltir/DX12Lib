@@ -7,7 +7,7 @@
 #include "DXHelper.h"
 #include "RenderMesh.h"
 #include "VertexFormats.h"
-#include "GfxCommandQueue.h"
+#include "CommandQueue.h"
 
 extern DXAppImplementation *gD3DApp;
 

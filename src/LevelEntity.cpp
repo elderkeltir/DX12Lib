@@ -17,7 +17,7 @@
 #include "FileManager.h"
 #include "Level.h"
 #include "MaterialManager.h"
-#include "GfxCommandQueue.h"
+#include "CommandQueue.h"
 
 extern DXAppImplementation *gD3DApp;
 using rapidjson::Document;

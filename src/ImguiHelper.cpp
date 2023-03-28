@@ -6,7 +6,7 @@
 #include "backends/imgui_impl_dx12.h"
 
 #include "Application.h"
-#include "GfxCommandQueue.h"
+#include "CommandQueue.h"
 #include "RenderQuad.h"
 #include "GpuResource.h"
 #include "DescriptorHeapCollection.h"
@@ -22,7 +22,7 @@ static void AddToConsoleLogCallback(const std::string &line) {
 
 
 ImguiHelper::ImguiHelper() :
-	m_commandQueueGfx(std::make_unique<GfxCommandQueue>()),
+	m_commandQueueGfx(std::make_unique<CommandQueue>()),
 	m_rt(std::make_unique<RenderQuad>()),
 	m_console(std::make_unique< AppConsole>())
 {

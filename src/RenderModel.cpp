@@ -5,7 +5,7 @@
 #include "DXAppImplementation.h"
 #include "ResourceDescriptor.h"
 #include "VertexFormats.h"
-#include "GfxCommandQueue.h"
+#include "CommandQueue.h"
 #include "DynamicGpuHeap.h"
 #include "GpuDataManager.h"
 #include "defines.h"
@@ -146,7 +146,7 @@ void RenderModel::Render(CommandList& command_list, const DirectX::XMFLOAT4X4 &p
             assert(false);
         }
         command_list.IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-        GfxCommandQueue * gfx_queue = command_list.GetQueue();
+        CommandQueue * gfx_queue = command_list.GetQueue();
         if (m_diffuse_tex) {
             if (std::shared_ptr<ResourceDescriptor> srv = m_diffuse_tex->GetSRV().lock()) {
                 gfx_queue->GetGpuHeap().StageDesctriptorInTable(bi_g_buffer_tex_table, tto_albedo, srv->GetCPUhandle());

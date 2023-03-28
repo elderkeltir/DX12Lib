@@ -9,7 +9,7 @@
 #include "ShaderManager.h"
 #include "FreeCamera.h"
 #include "LevelEntity.h"
-#include "GfxCommandQueue.h"
+#include "CommandQueue.h"
 #include "RenderQuad.h"
 #include "MaterialManager.h"
 #include "SSAO.h"
@@ -33,8 +33,8 @@ DXAppImplementation::DXAppImplementation(uint32_t width, uint32_t height, std::w
 	m_descriptor_heap_collection(std::make_shared<DescriptorHeapCollection>()),
 	m_renderTargets(std::make_unique<GpuResource[]>(FrameCount)),
 	m_depthStencil(std::make_unique<GpuResource>()),
-	m_commandQueueGfx(std::make_shared<GfxCommandQueue>()),
-	m_commandQueueCompute(std::make_shared<GfxCommandQueue>()),
+	m_commandQueueGfx(std::make_shared<CommandQueue>()),
+	m_commandQueueCompute(std::make_shared<CommandQueue>()),
 	m_post_process_quad(std::make_unique<RenderQuad>()),
 	m_forward_quad(std::make_unique<RenderQuad>()),
 	m_deferred_shading_quad(std::make_unique<RenderQuad>()),

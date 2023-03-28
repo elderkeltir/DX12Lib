@@ -1,7 +1,7 @@
 #include "ConstantBufferManager.h"
 #include "GpuResource.h"
 #include "DXHelper.h"
-#include "GfxCommandQueue.h"
+#include "CommandQueue.h"
 #include "DXAppImplementation.h"
 
 extern DXAppImplementation* gD3DApp;
@@ -223,7 +223,7 @@ void ConstantBufferManager::CommitCB(CommandList& command_list, ConstantBuffers 
 }
 
 void ConstantBufferManager::SyncCpuDataToCB(CommandList& command_list, GpuResource* res, void* cpu_data, uint32_t size, BindingId bind_point, bool gfx) {
-    GfxCommandQueue* queue = command_list.GetQueue();
+    CommandQueue* queue = command_list.GetQueue();
     if (gfx) {
         queue->ResourceBarrier(*res, ResourceState::rs_resource_state_copy_dest);
     }
@@ -237,12 +237,12 @@ void ConstantBufferManager::SyncCpuDataToCB(CommandList& command_list, GpuResour
 	}
 
     if (gfx) {
-        if (std::shared_ptr<GfxCommandQueue> queue = gD3DApp->GetGfxQueue().lock()) {
+        if (std::shared_ptr<CommandQueue> queue = gD3DApp->GetGfxQueue().lock()) {
             queue->ResourceBarrier(*res, ResourceState::rs_resource_state_vertex_and_constant_buffer);
         }
     }
     else {
-		if (std::shared_ptr<GfxCommandQueue> queue = gD3DApp->GetComputeQueue().lock()) {
+		if (std::shared_ptr<CommandQueue> queue = gD3DApp->GetComputeQueue().lock()) {
 			queue->ResourceBarrier(*res, ResourceState::rs_resource_state_vertex_and_constant_buffer);
 		}
     }
