@@ -14,9 +14,6 @@ void Sun::Initialize(CommandList& command_list)
 		const float width = (float)gD3DApp->GetWidth();
 		const float height = (float)gD3DApp->GetHeight();
 
-		m_sun_viewport = CD3DX12_VIEWPORT(0.0f, 0.0f, static_cast<float>(width), static_cast<float>(height));
-		m_sun_scissorRect = CD3DX12_RECT(0, 0, static_cast<LONG>(width), static_cast<LONG>(height));
-
 		m_shadow_map = std::make_unique<GpuResource[]>(rt_num);
 
 		for (uint32_t i = 0; i < rt_num; i++) {

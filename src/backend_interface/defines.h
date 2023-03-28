@@ -408,3 +408,40 @@ enum class CommandListType {
     clt_video_encode = 6,
     clt_none = -1
 };
+
+struct ViewPort {
+    float topleft_x;
+    float topleft_y;
+    float width;
+    float height;
+    float min_depth;
+    float max_depth;
+
+    ViewPort(float topleft_x_, float topleft_y_, float width_, float height_, float min_depth_ = 0.f, float max_depth_ = 1.f) :
+        topleft_x(topleft_x_),
+        topleft_y(topleft_y_),
+        width(width_),
+        height(height_),
+        min_depth(min_depth_),
+        max_depth(max_depth_)
+    {
+    }
+
+    ViewPort() = default;
+};
+
+struct RectScissors {
+    uint32_t    left;
+    uint32_t    top;
+    uint32_t    right;
+    uint32_t    bottom;
+
+    RectScissors(uint32_t left_, uint32_t top_, uint32_t right_, uint32_t bottom_) :
+        left(left_),
+        top(top_),
+        right(right_),
+        bottom(bottom_)
+    {
+
+    }
+};

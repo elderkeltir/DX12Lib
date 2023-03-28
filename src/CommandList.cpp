@@ -11,14 +11,14 @@ void CommandList::Reset()
     m_root_sign = uint32_t(-1);
 }
 
-void CommandList::RSSetViewports(uint32_t num_viewports, const D3D12_VIEWPORT* viewports)
+void CommandList::RSSetViewports(uint32_t num_viewports, const ViewPort* viewports)
 {
-	m_command_list->RSSetViewports(num_viewports, viewports);
+	m_command_list->RSSetViewports(num_viewports, (D3D12_VIEWPORT*)viewports); // TODO: later maybe create cast func
 }
 
-void CommandList::RSSetScissorRects(uint32_t num_rects, const D3D12_RECT* rects)
+void CommandList::RSSetScissorRects(uint32_t num_rects, const RectScissors* rects)
 {
-	m_command_list->RSSetScissorRects(num_rects, rects);
+	m_command_list->RSSetScissorRects(num_rects, (D3D12_RECT*)rects);
 }
 
 void CommandList::SetGraphicsRootDescriptorTable(uint32_t root_parameter_index, D3D12_GPU_DESCRIPTOR_HANDLE base_descriptor)
@@ -76,14 +76,14 @@ void CommandList::OMSetRenderTargets(uint32_t num_rt_descriptors, const D3D12_CP
 	m_command_list->OMSetRenderTargets(num_rt_descriptors, render_target_descriptors, rt_single_descriptor_for_range, depth_stencil_descriptor);
 }
 
-void CommandList::ClearRenderTargetView(D3D12_CPU_DESCRIPTOR_HANDLE rtv, const float color[4], uint32_t num_rects, const D3D12_RECT* rect)
+void CommandList::ClearRenderTargetView(D3D12_CPU_DESCRIPTOR_HANDLE rtv, const float color[4], uint32_t num_rects, const RectScissors* rect)
 {
-	m_command_list->ClearRenderTargetView(rtv, color, num_rects, rect);
+	m_command_list->ClearRenderTargetView(rtv, color, num_rects, (D3D12_RECT*)rect);
 }
 
-void CommandList::ClearDepthStencilView(D3D12_CPU_DESCRIPTOR_HANDLE dsv, D3D12_CLEAR_FLAGS clear_flags, float depth, uint8_t stencil, uint32_t num_rects, const D3D12_RECT* rects)
+void CommandList::ClearDepthStencilView(D3D12_CPU_DESCRIPTOR_HANDLE dsv, D3D12_CLEAR_FLAGS clear_flags, float depth, uint8_t stencil, uint32_t num_rects, const RectScissors* rects)
 {
-	m_command_list->ClearDepthStencilView(dsv, clear_flags, depth, stencil, num_rects, rects);
+	m_command_list->ClearDepthStencilView(dsv, clear_flags, depth, stencil, num_rects, (D3D12_RECT*)rects);
 }
 
 void CommandList::Dispatch(uint32_t thread_group_count_x, uint32_t thread_group_count_y, uint32_t thread_group_count_z)

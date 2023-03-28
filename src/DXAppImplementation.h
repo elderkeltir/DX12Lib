@@ -73,8 +73,8 @@ private:
 
     void UpdateCamera(std::shared_ptr<FreeCamera> &camera, float dt);
 
-    CD3DX12_VIEWPORT m_viewport;
-    CD3DX12_RECT m_scissorRect;
+    ViewPort m_viewport;
+    RectScissors m_scissorRect;
 
     ComPtr<IDXGIFactory4> m_factory;
     ComPtr<ID3D12Device2> m_device;
