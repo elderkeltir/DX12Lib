@@ -101,13 +101,11 @@ void ImguiHelper::Render(uint32_t frame_id)
 
 	UINT backBufferIdx = frame_id;
 	if (std::shared_ptr<GpuResource> rt = m_rt->GetRt(frame_id).lock()) {
+		std::vector<GpuResource*> rts{ rt.get()};
 		command_list.ResourceBarrier(rt, ResourceState::rs_resource_state_render_target);
-		if (std::shared_ptr<ResourceDescriptor> render_target_view = rt->GetRTV().lock()) {
-			CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle = render_target_view->GetCPUhandle();
-			command_list.OMSetRenderTargets(1, &rtvHandle, FALSE, NULL);
-			const float clearColor[] = { 0.0f, 0.0f, 0.0f, 0.0f };
-			command_list.ClearRenderTargetView(rtvHandle, clearColor, 0, nullptr);
-		}
+		command_list.SetRenderTargets(rts,nullptr);
+		const float clearColor[] = { 0.0f, 0.0f, 0.0f, 0.0f };
+		command_list.ClearRenderTargetView(rt.get(), clearColor, 0, nullptr);
 	}
 
 	// Render Dear ImGui graphics

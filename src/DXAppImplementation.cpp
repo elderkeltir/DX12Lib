@@ -361,71 +361,45 @@ void DXAppImplementation::OnDestroy()
 }
 
 void DXAppImplementation::PrepareRenderTarget(CommandList& command_list, const std::vector<std::shared_ptr<GpuResource>>& rts, bool set_dsv, bool clear_dsv) {
-	CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle;
-	CD3DX12_CPU_DESCRIPTOR_HANDLE dsvHandle;
-	if (std::shared_ptr<ResourceDescriptor> render_target_view = rts.at(0)->GetRTV().lock()) {
-		rtvHandle = render_target_view->GetCPUhandle();
-	}
-	else {
-		assert(false);
+	std::vector<GpuResource*> render_targets(rts.size());
+	for (uint32_t i = 0; i < rts.size(); i++) {
+		render_targets[i] = rts[i].get();
 	}
 
 	if (set_dsv) {
-		if (std::shared_ptr<ResourceDescriptor> depth_view = m_depthStencil->GetDSV().lock()) {
-			dsvHandle = depth_view->GetCPUhandle();
-			if (clear_dsv) {
-				command_list.ClearDepthStencilView(dsvHandle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
-			}
-		}
-		else {
-			assert(false);
+		if (clear_dsv) {
+			command_list.ClearDepthStencilView(m_depthStencil.get(), ClearFlagsDsv::cfdsv_depth, 1.0f, 0, 0, nullptr);
 		}
 
-		command_list.OMSetRenderTargets((uint32_t)rts.size(), &rtvHandle, rts.size() > 1 ? TRUE : FALSE, &dsvHandle);
+		command_list.SetRenderTargets(render_targets, m_depthStencil.get());
 	}
 	else {
-		command_list.OMSetRenderTargets((uint32_t)rts.size(), &rtvHandle, rts.size() > 1 ? TRUE : FALSE, NULL);
+		command_list.SetRenderTargets(render_targets, nullptr);
 	}
 
 	// Record commands.
 	const float clearColor[] = { 0.f, 0.f, 0.f, 0.0f };
 	for (auto& rt : rts) {
-		if (std::shared_ptr<ResourceDescriptor> render_target_view = rt->GetRTV().lock()) {
-			rtvHandle = render_target_view->GetCPUhandle();
-			command_list.ClearRenderTargetView(rtvHandle, clearColor, 0, nullptr);
-		}
+		command_list.ClearRenderTargetView(rt.get(), clearColor, 0, nullptr);
 	}
 }
 
 void DXAppImplementation::PrepareRenderTarget(CommandList& command_list, GpuResource& rt, bool set_dsv, bool clear_dsv) {
-	CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle;
-	CD3DX12_CPU_DESCRIPTOR_HANDLE dsvHandle;
-	if (std::shared_ptr<ResourceDescriptor> render_target_view = rt.GetRTV().lock()) {
-		rtvHandle = render_target_view->GetCPUhandle();
-	}
-	else {
-		assert(false);
-	}
-	if (std::shared_ptr<ResourceDescriptor> depth_view = m_depthStencil->GetDSV().lock()) {
-		dsvHandle = depth_view->GetCPUhandle();
-	}
-	else {
-		assert(false);
-	}
+	std::vector<GpuResource*> rts{ &rt };
 
 	if (set_dsv) {
-		command_list.OMSetRenderTargets(1, &rtvHandle, FALSE, &dsvHandle);
+		command_list.SetRenderTargets(rts, m_depthStencil.get());
 		if (clear_dsv) {
-			command_list.ClearDepthStencilView(dsvHandle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
+			command_list.ClearDepthStencilView(rt, ClearFlagsDsv::cfdsv_depth, 1.0f, 0, 0, nullptr);
 		}
 	}
 	else {
-		command_list.OMSetRenderTargets(1, &rtvHandle, FALSE, nullptr);
+		command_list.SetRenderTargets(rts, nullptr);
 	}
 
 	// Record commands.
 	const float clearColor[] = { 0.f, 0.f, 0.f, 0.0f };
-	command_list.ClearRenderTargetView(rtvHandle, clearColor, 0, nullptr);
+	command_list.ClearRenderTargetView(rt, clearColor, 0, nullptr);
 }
 
 void DXAppImplementation::RenderLevel(CommandList& command_list) {

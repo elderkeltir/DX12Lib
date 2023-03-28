@@ -27,7 +27,6 @@ void SSAO::Initialize(uint32_t width, uint32_t height, std::optional<std::wstrin
 			auto& res = m_ssao_resurces[i];
 			res.swap(std::make_unique<GpuResource>());
 
-			D3D12_RESOURCE_FLAGS res_flags = D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
 			ResourceState res_state = ResourceState::rs_resource_state_non_pixel_shader_resource;
 			if (i == 2) {
 				res_state = ResourceState::rs_resource_state_pixel_shader_resource;

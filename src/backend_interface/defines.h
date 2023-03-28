@@ -445,3 +445,9 @@ struct RectScissors {
 
     }
 };
+
+enum ClearFlagsDsv {
+    cfdsv_depth = 0x1,
+    cfdsv_stencil = 0x2
+};
+#define MAX_RTS_NUM 8

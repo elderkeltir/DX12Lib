@@ -96,18 +96,9 @@ void Sun::SetupShadowMap(CommandList& command_list)
 	Initialize(command_list);
 
 	command_list.ResourceBarrier(m_shadow_map[m_current_id], ResourceState::rs_resource_state_depth_write);
-	
-	// set dsv and viewport
-	CD3DX12_CPU_DESCRIPTOR_HANDLE dsvHandle;
-	if (std::shared_ptr<ResourceDescriptor> depth_view = m_shadow_map[m_current_id].GetDSV().lock()) {
-		dsvHandle = depth_view->GetCPUhandle();
-		command_list.ClearDepthStencilView(dsvHandle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
-	}
-	else {
-		assert(false);
-	}
-
-	command_list.OMSetRenderTargets(0, NULL, FALSE, &dsvHandle);
+	command_list.ClearDepthStencilView(m_shadow_map[m_current_id], ClearFlagsDsv::cfdsv_depth, 1.0f, 0, 0, nullptr);
+	std::vector<GpuResource*> rtvs;
+	command_list.SetRenderTargets(rtvs, &m_shadow_map[m_current_id]);
 
 	const Techniques::Technique* tech = gD3DApp->GetTechniqueById(Techniques::tt_shadow_map);
 	CommandQueue* queue = command_list.GetQueue();
@@ -122,15 +113,6 @@ void Sun::SetupShadowMap(CommandList& command_list)
 	gD3DApp->SetMatrix4Constant(Constants::cSunV, m_sun_view);
 	gD3DApp->SetMatrix4Constant(Constants::cSunP, m_sun_projection);
 	gD3DApp->CommitCB(command_list, cb_scene);
-
-	// set constants needed to render shadow map eg sun proj & view mx
-
-	// render
-	//if (std::shared_ptr<Level> level = gD3DApp->GetLevel().lock()) {
-	//	level->RenderShadowMap(command_list);
-	//}
-
-	// restore viewport
 }
 
 Sun::Sun() 

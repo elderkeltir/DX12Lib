@@ -2,6 +2,7 @@
 #include "defines.h"
 #include "GpuResource.h"
 #include "DXAppImplementation.h"
+#include "ResourceDescriptor.h"
 
 extern DXAppImplementation* gD3DApp;
 
@@ -71,19 +72,38 @@ void CommandList::SetDescriptorHeaps(uint32_t num_descriptor_heaps, ID3D12Descri
 	m_command_list->SetDescriptorHeaps(num_descriptor_heaps, descriptor_heap);
 }
 
-void CommandList::OMSetRenderTargets(uint32_t num_rt_descriptors, const D3D12_CPU_DESCRIPTOR_HANDLE* render_target_descriptors, bool rt_single_descriptor_for_range, const D3D12_CPU_DESCRIPTOR_HANDLE* depth_stencil_descriptor)
+void CommandList::SetRenderTargets(const std::vector<GpuResource*>& resources, GpuResource* depth_stencil_descriptor)
 {
-	m_command_list->OMSetRenderTargets(num_rt_descriptors, render_target_descriptors, rt_single_descriptor_for_range, depth_stencil_descriptor);
+    const uint32_t rts_num = (uint32_t)resources.size();
+    D3D12_CPU_DESCRIPTOR_HANDLE* dvs = nullptr;
+    std::array<D3D12_CPU_DESCRIPTOR_HANDLE, MAX_RTS_NUM> rtvs;
+    for (uint32_t idx = 0; idx < rts_num; idx++) {
+        if (std::shared_ptr<ResourceDescriptor> rtv = resources[idx]->GetRTV().lock()) {
+            rtvs[idx] = rtv->GetCPUhandle();
+        }
+    }
+
+    if (depth_stencil_descriptor) {
+        if (std::shared_ptr<ResourceDescriptor> depth_view = depth_stencil_descriptor->GetDSV().lock()) {
+            dvs = &depth_view->GetCPUhandle();
+        }
+    }
+
+	m_command_list->OMSetRenderTargets(rts_num, rtvs.data(), false, dvs);
 }
 
-void CommandList::ClearRenderTargetView(D3D12_CPU_DESCRIPTOR_HANDLE rtv, const float color[4], uint32_t num_rects, const RectScissors* rect)
+void CommandList::ClearRenderTargetView(GpuResource* res, const float color[4], uint32_t num_rects, const RectScissors* rect)
 {
-	m_command_list->ClearRenderTargetView(rtv, color, num_rects, (D3D12_RECT*)rect);
+    if (std::shared_ptr<ResourceDescriptor> render_target_view = res->GetRTV().lock()) {
+	    m_command_list->ClearRenderTargetView(render_target_view->GetCPUhandle(), color, num_rects, (D3D12_RECT*)rect);
+    }
 }
 
-void CommandList::ClearDepthStencilView(D3D12_CPU_DESCRIPTOR_HANDLE dsv, D3D12_CLEAR_FLAGS clear_flags, float depth, uint8_t stencil, uint32_t num_rects, const RectScissors* rects)
+void CommandList::ClearDepthStencilView(GpuResource* res, ClearFlagsDsv clear_flags, float depth, uint8_t stencil, uint32_t num_rects, const RectScissors* rects)
 {
-	m_command_list->ClearDepthStencilView(dsv, clear_flags, depth, stencil, num_rects, (D3D12_RECT*)rects);
+    if (std::shared_ptr<ResourceDescriptor> depth_view = res->GetDSV().lock()) {
+        m_command_list->ClearDepthStencilView(depth_view->GetCPUhandle(), (D3D12_CLEAR_FLAGS)clear_flags, depth, stencil, num_rects, (D3D12_RECT*)rects);
+    }
 }
 
 void CommandList::Dispatch(uint32_t thread_group_count_x, uint32_t thread_group_count_y, uint32_t thread_group_count_z)

@@ -155,6 +155,6 @@ void HeapBuffer::Unmap(){
     m_resourse->Unmap(0, nullptr);
 }
 
-void HeapBuffer::Copy(ComPtr<ID3D12GraphicsCommandList> &command_list, HeapBuffer &dest, uint64_t dstOffset, uint64_t srcOffset, uint64_t size){
-    command_list->CopyBufferRegion(dest.m_resourse.Get(), dstOffset, m_resourse.Get(), srcOffset, size);
-}
+//void HeapBuffer::Copy(const CommandList &command_list, HeapBuffer &dest, uint64_t dstOffset, uint64_t srcOffset, uint64_t size){
+//    command_list->CopyBufferRegion(dest.m_resourse.Get(), dstOffset, m_resourse.Get(), srcOffset, size);
+//}
