@@ -10,6 +10,7 @@
 
 using Microsoft::WRL::ComPtr;
 class GpuResource;
+class Fence;
 
 class CommandQueue {
     friend class DXAppImplementation;
@@ -23,13 +24,13 @@ public:
     void OnInit(ComPtr<ID3D12Device2> device, QueueType type, uint32_t command_list_num, std::optional<std::wstring> dbg_name = std::nullopt);
     void OnDestroy() { Flush(); CloseHandle(m_fenceEvent); }
 
-    uint64_t Signal();
-    void Signal(ComPtr<ID3D12Fence>& fence, uint64_t fence_value);
-    void WaitOnCPU(uint64_t fence_value);
-    void WaitOnGPU(ComPtr<ID3D12Fence> &fence, uint64_t fence_value);
+    uint32_t Signal();
+    void Signal(std::unique_ptr<Fence>& fence, uint32_t fence_value);
+    void WaitOnCPU(uint32_t fence_value);
+    void WaitOnGPU(std::unique_ptr<Fence>& fence, uint32_t fence_value);
     void Flush();
 
-    CommandList& ResetActiveCL(ID3D12PipelineState* pipeline_state = nullptr);
+    CommandList& ResetActiveCL();
     CommandList& GetActiveCL();
     void ExecuteActiveCL();
 
@@ -37,10 +38,10 @@ public:
 
     ~CommandQueue() = default;
 protected:
-    uint64_t m_fence_value{0};
+    uint32_t m_fence_value{0};
     HANDLE m_fenceEvent;
     uint32_t m_active_cl{0};
-    ComPtr<ID3D12Fence> m_fence;
+    std::unique_ptr<Fence> m_fence;
     ComPtr<ID3D12CommandQueue> m_commandQueue;
 
     QueueType m_type;

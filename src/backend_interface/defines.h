@@ -451,3 +451,25 @@ enum ClearFlagsDsv {
     cfdsv_stencil = 0x2
 };
 #define MAX_RTS_NUM 8
+
+enum class PrimitiveTopology {
+    pt_undefined = 0,
+    pt_pointlist = 1,
+    pt_linelist = 2,
+    pt_linestrip = 3,
+    pt_trianglelist = 4,
+};
+
+struct GPUdescriptor {
+    uint64_t ptr;
+    GPUdescriptor(uint64_t ptr_) :
+        ptr(ptr_) {}
+    GPUdescriptor() = default;
+};
+
+struct CPUdescriptor {
+    uint64_t ptr;
+    CPUdescriptor(uint64_t ptr_) :
+        ptr(ptr_) {}
+    CPUdescriptor() = default;
+};

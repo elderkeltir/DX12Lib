@@ -4,38 +4,39 @@
 #include <directx/d3dx12.h>
 #include "RootSignature.h"
 #include "DXAppImplementation.h"
+#include "Fence.h"
 
 extern DXAppImplementation* gD3DApp;
 
 void CommandQueue::Flush()
 {
-    const uint64_t fence_value = Signal();
+    const uint32_t fence_value = Signal();
     WaitOnCPU(fence_value);
 }
 
-uint64_t CommandQueue::Signal(){
-    uint64_t fenceValueForSignal = ++m_fence_value;
-    ThrowIfFailed(m_commandQueue->Signal(m_fence.Get(), fenceValueForSignal));
+uint32_t CommandQueue::Signal(){
+    uint32_t fenceValueForSignal = ++m_fence_value;
+    ThrowIfFailed(m_commandQueue->Signal(m_fence->GetFence().Get(), fenceValueForSignal));
 
     return fenceValueForSignal;
 }
 
-void CommandQueue::Signal(ComPtr<ID3D12Fence>& fence, uint64_t fence_value)
+void CommandQueue::Signal(std::unique_ptr<Fence> &fence, uint32_t fence_value)
 {
-    m_commandQueue->Signal(fence.Get(), fence_value);
+    m_commandQueue->Signal(fence->GetFence().Get(), fence_value);
 }
 
-void CommandQueue::WaitOnCPU(uint64_t fence_value){
-    if (m_fence->GetCompletedValue() < fence_value) {
-        ThrowIfFailed(m_fence->SetEventOnCompletion(fence_value, m_fenceEvent));
+void CommandQueue::WaitOnCPU(uint32_t fence_value){
+    if (m_fence->GetFence()->GetCompletedValue() < fence_value) {
+        ThrowIfFailed(m_fence->GetFence()->SetEventOnCompletion(fence_value, m_fenceEvent));
         WaitForSingleObject(m_fenceEvent, INFINITE);
     }
 }
 
-void CommandQueue::WaitOnGPU(ComPtr<ID3D12Fence> &fence, uint64_t fence_value)
+void CommandQueue::WaitOnGPU(std::unique_ptr<Fence> &fence, uint32_t fence_value)
 {
-	if (m_fence->GetCompletedValue() < fence_value) {
-        ThrowIfFailed(m_commandQueue->Wait(fence.Get(), fence_value));
+	if (m_fence->GetFence()->GetCompletedValue() < fence_value) {
+        ThrowIfFailed(m_commandQueue->Wait(fence->GetFence().Get(), fence_value));
 	}
 }
 
@@ -66,14 +67,13 @@ void CommandQueue::OnInit(ComPtr<ID3D12Device2> device, QueueType type, uint32_t
     SetName(m_command_list.m_command_list, dbg_name.value_or(L"").append(L"_cmd_list_" + std::to_wstring((uint32_t)type)).c_str());
     ThrowIfFailed(m_command_list.m_command_list->Close());
 
+    m_fence.swap(std::make_unique<Fence>());
+    m_fence->Initialize(device, m_fence_value);
+    SetName(m_fence->GetFence(), dbg_name.value_or(L"").append(L"_fence").c_str());
+    m_fenceEvent = CreateEvent(nullptr, FALSE, FALSE, nullptr);
+    if (m_fenceEvent == nullptr)
     {
-        ThrowIfFailed(device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&m_fence)));
-        SetName(m_fence, dbg_name.value_or(L"").append(L"_fence").c_str());
-        m_fenceEvent = CreateEvent(nullptr, FALSE, FALSE, nullptr);
-        if (m_fenceEvent == nullptr)
-        {
-            ThrowIfFailed(HRESULT_FROM_WIN32(GetLastError()));
-        }
+        ThrowIfFailed(HRESULT_FROM_WIN32(GetLastError()));
     }
 
     for (uint32_t id = 0; id < m_command_list_num; id++) {
@@ -81,15 +81,14 @@ void CommandQueue::OnInit(ComPtr<ID3D12Device2> device, QueueType type, uint32_t
     }
 }
 
-CommandList& CommandQueue::ResetActiveCL(ID3D12PipelineState* pipeline_state) {
+CommandList& CommandQueue::ResetActiveCL() {
     m_active_cl = ++m_active_cl % m_command_list_num;
 
     ThrowIfFailed(m_commandAllocator[m_active_cl]->Reset());
-    ThrowIfFailed(m_command_list.m_command_list->Reset(m_commandAllocator[m_active_cl].Get(), pipeline_state));
+    ThrowIfFailed(m_command_list.m_command_list->Reset(m_commandAllocator[m_active_cl].Get(), nullptr));
 
     // set gpu heap
-    ID3D12DescriptorHeap* descriptorHeaps[] = { m_dynamic_gpu_heaps[m_active_cl].GetVisibleHeap().Get() };
-    m_command_list.m_command_list->SetDescriptorHeaps(_countof(descriptorHeaps), descriptorHeaps);
+    m_command_list.SetDescriptorHeap(m_dynamic_gpu_heaps[m_active_cl]);
     m_dynamic_gpu_heaps[m_active_cl].Reset();
     m_command_list.Reset();
 

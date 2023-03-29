@@ -2,6 +2,8 @@
 
 #include <directx/d3dx12.h>
 
+#include "defines.h"
+
 class HeapBuffer;
 struct DSVdesc;
 struct SRVdesc;
@@ -18,10 +20,10 @@ public:
     bool Create_UAV(std::weak_ptr<HeapBuffer> buff, const UAVdesc &desc);
     bool Create_CBV(std::weak_ptr<HeapBuffer> buff, const CBVdesc &desc);
 
-    CD3DX12_CPU_DESCRIPTOR_HANDLE GetCPUhandle() const { return m_cpu_handle; }
+    CPUdescriptor GetCPUhandle() const { return m_cpu_handle; }
     ResourceDescriptorType GetType() const { return m_type; }
 private:
-    CD3DX12_CPU_DESCRIPTOR_HANDLE m_cpu_handle;
+    CPUdescriptor m_cpu_handle;
 
     ResourceDescriptorType m_type;
 };

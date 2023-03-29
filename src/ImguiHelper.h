@@ -8,6 +8,7 @@ using Microsoft::WRL::ComPtr;
 class CommandQueue;
 class RenderQuad;
 class AppConsole;
+class DynamicGpuHeap;
 
 class ImguiHelper {
 public:
@@ -27,7 +28,7 @@ public:
 private:
 	//Dx12
 	ComPtr<ID3D12Device2> m_device;
-	ComPtr<ID3D12DescriptorHeap> m_gpu_visible_heap;
+	std::unique_ptr<DynamicGpuHeap> m_gpu_visible_heap;
 	std::unique_ptr<CommandQueue> m_commandQueueGfx;
 	std::unique_ptr<RenderQuad> m_rt;
 	std::unique_ptr<AppConsole> m_console;

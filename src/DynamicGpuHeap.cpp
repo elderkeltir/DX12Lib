@@ -4,6 +4,8 @@
 #include "CommandQueue.h"
 #include "DXAppImplementation.h"
 #include "DXHelper.h"
+#include "defines.h"
+#include "ResourceDescriptor.h"
 
 extern DXAppImplementation* gD3DApp;
 
@@ -48,10 +50,25 @@ void DynamicGpuHeap::CacheRootSignature(const RootSignature * root_sig) {
     }
 }
 
-void DynamicGpuHeap::StageDesctriptorInTable(uint32_t root_id, uint32_t offset, CD3DX12_CPU_DESCRIPTOR_HANDLE &desc_handle)
+void DynamicGpuHeap::StageDesctriptorInTable(uint32_t root_id, uint32_t offset, const std::shared_ptr<ResourceDescriptor> &desc_handle)
 {
-	m_root_sig_cache[root_id].staged[offset] = desc_handle;
+    D3D12_CPU_DESCRIPTOR_HANDLE hndl;
+    hndl.ptr = desc_handle->GetCPUhandle().ptr;
+	m_root_sig_cache[root_id].staged[offset] = hndl;
 	m_dirty_table_mask[root_id] |= (1ull << offset);
+}
+
+void DynamicGpuHeap::ReserveDescriptor(CPUdescriptor& cpu_descriptor, GPUdescriptor& gpu_descriptor)
+{
+    CD3DX12_CPU_DESCRIPTOR_HANDLE begin_handle_cpu = (CD3DX12_CPU_DESCRIPTOR_HANDLE)m_visible_heap->GetCPUDescriptorHandleForHeapStart();
+    begin_handle_cpu.Offset(m_actual_heap_size, m_desciptor_size);
+    cpu_descriptor.ptr = begin_handle_cpu.ptr;
+    
+    CD3DX12_GPU_DESCRIPTOR_HANDLE begin_handle_gpu = (CD3DX12_GPU_DESCRIPTOR_HANDLE)m_visible_heap->GetGPUDescriptorHandleForHeapStart();
+    begin_handle_gpu.Offset(m_actual_heap_size, m_desciptor_size);
+    gpu_descriptor.ptr = begin_handle_gpu.ptr;
+
+    m_actual_heap_size++;
 }
 
 void DynamicGpuHeap::CommitRootSignature(CommandList& command_list, bool gfx) {
@@ -67,12 +84,12 @@ void DynamicGpuHeap::CommitRootSignature(CommandList& command_list, bool gfx) {
 				}
             }
 
-		    CD3DX12_GPU_DESCRIPTOR_HANDLE begin_handle = (CD3DX12_GPU_DESCRIPTOR_HANDLE)m_root_sig_cache[root_id].base_gpu;
+            GPUdescriptor handle{ m_root_sig_cache[root_id].base_gpu.ptr};
             if (gfx) {
-                command_list.SetGraphicsRootDescriptorTable(root_id, begin_handle);
+                command_list.SetGraphicsRootDescriptorTable(root_id, handle);
             }
             else {
-                command_list.SetComputeRootDescriptorTable(root_id, begin_handle);
+                command_list.SetComputeRootDescriptorTable(root_id, handle);
             }
         }
     }

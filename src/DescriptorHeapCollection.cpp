@@ -31,13 +31,6 @@ void DescriptorHeapCollection::Initialize(std::optional<std::wstring> dbg_name){
     ThrowIfFailed(gD3DApp->GetDevice()->CreateDescriptorHeap(&srvUavCbvHeapDesc, IID_PPV_ARGS(&m_srvUavCbvHeap)));
     SetName(m_srvUavCbvHeap, dbg_name.value_or(L"").append(L"_srv_heap, shader_visibility=").append(std::to_wstring(uint32_t((srvUavCbvHeapDesc.Flags & D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE) != 0))).c_str());
     
-    // Shader visible heap, mostly for imgui
-	srvUavCbvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
-	ThrowIfFailed(gD3DApp->GetDevice()->CreateDescriptorHeap(&srvUavCbvHeapDesc, IID_PPV_ARGS(&m_srvUavCbvHeap_visible)));
-	SetName(m_srvUavCbvHeap_visible, dbg_name.value_or(L"").append(L"_srv_heap, shader_visibility=").append(std::to_wstring(uint32_t((srvUavCbvHeapDesc.Flags & D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE) != 0))).c_str());
-
-    
-    
     m_rtvDescriptorSize = gD3DApp->GetDevice()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
     m_dsvDescriptorSize = gD3DApp->GetDevice()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
     m_srvUavCbvDescriptorSize = gD3DApp->GetDevice()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);

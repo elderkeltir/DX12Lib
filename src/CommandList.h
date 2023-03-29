@@ -8,6 +8,8 @@ using Microsoft::WRL::ComPtr;
 class CommandQueue;
 struct IndexVufferView;
 class GpuResource;
+class HeapBuffer;
+class DynamicGpuHeap;
 
 class CommandList {
 	friend class CommandQueue;
@@ -15,15 +17,15 @@ public:
 	void Reset();
 	void RSSetViewports(uint32_t num_viewports, const ViewPort* viewports);
 	void RSSetScissorRects(uint32_t num_rects, const RectScissors* rects);
-	void SetGraphicsRootDescriptorTable(uint32_t root_parameter_index, D3D12_GPU_DESCRIPTOR_HANDLE base_descriptor);
-	void SetComputeRootDescriptorTable(uint32_t root_parameter_index, D3D12_GPU_DESCRIPTOR_HANDLE base_descriptor);
-	void SetGraphicsRootConstantBufferView(uint32_t root_parameter_index, D3D12_GPU_VIRTUAL_ADDRESS buffer_location);
-	void SetComputeRootConstantBufferView(uint32_t root_parameter_index, D3D12_GPU_VIRTUAL_ADDRESS buffer_location);
-	void IASetIndexBuffer(const IndexVufferView* view);
-	void IASetPrimitiveTopology(D3D12_PRIMITIVE_TOPOLOGY primirive_topology);
+	void SetGraphicsRootDescriptorTable(uint32_t root_parameter_index, GPUdescriptor base_descriptor);
+	void SetComputeRootDescriptorTable(uint32_t root_parameter_index, GPUdescriptor base_descriptor);
+	void SetGraphicsRootConstantBufferView(uint32_t root_parameter_index, const std::shared_ptr<HeapBuffer> &buff);
+	void SetComputeRootConstantBufferView(uint32_t root_parameter_index, const std::shared_ptr<HeapBuffer> &buff);
+	void SetIndexBuffer(const IndexVufferView* view);
+	void SetPrimitiveTopology(PrimitiveTopology primirive_topology);
 	void DrawInstanced(uint32_t vertex_per_instance, uint32_t instance_count, uint32_t start_vertex_location, uint32_t start_instance_location);
 	void DrawIndexedInstanced(uint32_t index_count_per_instance, uint32_t instance_count, uint32_t start_index_location, int32_t base_vertex_location, uint32_t start_instance_location);
-	void SetDescriptorHeaps(uint32_t num_descriptor_heaps, ID3D12DescriptorHeap* const* descriptor_heap);
+	void SetDescriptorHeap(const DynamicGpuHeap &dynamic_heap);
 	void SetRenderTargets(const std::vector<GpuResource*> &resources, GpuResource* depth_stencil_descriptor);
 	void ClearRenderTargetView(GpuResource* res, const float color[4], uint32_t num_rects, const RectScissors* rect);
 	void ClearRenderTargetView(GpuResource& res, const float color[4], uint32_t num_rects, const RectScissors* rect) {
@@ -34,7 +36,7 @@ public:
 		ClearDepthStencilView(&res, clear_flags, depth, stencil, num_rects, rects);
 	}
 	void Dispatch(uint32_t thread_group_count_x, uint32_t thread_group_count_y, uint32_t thread_group_count_z);
-	void SetGraphicsRootShaderResourceView(uint32_t root_parameter_index, D3D12_GPU_VIRTUAL_ADDRESS buffer_location);
+	void SetGraphicsRootShaderResourceView(uint32_t root_parameter_index, const std::shared_ptr<HeapBuffer> &buff);
 
 	void ResourceBarrier(std::shared_ptr<GpuResource>& res, uint32_t to);
 	void ResourceBarrier(GpuResource& res, uint32_t to);

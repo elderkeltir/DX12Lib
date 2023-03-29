@@ -9,10 +9,10 @@
 #include "CommandQueue.h"
 #include "RenderQuad.h"
 #include "GpuResource.h"
-#include "DescriptorHeapCollection.h"
 #include "ResourceDescriptor.h"
 #include "DXAppImplementation.h"
 #include "Console.h"
+#include "DynamicGpuHeap.h"
 
 extern DXAppImplementation* gD3DApp;
 
@@ -40,10 +40,14 @@ void ImguiHelper::Initialize(ComPtr<ID3D12Device2>& device, uint32_t frames_num)
 	CD3DX12_CPU_DESCRIPTOR_HANDLE srvuacbvHandle;
 	CD3DX12_GPU_DESCRIPTOR_HANDLE srvuacbvHandle_gpu;
 
-	if (std::shared_ptr<DescriptorHeapCollection> heap_collection = gD3DApp->GetDescriptorHeapCollection().lock()) {
-		heap_collection->ReserveSRVUAVCBVhandleOnGpu(srvuacbvHandle, srvuacbvHandle_gpu);
-		m_gpu_visible_heap = heap_collection->GetGpuVisibleHeap();
-	}
+	m_gpu_visible_heap.swap(std::make_unique<DynamicGpuHeap>());
+	m_gpu_visible_heap->Initialize(99);
+
+	CPUdescriptor cpu_decs;
+	GPUdescriptor gpu_desc;
+	m_gpu_visible_heap->ReserveDescriptor(cpu_decs, gpu_desc);
+	srvuacbvHandle.ptr = cpu_decs.ptr;
+	srvuacbvHandle_gpu.ptr = gpu_desc.ptr;
 
 	m_commandQueueGfx->OnInit(m_device, CommandQueue::QueueType::qt_gfx, m_frames_num, L"GUI");
 
@@ -61,7 +65,7 @@ void ImguiHelper::Initialize(ComPtr<ID3D12Device2>& device, uint32_t frames_num)
 	// Setup Platform/Renderer backends
 	ImGui_ImplWin32_Init(hwnd);
 	ImGui_ImplDX12_Init(m_device.Get(), m_frames_num,
-		(DXGI_FORMAT)formats.front(), m_gpu_visible_heap.Get(),
+		(DXGI_FORMAT)formats.front(), m_gpu_visible_heap->GetVisibleHeap().Get(),
 		srvuacbvHandle,
 		srvuacbvHandle_gpu);
 
@@ -96,8 +100,7 @@ void ImguiHelper::Render(uint32_t frame_id)
 	CommandList& command_list = m_commandQueueGfx->ResetActiveCL();
 
 	// set gpu heap
-	ID3D12DescriptorHeap* descriptorHeaps[] = { m_gpu_visible_heap.Get() };
-	command_list.SetDescriptorHeaps(_countof(descriptorHeaps), descriptorHeaps);
+	command_list.SetDescriptorHeap(*m_gpu_visible_heap.get());
 
 	UINT backBufferIdx = frame_id;
 	if (std::shared_ptr<GpuResource> rt = m_rt->GetRt(frame_id).lock()) {

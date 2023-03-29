@@ -140,34 +140,34 @@ void RenderModel::Render(CommandList& command_list, const DirectX::XMFLOAT4X4 &p
 
     if (m_mesh && m_mesh->GetIndicesNum() > 0){
         if (std::shared_ptr<IndexVufferView> ind_view = m_IndexBuffer->Get_Index_View().lock()){
-            command_list.IASetIndexBuffer(ind_view.get());
+            command_list.SetIndexBuffer(ind_view.get());
         }
         else {
             assert(false);
         }
-        command_list.IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+        command_list.SetPrimitiveTopology(PrimitiveTopology::pt_trianglelist);
         CommandQueue * gfx_queue = command_list.GetQueue();
         if (m_diffuse_tex) {
             if (std::shared_ptr<ResourceDescriptor> srv = m_diffuse_tex->GetSRV().lock()) {
-                gfx_queue->GetGpuHeap().StageDesctriptorInTable(bi_g_buffer_tex_table, tto_albedo, srv->GetCPUhandle());
+                gfx_queue->GetGpuHeap().StageDesctriptorInTable(bi_g_buffer_tex_table, tto_albedo, srv);
             }
         }
 
         if (m_normals_tex) {
             if (std::shared_ptr<ResourceDescriptor> srv = m_normals_tex->GetSRV().lock()) {
-                gfx_queue->GetGpuHeap().StageDesctriptorInTable(bi_g_buffer_tex_table, tto_normals, srv->GetCPUhandle());
+                gfx_queue->GetGpuHeap().StageDesctriptorInTable(bi_g_buffer_tex_table, tto_normals, srv);
             }
         }
 
         if (m_metallic_tex) {
             if (std::shared_ptr<ResourceDescriptor> srv = m_metallic_tex->GetSRV().lock()) {
-                gfx_queue->GetGpuHeap().StageDesctriptorInTable(bi_g_buffer_tex_table, tto_metallic, srv->GetCPUhandle());
+                gfx_queue->GetGpuHeap().StageDesctriptorInTable(bi_g_buffer_tex_table, tto_metallic, srv);
             }
         }
 
         if (m_roughness_tex) {
             if (std::shared_ptr<ResourceDescriptor> srv = m_roughness_tex->GetSRV().lock()) {
-                gfx_queue->GetGpuHeap().StageDesctriptorInTable(bi_g_buffer_tex_table, tto_roughness, srv->GetCPUhandle());
+                gfx_queue->GetGpuHeap().StageDesctriptorInTable(bi_g_buffer_tex_table, tto_roughness, srv);
             }
         }
 

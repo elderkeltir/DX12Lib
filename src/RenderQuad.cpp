@@ -76,6 +76,6 @@ std::weak_ptr<GpuResource> RenderQuad::GetRt(uint32_t set_idx, uint32_t idx_in_s
 }
 
 void RenderQuad::Render(CommandList& command_list) {
-    command_list.IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+    command_list.SetPrimitiveTopology(PrimitiveTopology::pt_trianglelist);
     command_list.DrawInstanced(6, 1, 0, 0);
 }

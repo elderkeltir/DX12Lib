@@ -202,10 +202,10 @@ void ConstantBufferManager::CommitCB(CommandList& command_list, ConstantBuffers 
     if (id == cb_model) {
         if (std::shared_ptr<HeapBuffer> buff = m_model_cb->GetBuffer().lock()) {
             if (gfx) {
-                command_list.SetGraphicsRootConstantBufferView(bi_model_cb, buff->GetResource()->GetGPUVirtualAddress());
+                command_list.SetGraphicsRootConstantBufferView(bi_model_cb, buff);
             }
             else {
-                command_list.SetComputeRootConstantBufferView(bi_model_cb, buff->GetResource()->GetGPUVirtualAddress());
+                command_list.SetComputeRootConstantBufferView(bi_model_cb, buff);
             }
         }
     }
@@ -213,10 +213,10 @@ void ConstantBufferManager::CommitCB(CommandList& command_list, ConstantBuffers 
         const uint32_t frame_id = gD3DApp->FrameId();
         if (std::shared_ptr<HeapBuffer> buff = m_scene_cbs[frame_id].GetBuffer().lock()) {
             if (gfx) {
-                command_list.SetGraphicsRootConstantBufferView(bi_scene_cb, buff->GetResource()->GetGPUVirtualAddress());
+                command_list.SetGraphicsRootConstantBufferView(bi_scene_cb, buff);
             }
             else {
-                command_list.SetComputeRootConstantBufferView(bi_scene_cb, buff->GetResource()->GetGPUVirtualAddress());
+                command_list.SetComputeRootConstantBufferView(bi_scene_cb, buff);
             }
         }
     }
@@ -249,10 +249,10 @@ void ConstantBufferManager::SyncCpuDataToCB(CommandList& command_list, GpuResour
 
 	if (std::shared_ptr<HeapBuffer> buff = res->GetBuffer().lock()) {
         if (gfx) {
-            command_list.SetGraphicsRootConstantBufferView(bind_point, buff->GetResource()->GetGPUVirtualAddress());
+            command_list.SetGraphicsRootConstantBufferView(bind_point, buff);
         }
         else {
-            command_list.SetComputeRootConstantBufferView(bind_point, buff->GetResource()->GetGPUVirtualAddress());
+            command_list.SetComputeRootConstantBufferView(bind_point, buff);
         }
 	}
 }

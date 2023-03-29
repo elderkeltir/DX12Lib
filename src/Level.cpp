@@ -263,7 +263,7 @@ void Level::RenderEntity(CommandList& command_list, LevelEntity & ent, bool &is_
         if (std::shared_ptr<GpuDataManager> gpu_res_mgr = gD3DApp->GetGpuDataManager().lock()) {
             gpu_res_mgr->UploadToGpu(command_list);
             if (std::shared_ptr<HeapBuffer> buff = gpu_res_mgr->GetVertexBuffer()->GetBuffer().lock()) {
-                command_list.SetGraphicsRootShaderResourceView(bi_vertex_buffer, buff->GetResource()->GetGPUVirtualAddress());
+                command_list.SetGraphicsRootShaderResourceView(bi_vertex_buffer, buff);
             }
         }
 		
@@ -295,7 +295,7 @@ void Level::RenderWater(CommandList& command_list)
 
     GpuResource* skybox_tex = m_skybox_ent->GetTexture();
 	if (std::shared_ptr<ResourceDescriptor> srv = skybox_tex->GetSRV().lock()) {
-		gfx_queue->GetGpuHeap().StageDesctriptorInTable(bi_fwd_tex, tto_fwd_skybox, srv->GetCPUhandle());
+		gfx_queue->GetGpuHeap().StageDesctriptorInTable(bi_fwd_tex, tto_fwd_skybox, srv);
 	}
     gD3DApp->CommitCB(command_list, cb_scene);
     BindLights(command_list);
@@ -310,7 +310,7 @@ void Level::RenderShadowMap(CommandList& command_list)
     if (std::shared_ptr<GpuDataManager> gpu_res_mgr = gD3DApp->GetGpuDataManager().lock()) {
         gpu_res_mgr->UploadToGpu(command_list);
         if (std::shared_ptr<HeapBuffer> buff = gpu_res_mgr->GetVertexBuffer()->GetBuffer().lock()) {
-            command_list.SetGraphicsRootShaderResourceView(bi_vertex_buffer, buff->GetResource()->GetGPUVirtualAddress());
+            command_list.SetGraphicsRootShaderResourceView(bi_vertex_buffer, buff);
         }
     }
 

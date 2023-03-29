@@ -6,40 +6,39 @@
 #include <wrl.h>
 using Microsoft::WRL::ComPtr;
 
+#include "defines.h"
+
 class DescriptorHeapCollection {
 public:
     void Initialize(std::optional<std::wstring> dbg_name = std::nullopt);
 
-    void ReserveRTVhandle(CD3DX12_CPU_DESCRIPTOR_HANDLE &rtvHandle) { 
+    void ReserveRTVhandle(CPUdescriptor &rtvHandle) {
+        CD3DX12_CPU_DESCRIPTOR_HANDLE hndl;
         assert(m_rtv_actual_size < rtvHeap_size);
-        rtvHandle = m_rtvHeap->GetCPUDescriptorHandleForHeapStart();
-        rtvHandle.Offset(m_rtv_actual_size++, m_rtvDescriptorSize);
+        hndl = m_rtvHeap->GetCPUDescriptorHandleForHeapStart();
+        hndl.Offset(m_rtv_actual_size++, m_rtvDescriptorSize);
+
+        rtvHandle.ptr = hndl.ptr;
     }
     
-    void ReserveDSVhandle(CD3DX12_CPU_DESCRIPTOR_HANDLE &dsvHandle) { 
+    void ReserveDSVhandle(CPUdescriptor &dsvHandle) {
+        CD3DX12_CPU_DESCRIPTOR_HANDLE hndl;
         assert(m_dsv_actual_size < dsvHeap_size);
-        dsvHandle = m_dsvHeap->GetCPUDescriptorHandleForHeapStart();
-        dsvHandle.Offset(m_dsv_actual_size++, m_dsvDescriptorSize);
+        hndl = m_dsvHeap->GetCPUDescriptorHandleForHeapStart();
+        hndl.Offset(m_dsv_actual_size++, m_dsvDescriptorSize);
+
+        dsvHandle.ptr = hndl.ptr;
     }
 
-    void ReserveSRVUAVCBVhandle(CD3DX12_CPU_DESCRIPTOR_HANDLE &srvuacbvHandle) { 
+    void ReserveSRVUAVCBVhandle(CPUdescriptor &srvuacbvHandle) {
+        CD3DX12_CPU_DESCRIPTOR_HANDLE hndl;
             assert(m_srv_uav_actual_size < srvUavCbvHeap_size);
-            srvuacbvHandle = m_srvUavCbvHeap->GetCPUDescriptorHandleForHeapStart();
-            srvuacbvHandle.Offset(m_srv_uav_actual_size++, m_srvUavCbvDescriptorSize);
+            hndl = m_srvUavCbvHeap->GetCPUDescriptorHandleForHeapStart();
+            hndl.Offset(m_srv_uav_actual_size++, m_srvUavCbvDescriptorSize);
+
+            srvuacbvHandle.ptr = hndl.ptr;
     }
 
-	void ReserveSRVUAVCBVhandleOnGpu(CD3DX12_CPU_DESCRIPTOR_HANDLE& srvuacbvHandle, CD3DX12_GPU_DESCRIPTOR_HANDLE& srvuacbvHandle_gpu) {
-		assert(m_srv_uav_actual_visible_size < srvUavCbvHeap_visible_size);
-		srvuacbvHandle = m_srvUavCbvHeap_visible->GetCPUDescriptorHandleForHeapStart();
-		srvuacbvHandle.Offset(m_srv_uav_actual_visible_size, m_srvUavCbvDescriptorSize);
-
-        srvuacbvHandle_gpu = m_srvUavCbvHeap_visible->GetGPUDescriptorHandleForHeapStart();
-        srvuacbvHandle_gpu.Offset(m_srv_uav_actual_visible_size++, m_srvUavCbvDescriptorSize);
-	}
-
-    ComPtr<ID3D12DescriptorHeap>& GetGpuVisibleHeap() {
-        return m_srvUavCbvHeap_visible;
-    }
 private:
     static const uint32_t rtvHeap_size = 32;
     static const uint32_t dsvHeap_size = 5;
@@ -49,7 +48,6 @@ private:
     ComPtr<ID3D12DescriptorHeap> m_rtvHeap;
     ComPtr<ID3D12DescriptorHeap> m_dsvHeap;
     ComPtr<ID3D12DescriptorHeap> m_srvUavCbvHeap;
-    ComPtr<ID3D12DescriptorHeap> m_srvUavCbvHeap_visible;
 
     uint32_t m_rtvDescriptorSize;
     uint32_t m_dsvDescriptorSize;
@@ -58,5 +56,4 @@ private:
     uint32_t m_rtv_actual_size{0};
     uint32_t m_dsv_actual_size{0};
     uint32_t m_srv_uav_actual_size{0};
-    uint32_t m_srv_uav_actual_visible_size{ 0 };
 };

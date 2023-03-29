@@ -3,11 +3,14 @@
 #include <directx/d3dx12.h>
 #include <wrl.h>
 #include <vector>
+struct CPUdescriptor;
+struct GPUdescriptor;
 
 using Microsoft::WRL::ComPtr;
 
 class RootSignature;
 class CommandList;
+class ResourceDescriptor;
 
 class DynamicGpuHeap {
 public:
@@ -17,10 +20,10 @@ public:
     };
     void Initialize(uint32_t frame_id);
     void CacheRootSignature(const RootSignature * root_sig);
-    void StageDesctriptorInTable(uint32_t root_id, uint32_t offset, CD3DX12_CPU_DESCRIPTOR_HANDLE& desc_handle);
-
+    void StageDesctriptorInTable(uint32_t root_id, uint32_t offset, const std::shared_ptr<ResourceDescriptor>& desc_handle);
+    void ReserveDescriptor(CPUdescriptor& cpu_descriptor, GPUdescriptor& gpu_descriptor);
     void CommitRootSignature(CommandList& command_list, bool gfx = true);
-    ComPtr<ID3D12DescriptorHeap>& GetVisibleHeap() { return m_visible_heap; }
+    const ComPtr<ID3D12DescriptorHeap>& GetVisibleHeap() const { return m_visible_heap; }
     void Reset() { 
         m_actual_heap_size = 0;
         m_tables_mask ^= m_tables_mask;

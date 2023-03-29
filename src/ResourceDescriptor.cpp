@@ -11,7 +11,9 @@ bool ResourceDescriptor::Create_RTV(std::weak_ptr<HeapBuffer> buff){
     if (std::shared_ptr<DescriptorHeapCollection> descriptorHeapCollection = gD3DApp->GetDescriptorHeapCollection().lock()){
         descriptorHeapCollection->ReserveRTVhandle(m_cpu_handle);
         if (std::shared_ptr<HeapBuffer> buffer = buff.lock()){
-            gD3DApp->GetDevice()->CreateRenderTargetView(buffer->GetResource().Get(), nullptr, m_cpu_handle);
+            D3D12_CPU_DESCRIPTOR_HANDLE hndl;
+            hndl.ptr = m_cpu_handle.ptr;
+            gD3DApp->GetDevice()->CreateRenderTargetView(buffer->GetResource().Get(), nullptr, hndl);
             m_type = ResourceDescriptorType::rdt_rtv;
 
             return true;
@@ -29,7 +31,9 @@ bool ResourceDescriptor::Create_DSV(std::weak_ptr<HeapBuffer> buff, const DSVdes
             dsv_desc.ViewDimension = (D3D12_DSV_DIMENSION)desc.dimension;
             dsv_desc.Flags = D3D12_DSV_FLAG_NONE;
             dsv_desc.Texture2D.MipSlice = 0;
-            gD3DApp->GetDevice()->CreateDepthStencilView(buffer->GetResource().Get(), &dsv_desc, m_cpu_handle);
+            D3D12_CPU_DESCRIPTOR_HANDLE hndl;
+            hndl.ptr = m_cpu_handle.ptr;
+            gD3DApp->GetDevice()->CreateDepthStencilView(buffer->GetResource().Get(), &dsv_desc, hndl);
             m_type = ResourceDescriptorType::rdt_dsv;
 
             return true;
@@ -63,8 +67,10 @@ bool ResourceDescriptor::Create_SRV(std::weak_ptr<HeapBuffer> buff, const SRVdes
                 srv_desc.TextureCube.MipLevels = desc.texture_cube.mip_levels;
                 srv_desc.TextureCube.ResourceMinLODClamp = desc.texture_cube.res_min_lod_clamp;
             }
-            
-            gD3DApp->GetDevice()->CreateShaderResourceView(buffer->GetResource().Get(), &srv_desc, m_cpu_handle);
+
+            D3D12_CPU_DESCRIPTOR_HANDLE hndl;
+            hndl.ptr = m_cpu_handle.ptr;
+            gD3DApp->GetDevice()->CreateShaderResourceView(buffer->GetResource().Get(), &srv_desc, hndl);
             m_type = ResourceDescriptorType::rdt_srv;
 
             return true;
@@ -82,7 +88,9 @@ bool ResourceDescriptor::Create_UAV(std::weak_ptr<HeapBuffer> buff, const UAVdes
             uav_desc.ViewDimension = (D3D12_UAV_DIMENSION)desc.dimension;
             uav_desc.Texture2D.MipSlice = desc.texture2d.mip_slice;
             uav_desc.Texture2D.PlaneSlice = 0;
-            gD3DApp->GetDevice()->CreateUnorderedAccessView(buffer->GetResource().Get(), nullptr, &uav_desc, m_cpu_handle);
+            D3D12_CPU_DESCRIPTOR_HANDLE hndl;
+            hndl.ptr = m_cpu_handle.ptr;
+            gD3DApp->GetDevice()->CreateUnorderedAccessView(buffer->GetResource().Get(), nullptr, &uav_desc, hndl);
             m_type = ResourceDescriptorType::rdt_uav;
 
             return true;
@@ -98,7 +106,9 @@ bool ResourceDescriptor::Create_CBV(std::weak_ptr<HeapBuffer> buff, const CBVdes
             D3D12_CONSTANT_BUFFER_VIEW_DESC cbv_desc;
             cbv_desc.SizeInBytes = desc.size_in_bytes;
             cbv_desc.BufferLocation = buffer->GetResource()->GetGPUVirtualAddress();
-            gD3DApp->GetDevice()->CreateConstantBufferView(&cbv_desc, m_cpu_handle);
+            D3D12_CPU_DESCRIPTOR_HANDLE hndl;
+            hndl.ptr = m_cpu_handle.ptr;
+            gD3DApp->GetDevice()->CreateConstantBufferView(&cbv_desc, hndl);
             m_type = ResourceDescriptorType::rdt_cbv;
 
             return true;

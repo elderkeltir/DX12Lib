@@ -3,6 +3,7 @@
 #include "GpuResource.h"
 #include "DXAppImplementation.h"
 #include "ResourceDescriptor.h"
+#include "DynamicGpuHeap.h"
 
 extern DXAppImplementation* gD3DApp;
 
@@ -22,27 +23,31 @@ void CommandList::RSSetScissorRects(uint32_t num_rects, const RectScissors* rect
 	m_command_list->RSSetScissorRects(num_rects, (D3D12_RECT*)rects);
 }
 
-void CommandList::SetGraphicsRootDescriptorTable(uint32_t root_parameter_index, D3D12_GPU_DESCRIPTOR_HANDLE base_descriptor)
+void CommandList::SetGraphicsRootDescriptorTable(uint32_t root_parameter_index, GPUdescriptor base_descriptor)
 {
-	m_command_list->SetGraphicsRootDescriptorTable(root_parameter_index, base_descriptor);
+    D3D12_GPU_DESCRIPTOR_HANDLE hndl;
+    hndl.ptr = base_descriptor.ptr;
+	m_command_list->SetGraphicsRootDescriptorTable(root_parameter_index, hndl);
 }
 
-void CommandList::SetComputeRootDescriptorTable(uint32_t root_parameter_index, D3D12_GPU_DESCRIPTOR_HANDLE base_descriptor)
+void CommandList::SetComputeRootDescriptorTable(uint32_t root_parameter_index, GPUdescriptor base_descriptor)
 {
-	m_command_list->SetComputeRootDescriptorTable(root_parameter_index, base_descriptor);
+    D3D12_GPU_DESCRIPTOR_HANDLE hndl;
+    hndl.ptr = base_descriptor.ptr;
+	m_command_list->SetComputeRootDescriptorTable(root_parameter_index, hndl);
 }
 
-void CommandList::SetGraphicsRootConstantBufferView(uint32_t root_parameter_index, D3D12_GPU_VIRTUAL_ADDRESS buffer_location)
+void CommandList::SetGraphicsRootConstantBufferView(uint32_t root_parameter_index, const std::shared_ptr<HeapBuffer>& buff)
 {
-	m_command_list->SetGraphicsRootConstantBufferView(root_parameter_index, buffer_location);
+	m_command_list->SetGraphicsRootConstantBufferView(root_parameter_index, buff->GetResource()->GetGPUVirtualAddress());
 }
 
-void CommandList::SetComputeRootConstantBufferView(uint32_t root_parameter_index, D3D12_GPU_VIRTUAL_ADDRESS buffer_location)
+void CommandList::SetComputeRootConstantBufferView(uint32_t root_parameter_index, const std::shared_ptr<HeapBuffer>& buff)
 {
-	m_command_list->SetComputeRootConstantBufferView(root_parameter_index, buffer_location);
+	m_command_list->SetComputeRootConstantBufferView(root_parameter_index, buff->GetResource()->GetGPUVirtualAddress());
 }
 
-void CommandList::IASetIndexBuffer(const IndexVufferView* view)
+void CommandList::SetIndexBuffer(const IndexVufferView* view)
 {
 	D3D12_INDEX_BUFFER_VIEW view_native;
 	view_native.BufferLocation = view->buffer_location;
@@ -52,9 +57,9 @@ void CommandList::IASetIndexBuffer(const IndexVufferView* view)
 	m_command_list->IASetIndexBuffer(&view_native);
 }
 
-void CommandList::IASetPrimitiveTopology(D3D12_PRIMITIVE_TOPOLOGY primirive_topology)
+void CommandList::SetPrimitiveTopology(PrimitiveTopology primirive_topology)
 {
-	m_command_list->IASetPrimitiveTopology(primirive_topology);
+	m_command_list->IASetPrimitiveTopology((D3D12_PRIMITIVE_TOPOLOGY)primirive_topology);
 }
 
 void CommandList::DrawInstanced(uint32_t vertex_per_instance, uint32_t instance_count, uint32_t start_vertex_location, uint32_t start_instance_location)
@@ -67,42 +72,47 @@ void CommandList::DrawIndexedInstanced(uint32_t index_count_per_instance, uint32
 	m_command_list->DrawIndexedInstanced(index_count_per_instance, instance_count, start_index_location, base_vertex_location, start_instance_location);
 }
 
-void CommandList::SetDescriptorHeaps(uint32_t num_descriptor_heaps, ID3D12DescriptorHeap* const* descriptor_heap)
+void CommandList::SetDescriptorHeap(const DynamicGpuHeap& dynamic_heap)
 {
-	m_command_list->SetDescriptorHeaps(num_descriptor_heaps, descriptor_heap);
+    ID3D12DescriptorHeap* descriptorHeaps[] = { dynamic_heap.GetVisibleHeap().Get() };
+	m_command_list->SetDescriptorHeaps(_countof(descriptorHeaps), descriptorHeaps);
 }
 
 void CommandList::SetRenderTargets(const std::vector<GpuResource*>& resources, GpuResource* depth_stencil_descriptor)
 {
     const uint32_t rts_num = (uint32_t)resources.size();
-    D3D12_CPU_DESCRIPTOR_HANDLE* dvs = nullptr;
+    D3D12_CPU_DESCRIPTOR_HANDLE dvs;
     std::array<D3D12_CPU_DESCRIPTOR_HANDLE, MAX_RTS_NUM> rtvs;
     for (uint32_t idx = 0; idx < rts_num; idx++) {
         if (std::shared_ptr<ResourceDescriptor> rtv = resources[idx]->GetRTV().lock()) {
-            rtvs[idx] = rtv->GetCPUhandle();
+            rtvs[idx].ptr = rtv->GetCPUhandle().ptr;
         }
     }
 
     if (depth_stencil_descriptor) {
         if (std::shared_ptr<ResourceDescriptor> depth_view = depth_stencil_descriptor->GetDSV().lock()) {
-            dvs = &depth_view->GetCPUhandle();
+            dvs.ptr = depth_view->GetCPUhandle().ptr;
         }
     }
 
-	m_command_list->OMSetRenderTargets(rts_num, rtvs.data(), false, dvs);
+	m_command_list->OMSetRenderTargets(rts_num, rtvs.data(), false, depth_stencil_descriptor ? &dvs : nullptr);
 }
 
 void CommandList::ClearRenderTargetView(GpuResource* res, const float color[4], uint32_t num_rects, const RectScissors* rect)
 {
     if (std::shared_ptr<ResourceDescriptor> render_target_view = res->GetRTV().lock()) {
-	    m_command_list->ClearRenderTargetView(render_target_view->GetCPUhandle(), color, num_rects, (D3D12_RECT*)rect);
+        D3D12_CPU_DESCRIPTOR_HANDLE hndl;
+        hndl.ptr = render_target_view->GetCPUhandle().ptr;
+	    m_command_list->ClearRenderTargetView(hndl, color, num_rects, (D3D12_RECT*)rect);
     }
 }
 
 void CommandList::ClearDepthStencilView(GpuResource* res, ClearFlagsDsv clear_flags, float depth, uint8_t stencil, uint32_t num_rects, const RectScissors* rects)
 {
     if (std::shared_ptr<ResourceDescriptor> depth_view = res->GetDSV().lock()) {
-        m_command_list->ClearDepthStencilView(depth_view->GetCPUhandle(), (D3D12_CLEAR_FLAGS)clear_flags, depth, stencil, num_rects, (D3D12_RECT*)rects);
+        D3D12_CPU_DESCRIPTOR_HANDLE hndl;
+        hndl.ptr = depth_view->GetCPUhandle().ptr;
+        m_command_list->ClearDepthStencilView(hndl, (D3D12_CLEAR_FLAGS)clear_flags, depth, stencil, num_rects, (D3D12_RECT*)rects);
     }
 }
 
@@ -111,9 +121,9 @@ void CommandList::Dispatch(uint32_t thread_group_count_x, uint32_t thread_group_
 	m_command_list->Dispatch(thread_group_count_x, thread_group_count_y, thread_group_count_z);
 }
 
-void CommandList::SetGraphicsRootShaderResourceView(uint32_t root_parameter_index, D3D12_GPU_VIRTUAL_ADDRESS buffer_location)
+void CommandList::SetGraphicsRootShaderResourceView(uint32_t root_parameter_index, const std::shared_ptr<HeapBuffer>& buff)
 {
-	m_command_list->SetGraphicsRootShaderResourceView(root_parameter_index, buffer_location);
+	m_command_list->SetGraphicsRootShaderResourceView(root_parameter_index, buff->GetResource()->GetGPUVirtualAddress());
 }
 
 void CommandList::ResourceBarrier(std::shared_ptr<GpuResource>& res, uint32_t to) {

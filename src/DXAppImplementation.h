@@ -4,6 +4,7 @@
 #include "ConstantBufferManager.h"
 #include "Techniques.h"
 #include "Logger.h"
+#include "Fence.h"
 
 #include <optional>
 #include <chrono>
@@ -20,7 +21,6 @@ class DynamicGpuHeap;
 class SSAO;
 class ImguiHelper;
 class Reflections;
-
 
 class DXAppImplementation : public DXApp, public ResourceManager, public ConstantBufferManager, public Techniques
 {
@@ -80,8 +80,8 @@ private:
     ComPtr<ID3D12Device2> m_device;
     ComPtr<IDXGISwapChain4> m_swapChain;
 
-    ComPtr<ID3D12Fence> m_fence_inter_queue;
-    uint64_t m_fence_inter_queue_val{ 0 };
+    std::unique_ptr<Fence> m_fence_inter_queue;
+    uint32_t m_fence_inter_queue_val{ 0 };
     
     std::shared_ptr<CommandQueue> m_commandQueueGfx;
     std::shared_ptr<CommandQueue> m_commandQueueCompute;
@@ -96,7 +96,7 @@ private:
     std::unique_ptr<logger> m_logger;
 
     uint32_t m_frameIndex;
-    uint64_t m_fenceValues[FrameCount]{0};
+    uint32_t m_fenceValues[FrameCount]{0};
     
     std::chrono::time_point<std::chrono::system_clock> m_time;
     std::chrono::time_point<std::chrono::system_clock> m_start_time;
