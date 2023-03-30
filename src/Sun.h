@@ -1,10 +1,7 @@
 #pragma once
 
 #include <memory>
-#include <directx/d3dx12.h>
 #include <DirectXMath.h>
-
-using Microsoft::WRL::ComPtr;
 
 class GpuResource;
 class CommandQueue;

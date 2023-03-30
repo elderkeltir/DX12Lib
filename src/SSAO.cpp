@@ -115,7 +115,7 @@ void SSAO::GenerateRandomValuesTex(CommandList& command_list)
 }
 
 
-void SSAO::UpdateSsaoCB(UINT k_size, float r, float bs, uint32_t noise_size)
+void SSAO::UpdateSsaoCB(uint32_t k_size, float r, float bs, uint32_t noise_size)
 {
 	if (m_dirty & df_generate) {
 		m_cbuffer_cpu->BuildOffsetVectors();

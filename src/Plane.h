@@ -3,10 +3,8 @@
 #include <memory>
 #include <string>
 #include <wrl.h>
-#include <directx/d3dx12.h>
 #include <DirectXMath.h>
 
-using Microsoft::WRL::ComPtr;
 
 class RenderModel;
 class GpuResource;

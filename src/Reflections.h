@@ -1,7 +1,6 @@
 #pragma once
 
 #include <memory>
-#include <directx/d3dx12.h>
 #include <DirectXMath.h>
 
 class GpuResource;

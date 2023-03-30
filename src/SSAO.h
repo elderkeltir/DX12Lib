@@ -4,9 +4,7 @@
 #include <array>
 #include <optional>
 #include <DirectXMath.h>
-#include <directx/d3dx12.h>
-
-using Microsoft::WRL::ComPtr;
+#include <string>
 
 class RenderQuad;
 class GpuResource;
@@ -22,7 +20,7 @@ public:
 
 private:
 	void GenerateRandomValuesTex(CommandList& command_list);
-	void UpdateSsaoCB(UINT k_size = 14, float r = 0.25f, float bs = 0.025f, uint32_t noise_size = 4);
+	void UpdateSsaoCB(uint32_t k_size = 14, float r = 0.25f, float bs = 0.025f, uint32_t noise_size = 4);
 	struct SsaoConstants
 	{
 		DirectX::XMFLOAT4  OffsetVectors[14];

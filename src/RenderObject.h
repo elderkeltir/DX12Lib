@@ -1,6 +1,5 @@
 #pragma once
 
-#include <directx/d3dx12.h>
 #include <DirectXMath.h>
 #include <wrl.h>
 #include <vector>
@@ -9,8 +8,6 @@
 #include "TextureData.h"
 #include "RenderMesh.h"
 #include "defines.h"
-
-using Microsoft::WRL::ComPtr;
 
 class GpuResource;
 class CommandList;
