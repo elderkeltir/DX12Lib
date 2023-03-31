@@ -21,6 +21,11 @@ class DynamicGpuHeap;
 class SSAO;
 class ImguiHelper;
 class Reflections;
+struct IDXGIFactory1;
+struct IDXGIFactory4;
+struct IDXGISwapChain4;
+struct IDXGIAdapter1;
+
 
 class DXAppImplementation : public DXApp, public ResourceManager, public ConstantBufferManager, public Techniques
 {
@@ -47,8 +52,8 @@ public:
 
     // Events
     virtual void OnMouseMoved(WPARAM btnState, int x, int y) override;
-    virtual void OnKeyDown(UINT8 key) override;
-    virtual void OnKeyUp(UINT8 key) override;
+    virtual void OnKeyDown(uint8_t key) override;
+    virtual void OnKeyUp(uint8_t key) override;
     virtual void RebuildShaders(std::optional<std::wstring> dbg_name = std::nullopt) override;
     logger* GetLogger() { return m_logger.get(); }
     ImguiHelper* GetUiHelper() { return m_gui.get(); }
@@ -59,6 +64,10 @@ private:
     static constexpr uint32_t GfxQueueCmdList_num = 6;
     static constexpr uint32_t ComputeQueueCmdList_num = 6;
     
+    void GetHardwareAdapter(
+        _In_ IDXGIFactory1* pFactory,
+        _Outptr_result_maybenull_ IDXGIAdapter1** ppAdapter,
+        bool requestHighPerformanceAdapter = false);
     void CreateDevice(std::optional<std::wstring> dbg_name = std::nullopt);
     void CreateSwapChain(std::optional<std::wstring> dbg_name = std::nullopt);
     void PrepareRenderTarget(CommandList& command_list, const std::vector<std::shared_ptr<GpuResource>> &rt, bool set_dsv = true, bool clear_dsv = true);
