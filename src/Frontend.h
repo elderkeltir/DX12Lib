@@ -70,11 +70,10 @@ public:
 
     ICommandQueue* GetGfxQueue();
     ICommandQueue* GetComputeQueue();
-    void SetRenderMode(uint32_t mode);
-    void RebuildShaders();
 
-    bool ShouldClose() const { return m_should_close; }
-    void Close() { m_should_close = true; }
+    bool PassImguiWndProc(const ImguiWindowData &data);
+    
+    bool ShouldClose() const;
 protected:
     void UpdateCamera(std::shared_ptr<FreeCamera>& camera, float dt);
     void PrepareRenderTarget(ICommandList* command_list, const std::vector<std::shared_ptr<IGpuResource>>& rt, bool set_dsv = true, bool clear_dsv = true);
@@ -124,8 +123,6 @@ protected:
         int32_t camera_x_delta{ 0 };
         int32_t camera_y_delta{ 0 };
     } m_camera_movement;
-
-    bool m_should_close{ false };
 
 private:
     // Window title.

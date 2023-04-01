@@ -1,9 +1,9 @@
 #include "ConsoleCommands.h"
 
 #include "WinApplication.h"
-#include "Frontend.h"
+#include "DxBackend.h"
 
-extern Frontend* gFrontend;
+extern DxBackend* gBackend;
 
 
 std::vector<std::string> ConsoleCommands::m_command_names;
@@ -11,16 +11,16 @@ std::vector<std::string> ConsoleCommands::m_command_names;
 void ConsoleCommands::ExecuteCommand(std::string name)
 {
 	if (name == "quit") {
-		gFrontend->Close();
+		gBackend->Close();
 	}
 	else if (name == "rebuild_shaders") {
-		gFrontend->RebuildShaders();
+		gBackend->RebuildShaders();
 	}
 	else if (name.find("r_mode") != std::string::npos) {
 		std::string name_copy = name;
 		name_copy.erase(0, 7);
 		uint32_t r_mode = std::atoi(name_copy.c_str());
-		gFrontend->SetRenderMode(r_mode);
+		gBackend->SetRenderMode(r_mode);
 	}
 }
 

@@ -27,7 +27,7 @@ void SwapChain::OnInit(IDXGIFactory4* pFactory, const WindowHandler& window_hndl
 	swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
 	swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
 	swapChainDesc.SampleDesc.Count = 1;
-	HWND hwnd = *(HWND*)window_hndl.creation_data;
+	HWND hwnd = *(HWND*)window_hndl.ptr;
 
 	CommandQueue* queue = (CommandQueue*)(gBackend->GetQueue(ICommandQueue::QueueType::qt_gfx).get());
 

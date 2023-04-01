@@ -49,8 +49,10 @@ public:
 	uint32_t GetRenderMode() const override { return m_render_mode; }
 	uint32_t GetFrameCount() const { return FramesCount; }
 	IImguiHelper* GetUI() override { return m_gui.get(); }
-	void RebuildShaders(std::optional<std::wstring> dbg_name = std::nullopt) override;
-	void SetRenderMode(uint32_t mode) override { m_render_mode = mode; }
+	void RebuildShaders(std::optional<std::wstring> dbg_name = std::nullopt);
+	void SetRenderMode(uint32_t mode) { m_render_mode = mode; }
+	bool PassImguiWndProc(const ImguiWindowData& data) override;
+	bool ShouldClose() override { return m_should_close; }
 
 	const std::filesystem::path& GetRootDir() const {
 		return m_root_dir;
@@ -60,6 +62,7 @@ public:
 	IDescriptorHeapCollection* GetDescriptorHeapCollection() { return (IDescriptorHeapCollection*)m_descriptor_heap_collection.get(); }
 	IImguiHelper* GetUiHelper() { return m_gui.get(); }
 	DxDevice* GetDevice() { return m_device.get();  }
+	void Close() { m_should_close = true; }
 	virtual ~DxBackend();
 private:
 	static const uint32_t FramesCount = 2;
@@ -89,6 +92,8 @@ private:
 
 	uint32_t m_render_mode{ 0 };
 	bool m_rebuild_shaders{ false };
+
+	bool m_should_close{ false };
 
 	std::filesystem::path m_root_dir;
 };

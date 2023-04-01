@@ -2,7 +2,6 @@
 
 #include <string>
 #include <DirectXMath.h>
-#include <directx/d3d12.h>
 #include <wrl.h>
 #include "simple_object_pool.h"
 

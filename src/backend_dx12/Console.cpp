@@ -2,10 +2,10 @@
 #include <locale>
 
 #include "ConsoleCommands.h"
+#include "SwapChain.h"
+#include "DxBackend.h"
 
-#include "Frontend.h"
-
-extern Frontend* gFrontend;
+extern DxBackend* gBackend;
 
 static int   Stricmp(const char* s1, const char* s2) { int d; while ((d = toupper(*s2) - toupper(*s1)) == 0 && *s1) { s1++; s2++; } return d; }
 static int   Strnicmp(const char* s1, const char* s2, int n) { int d = 0; while (n > 0 && (d = toupper(*s2) - toupper(*s1)) == 0 && *s1) { s1++; s2++; n--; } return d; }
@@ -63,7 +63,7 @@ void AppConsole::AddLog(const char* fmt, ...) IM_FMTARGS(2)
 
 void AppConsole::Draw(const char* title)
 {
-	ImGui::SetNextWindowSize(ImVec2((float)gFrontend->GetWidth(), (float)gFrontend->GetHeight() * 0.7f), ImGuiCond_FirstUseEver);
+	ImGui::SetNextWindowSize(ImVec2((float)gBackend->GetSwapChain()->GetWidth(), (float)gBackend->GetSwapChain()->GetHeight() * 0.7f), ImGuiCond_FirstUseEver);
 	if (!ImGui::Begin(title, &isActive, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove))
 	{
 		ImGui::End();

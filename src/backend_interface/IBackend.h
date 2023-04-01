@@ -13,6 +13,7 @@ class logger;
 class ICommandList;
 class IRootSignature;
 class IImguiHelper;
+struct ImguiWindowData;
 
 class IBackend {
 public:
@@ -36,6 +37,6 @@ public:
 	virtual uint32_t GetRenderMode() const = 0;
 	virtual uint32_t GetFrameCount() const = 0;
 	virtual IImguiHelper* GetUI() = 0;
-	virtual void RebuildShaders(std::optional<std::wstring> dbg_name = std::nullopt) = 0;
-	virtual void SetRenderMode(uint32_t mode) = 0;
+	virtual bool PassImguiWndProc(const ImguiWindowData& data) = 0;
+	virtual bool ShouldClose() = 0;
 };

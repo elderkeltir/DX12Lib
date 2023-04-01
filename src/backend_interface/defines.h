@@ -470,7 +470,14 @@ struct CPUdescriptor {
 };
 
 struct WindowHandler {
-    uint64_t creation_data;
+    uint64_t ptr;
+};
+
+struct ImguiWindowData {
+    WindowHandler hWnd;
+    uint32_t msg;
+    uint64_t wParam;
+    uint64_t lParam;
 };
 
 class IBackend;

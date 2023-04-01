@@ -93,7 +93,6 @@ void Frontend::OnRender()
 	// Gui
 	m_backend->RenderUI();
 	
-
 	// Record all the commands we need to render the scene into the command list.
 	ICommandList* command_list_gfx = m_backend->InitCmdList();
 
@@ -106,6 +105,7 @@ void Frontend::OnRender()
 	// send G-buffer to execute
 	GetGfxQueue()->ExecuteActiveCL();
 	
+	m_backend->SyncWithGpu(ICommandQueue::QueueType::qt_gfx, ICommandQueue::QueueType::qt_compute);
 
 	// shadow map
 	command_list_gfx = m_backend->InitCmdList();
@@ -114,8 +114,6 @@ void Frontend::OnRender()
 	END_EVENT(command_list_gfx);
 
 	GetGfxQueue()->ExecuteActiveCL();
-
-	m_backend->SyncWithGpu(ICommandQueue::QueueType::qt_gfx, ICommandQueue::QueueType::qt_compute);
 
 	ICommandList* command_list_compute = GetComputeQueue()->ResetActiveCL();
 
@@ -371,7 +369,7 @@ void Frontend::RenderPostProcessQuad(ICommandList* command_list) {
 		}
 	}
 
-	if (std::shared_ptr<IGpuResource> rt = m_backend->GetUI()->GetGuiQuad()->GetRt(FrameId()).lock()) {
+	if (IGpuResource* rt = m_backend->GetUI()->GetGuiQuad(FrameId())) {
 		if (std::shared_ptr<IResourceDescriptor> srv = rt->GetSRV().lock()) {
 			command_list->GetQueue()->GetGpuHeap().StageDesctriptorInTable(bi_post_proc_input_tex_table, tto_postp_gui, srv);
 		}
@@ -631,16 +629,6 @@ IGpuResource* Frontend::GetDepthBuffer()
 	return m_backend->GetDepthBuffer();
 }
 
-void Frontend::SetRenderMode(uint32_t mode)
-{
-	m_backend->SetRenderMode(mode);
-}
-
-void Frontend::RebuildShaders()
-{
-	m_backend->RebuildShaders();
-}
-
 ICommandQueue* Frontend::GetGfxQueue()
 {
 	return m_backend->GetQueue(ICommandQueue::QueueType::qt_gfx).get();
@@ -649,6 +637,19 @@ ICommandQueue* Frontend::GetGfxQueue()
 ICommandQueue* Frontend::GetComputeQueue()
 {
 	return m_backend->GetQueue(ICommandQueue::QueueType::qt_compute).get();
+}
+
+bool Frontend::PassImguiWndProc(const ImguiWindowData& data)
+{
+	if (m_backend)
+		return m_backend->PassImguiWndProc(data);
+
+	return false;
+}
+
+bool Frontend::ShouldClose() const
+{
+	return m_backend->ShouldClose();
 }
 
 const ITechniques::Technique* Frontend::GetTechniqueById(uint32_t id) const

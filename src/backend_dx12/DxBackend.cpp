@@ -3,7 +3,7 @@
 #include "dx12_helper.h"
 #include "DxDevice.h"
 #include "SwapChain.h"
-#include "common/Logger.h"
+#include "Logger.h"
 #include "Fence.h"
 #include "DescriptorHeapCollection.h"
 #include "CommandList.h"
@@ -198,6 +198,14 @@ const IRootSignature* DxBackend::GetRootSignById(uint32_t id)
 void DxBackend::RebuildShaders(std::optional<std::wstring> dbg_name)
 {
 	m_rebuild_shaders = true;
+}
+
+bool DxBackend::PassImguiWndProc(const ImguiWindowData& data)
+{
+	if(m_gui)
+		return ((ImguiHelper*)(m_gui.get()))->PassImguiWndProc(data);
+
+	return false;
 }
 
 DxBackend::~DxBackend()

@@ -19,95 +19,72 @@ set(CMAKE_CXX_STANDARD 17) # no need to manually adjust the CXXFLAGS
 set(CMAKE_CXX_STANDARD_REQUIRED on)
 set(ROOT_FOLDER ${PROJECT_SOURCE_DIR})
 set(THIRD_PARTY_DIR ${ROOT_FOLDER}/../thirdParty)
-set(THIRD_PARTY_IMGUI_DIR ${THIRD_PARTY_DIR}/imgui)
+
 
 # include directories
 include_directories(${PROJECT_SOURCE_DIR})
 include_directories(${PROJECT_SOURCE_DIR}/backend_interface)
-include_directories(${THIRD_PARTY_DIR}/DirectX-Headers/include)
+
 include_directories(${THIRD_PARTY_DIR}/DirectXTex/DirectXTex)
 include_directories(${THIRD_PARTY_DIR}/assimp/include)
 include_directories(${CMAKE_BINARY_DIR}/thirdParty/assimp/include)
-include_directories(${THIRD_PARTY_DIR}/DirectXShaderCompiler/inc)
 include_directories(${THIRD_PARTY_DIR}/rapidjson/include)
-include_directories(${THIRD_PARTY_DIR}/winpixeventruntime/Include)
-include_directories(${THIRD_PARTY_DIR}/imgui)
 
 # message(STATUS "foo include dir: ${THIRD_PARTY_DIR}/assimp/include")
 # include_directories("C:\\code\\DX12Lib\\thirdParty\\assimp\\include")
 
 # 
-
+add_subdirectory(backend_dx12)
 
 # source files
 add_executable(DX12Lib WIN32 main.cpp
-    # imgui
-    ${THIRD_PARTY_IMGUI_DIR}/imgui.cpp
-    ${THIRD_PARTY_IMGUI_DIR}/imgui_draw.cpp
-    ${THIRD_PARTY_IMGUI_DIR}/imgui_tables.cpp
-    ${THIRD_PARTY_IMGUI_DIR}/imgui_widgets.cpp
-    ${THIRD_PARTY_IMGUI_DIR}/backends/imgui_impl_dx12.cpp
-    ${THIRD_PARTY_IMGUI_DIR}/backends/imgui_impl_win32.cpp
-    #
-    "WinApplication.cpp"
-    "Frontend.cpp"
-    #DXAppImplementation.cpp
+    WinApplication.cpp
     FileManager.cpp
+    Frontend.cpp
     RenderModel.cpp
     ResourceManager.cpp
-    "backend_dx12/ShaderManager.cpp"
+
     Transformations.cpp
     Level.cpp
     FreeCamera.cpp
-    "backend_dx12/HeapBuffer.cpp"
-    "backend_dx12/ResourceDescriptor.cpp"
-    "backend_dx12/GpuResource.cpp"
-    "backend_dx12/DescriptorHeapCollection.cpp"
+
     LevelEntity.cpp
     ConstantBufferManager.cpp
-    "backend_dx12/CommandQueue.cpp"
-    "backend_dx12/Techniques.cpp"
+
     RenderQuad.cpp
     RenderObject.cpp
     GpuDataManager.cpp
     MaterialManager.cpp
     RenderMesh.cpp
     SkyBox.cpp
-    "backend_dx12/DynamicGpuHeap.cpp"
     SSAO.cpp
-    "backend_dx12/ImguiHelper.cpp"
-    Console.cpp
-    "ConsoleCommands.cpp"
+
     Plane.cpp
     Sun.cpp
-    "backend_dx12/CommandList.cpp"
     Reflections.cpp
-    "backend_dx12/Fence.cpp"
-    "backend_dx12/SwapChain.cpp"
-    "backend_dx12/DxBackend.cpp"
-    "backend_dx12/DxDevice.cpp"
-    "backend_dx12/RootSignature.cpp")
+)
 
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
-include(CPack)
+#include(CPack)
 
 target_compile_options(${PROJECT_NAME} PUBLIC  "/EHsc")
 
 target_link_options(${PROJECT_NAME} PRIVATE "/entry:WinMainCRTStartup")
-target_link_libraries(${PROJECT_NAME} d3d12.lib)
-target_link_libraries(${PROJECT_NAME} dxgi.lib)
+
 # target_link_libraries(${PROJECT_NAME} ${CMAKE_BINARY_DIR}/thirdParty/assimp/lib/$<CONFIGURATION>/assimp-vc143-mtd.lib)
 target_link_libraries(${PROJECT_NAME} assimp)
-target_link_libraries(${PROJECT_NAME} ${THIRD_PARTY_DIR}/DirectXShaderCompiler/lib/x64/dxcompiler.lib)
-target_link_libraries(${PROJECT_NAME} ${THIRD_PARTY_DIR}/winpixeventruntime/bin/x64/WinPixEventRuntime.lib)
+
 target_link_libraries(${PROJECT_NAME} DirectX-Guids)
 target_link_libraries(${PROJECT_NAME} DirectXTex)
 
+target_link_libraries(${PROJECT_NAME} backend_dx12)
+
+
 # Copy thirdparty bins
 set(ASSIMP_BIN_DIR ${CMAKE_BINARY_DIR}/thirdParty/assimp/bin/)
-set(DXC_BIN_DIR ${THIRD_PARTY_DIR}/DirectXShaderCompiler/bin/x64)
-set(WPER_BIN_DIR ${THIRD_PARTY_DIR}/winpixeventruntime/bin/x64)
+
+
 add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
 COMMAND ${CMAKE_COMMAND} -E copy_if_different
     "${ASSIMP_BIN_DIR}/assimp-vc143-mtd.dll"
@@ -116,12 +93,9 @@ COMMAND ${CMAKE_COMMAND} -E copy_if_different
     "${ASSIMP_BIN_DIR}/assimp-vc143-mtd.pdb"
     "${CMAKE_BINARY_DIR}/src"
 COMMAND ${CMAKE_COMMAND} -E copy_if_different
-    "${DXC_BIN_DIR}/dxcompiler.dll"
+    "${CMAKE_BINARY_DIR}/src/backend_dx12/backend_dx12d.dll"
     "${CMAKE_BINARY_DIR}/src"
 COMMAND ${CMAKE_COMMAND} -E copy_if_different
-    "${DXC_BIN_DIR}/dxil.dll"
-    "${CMAKE_BINARY_DIR}/src"
-COMMAND ${CMAKE_COMMAND} -E copy_if_different
-    "${WPER_BIN_DIR}/WinPixEventRuntime.dll"
+    "${CMAKE_BINARY_DIR}/src/backend_dx12/backend_dx12d.pdb"
     "${CMAKE_BINARY_DIR}/src"
 )

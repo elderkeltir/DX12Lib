@@ -6,7 +6,7 @@
 using Microsoft::WRL::ComPtr;
 struct ID3D12Device2;
 
-class RenderQuad;
+class IGpuResource;
 
 class IImguiHelper {
 public:
@@ -19,5 +19,5 @@ public:
 	virtual void ShowConsole() = 0;
 	virtual void AddToConsoleLog(const std::string& line) = 0;
 
-	virtual RenderQuad* GetGuiQuad() = 0;
+	virtual IGpuResource* GetGuiQuad(uint32_t frame_id) = 0;
 };

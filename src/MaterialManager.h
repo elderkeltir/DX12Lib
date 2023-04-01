@@ -1,6 +1,5 @@
 #pragma once
 
-#include <directx/d3d12.h>
 #include <cstdint>
 #include <memory>
 #include "simple_object_pool.h"

@@ -4,9 +4,6 @@
 #include "Frontend.h"
 #include "defines.h"
 
-
-#include "backends/imgui_impl_win32.h"
-
 #ifndef GET_X_LPARAM
 #define GET_X_LPARAM(lp)                        ((int)(short)LOWORD(lp))
 #endif
@@ -83,7 +80,7 @@ int WinApplication::Run(HINSTANCE hInstance, int nCmdShow)
 
     // Initialize the sample. OnInit is defined in each child-implementation of DXApp.
     WindowHandler w_hndl;
-    w_hndl.creation_data = (uint64_t)&m_hwnd;
+    w_hndl.ptr = (uint64_t)&m_hwnd;
     m_frontend->OnInit(w_hndl);
 
     ShowWindow(m_hwnd, nCmdShow);
@@ -120,18 +117,23 @@ void WinApplication::ParseCommandLineArgs(wchar_t* argv[], int argc)
     //}
 }
 
-
-// Forward declare message handler from imgui_impl_win32.cpp
-extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
-
-
 // Main message handler for the sample.
 LRESULT CALLBACK WinApplication::WindowProc(HWND hWnd, uint32_t message, WPARAM wParam, LPARAM lParam)
-{
-	if (ImGui_ImplWin32_WndProcHandler(hWnd, message, wParam, lParam))
-		return true;
-    
+{    
     Frontend* frontend = reinterpret_cast<Frontend*>(GetWindowLongPtr(hWnd, GWLP_USERDATA));
+
+    
+    if (frontend) {
+        ImguiWindowData data;
+        data.hWnd.ptr = (uint64_t)&hWnd;
+        data.msg = message;
+        data.wParam = (uint64_t)wParam;
+        data.lParam = (uint64_t)lParam;
+
+        if(frontend->PassImguiWndProc(data))
+            return true;
+    }
+        
 
     switch (message)
     {

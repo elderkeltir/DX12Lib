@@ -9,7 +9,6 @@ class IResourceDescriptor;
 class ICommandList;
 class IHeapBuffer;
 
-
 struct IndexVufferView {
     std::shared_ptr<IHeapBuffer> buffer_location;
     uint32_t size_in_bytes;
@@ -42,4 +41,12 @@ public:
     virtual void UpdateState(ResourceState new_state) = 0;
 };
 
-IGpuResource* CreateGpuResource();
+#ifdef _WIN32
+#define EXPORT __declspec(dllexport)
+#else
+#define EXPORT __attribute__((visibility("default")))
+#endif
+
+extern "C" {
+    EXPORT IGpuResource* CreateGpuResource();
+}
