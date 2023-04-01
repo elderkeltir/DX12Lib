@@ -9,8 +9,8 @@
 #include "RenderMesh.h"
 #include "defines.h"
 
-class GpuResource;
-class CommandList;
+class IGpuResource;
+class ICommandList;
 
 class RenderObject {
 public:
@@ -23,13 +23,13 @@ public:
     virtual const std::wstring& GetName() const { return m_name; }
     virtual void Initialized() { m_is_initialized = true; m_dirty |= db_vertex; m_dirty |= db_index; }
     virtual bool IsInitialized() const { return m_is_initialized; }
-    virtual void LoadDataToGpu(CommandList& command_list) { };
+    virtual void LoadDataToGpu(ICommandList* command_list) { };
     virtual void SetMesh(RenderMesh * mesh) { m_mesh = mesh; }
     virtual void SetTexture(TextureData * texture_data, TextureType type) {};
 
 protected:
-    virtual void LoadIndexDataOnGpu(CommandList& command_list);
-    void Loadtexture(CommandList& command_list, GpuResource* res, TextureData* tex_data, const ResourceDesc &tex_desc, const SRVdesc::SRVdimensionType &srv_dim, uint32_t idx) const;
+    virtual void LoadIndexDataOnGpu(ICommandList* command_list);
+    void Loadtexture(ICommandList* command_list, IGpuResource* res, TextureData* tex_data, const ResourceDesc &tex_desc, const SRVdesc::SRVdimensionType &srv_dim, uint32_t idx) const;
     void AllocateVertexBuffer(uint32_t size);
 
     enum dirty_bits {
@@ -48,9 +48,9 @@ protected:
     uint64_t m_vertex_buffer_start{0};
     uint32_t m_vertex_buffer_size{0};
 
-    std::unique_ptr<GpuResource> m_VertexBuffer;
-    std::unique_ptr<GpuResource> m_IndexBuffer;
-    std::unique_ptr<GpuResource> m_diffuse_tex;
+    std::unique_ptr<IGpuResource> m_VertexBuffer;
+    std::unique_ptr<IGpuResource> m_IndexBuffer;
+    std::unique_ptr<IGpuResource> m_diffuse_tex;
 
     std::wstring m_name;
     uint32_t m_id{uint32_t(-1)};

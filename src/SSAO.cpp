@@ -2,19 +2,17 @@
 #include <DirectXPackedVector.h>
 #include <DirectXMath.h>
 #include "RenderQuad.h"
-#include "GpuResource.h"
-#include "DXHelper.h"
+#include "IGpuResource.h"
+#include "RenderHelper.h"
 #include "Level.h"
 #include "FreeCamera.h"
-#include "CommandQueue.h"
-#include "DXAppImplementation.h"
-
-extern DXAppImplementation* gD3DApp;
+#include "ICommandList.h"
+#include "ConstantBufferManager.h"
 
 
 SSAO::SSAO() :
-	m_ssao_quad_random_vals(std::make_unique<GpuResource>()),
-	m_ssao_cb(std::make_unique<GpuResource>()),
+	m_ssao_quad_random_vals(CreateGpuResource()),
+	m_ssao_cb(CreateGpuResource()),
 	m_cbuffer_cpu(std::make_unique<SsaoConstants>())
 {
 
@@ -24,8 +22,9 @@ void SSAO::Initialize(uint32_t width, uint32_t height, std::optional<std::wstrin
 {
 	if (m_dirty & df_init) {
 		for (uint32_t i = 0; i < 3; i++) {
+
 			auto& res = m_ssao_resurces[i];
-			res.swap(std::make_unique<GpuResource>());
+			res.reset(CreateGpuResource());
 
 			ResourceState res_state = ResourceState::rs_resource_state_non_pixel_shader_resource;
 			if (i == 2) {
@@ -60,14 +59,14 @@ void SSAO::Initialize(uint32_t width, uint32_t height, std::optional<std::wstrin
 	}
 }
 
-void SSAO::GenerateSSAO(CommandList& command_list, bool gfx)
+void SSAO::GenerateSSAO(ICommandList* command_list, bool gfx)
 {
 	UpdateSsaoCB();
 	GenerateRandomValuesTex(command_list);
 	ConstantBufferManager::SyncCpuDataToCB(command_list, m_ssao_cb.get(), m_cbuffer_cpu.get(), sizeof(SsaoConstants), bi_ssao_cb, gfx);
 }
 
-void SSAO::GenerateRandomValuesTex(CommandList& command_list)
+void SSAO::GenerateRandomValuesTex(ICommandList* command_list)
 {
 	if (m_dirty & df_generate) {
 		const uint32_t noise_dim = 4;
@@ -108,7 +107,7 @@ void SSAO::GenerateRandomValuesTex(CommandList& command_list)
 		subResourceData.slice_pitch = subResourceData.row_pitch * noise_dim;
 		m_ssao_quad_random_vals->LoadBuffer(command_list, 0, 1, &subResourceData);
 
-		command_list.ResourceBarrier(*m_ssao_quad_random_vals.get(), ResourceState::rs_resource_state_non_pixel_shader_resource);
+		command_list->ResourceBarrier(*m_ssao_quad_random_vals.get(), ResourceState::rs_resource_state_non_pixel_shader_resource);
 
 		m_dirty &= ~df_generate;
 	}

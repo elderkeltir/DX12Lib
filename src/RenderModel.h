@@ -5,6 +5,7 @@
 #include "RenderObject.h"
 
 class Transformations;
+class ICommandList;
 
 class RenderModel : public RenderObject {
 public:
@@ -12,8 +13,8 @@ public:
     ~RenderModel();
 
     void Load(const std::wstring &name);
-    void Render(CommandList& command_list, const DirectX::XMFLOAT4X4 &parent_xform);
-    virtual void LoadDataToGpu(CommandList& command_list) override;
+    void Render(ICommandList* command_list, const DirectX::XMFLOAT4X4 &parent_xform);
+    virtual void LoadDataToGpu(ICommandList* command_list) override;
 
     void AddChild(RenderModel* child) { m_children.push_back(child); }
     RenderModel* GetChild(uint32_t idx) { return m_children[idx]; }
@@ -29,18 +30,18 @@ public:
 
     void SetInstancesNum(uint32_t num) { m_instance_num = num; }
 
-    GpuResource* GetTexture(TextureType type);
+    IGpuResource* GetTexture(TextureType type);
 
 private:
     inline void FormVertexes();
-    inline void LoadTextures(CommandList& command_list);
-    inline void LoadConstantData(CommandList& command_list);
+    inline void LoadTextures(ICommandList* command_list);
+    inline void LoadConstantData(ICommandList* command_list);
 
-    std::unique_ptr<GpuResource> m_constant_buffer;
+    std::unique_ptr<IGpuResource> m_constant_buffer;
 
-    std::unique_ptr<GpuResource> m_normals_tex;
-    std::unique_ptr<GpuResource> m_metallic_tex;
-    std::unique_ptr<GpuResource> m_roughness_tex;
+    std::unique_ptr<IGpuResource> m_normals_tex;
+    std::unique_ptr<IGpuResource> m_metallic_tex;
+    std::unique_ptr<IGpuResource> m_roughness_tex;
     std::array<TextureData*, TextureCount> m_textures_data;
     std::unique_ptr<Transformations> m_transformations;
     std::vector<RenderModel*> m_children;

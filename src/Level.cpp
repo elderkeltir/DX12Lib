@@ -15,29 +15,31 @@
 
 #include "defines.h"
 #include "FreeCamera.h"
-#include "DXAppImplementation.h"
+//#include "DXAppImplementation.h"
 #include "FileManager.h"
-#include "GpuResource.h"
-#include "DXHelper.h"
-#include "Techniques.h"
-#include "DescriptorHeapCollection.h"
-#include "ResourceDescriptor.h"
+#include "IGpuResource.h"
+#include "RenderHelper.h"
+#include "ITechniques.h"
+#include "IResourceDescriptor.h"
 #include "MaterialManager.h"
-#include "CommandQueue.h"
+#include "ICommandQueue.h"
 #include "SkyBox.h"
-#include "DynamicGpuHeap.h"
+#include "IDynamicGpuHeap.h"
 #include "Plane.h"
 #include "GpuDataManager.h"
 #include "Sun.h"
+#include "ICommandList.h"
+#include "ICommandQueue.h"
+#include "Frontend.h"
 
-extern DXAppImplementation *gD3DApp;
+extern Frontend *gFrontend;
 using rapidjson::Document;
 using rapidjson::Value;
 
 Level::Level()
 {
-    m_levels_dir = gD3DApp->GetRootDir() / L"content" / L"levels";
-    m_entities_dir = gD3DApp->GetRootDir() / L"content" / L"entities";
+    m_levels_dir = gFrontend->GetRootDir() / L"content" / L"levels";
+    m_entities_dir = gFrontend->GetRootDir() / L"content" / L"entities";
 }
 Level::~Level() = default;
 
@@ -68,7 +70,7 @@ void Level::Load(const std::wstring& name) {
         const Value& camera_near = camera["near"];
         const Value& camera_far = camera["far"];
 
-        m_camera.swap(std::make_shared<FreeCamera>(camera_fov.GetFloat(), camera_near.GetFloat(), camera_far.GetFloat(), gD3DApp->GetAspectRatio()));
+        m_camera.swap(std::make_shared<FreeCamera>(camera_fov.GetFloat(), camera_near.GetFloat(), camera_far.GetFloat(), gFrontend->GetAspectRatio()));
         m_camera->Move(pos);
         m_camera->Rotate(dir);
     }
@@ -134,7 +136,7 @@ void Level::Load(const std::wstring& name) {
             }
         }
 
-        m_lights_res = std::make_unique<GpuResource>();
+        m_lights_res.reset(CreateGpuResource());
         uint32_t cb_size = calc_cb_size(LightsNum * sizeof(LevelLight));
         m_lights_res->CreateBuffer(HeapType::ht_default, cb_size, ResourceState::rs_resource_state_vertex_and_constant_buffer, std::wstring(L"lights_buffer_").append(m_name));
         CBVdesc desc;
@@ -193,7 +195,7 @@ void Level::Update(float dt){
     m_sun->Update(dt);
 }
 
-void Level::Render(CommandList& command_list){
+void Level::Render(ICommandList* command_list){
     TODO("Normal! Create Gatherer or RenderScene to avoid this shity code")
     bool is_scene_constants_set = false;
 
@@ -205,70 +207,70 @@ void Level::Render(CommandList& command_list){
     RenderEntity(command_list, *m_skybox_ent, is_scene_constants_set);
     {
         uint32_t terrain_tech_id = m_terrain->GetTerrainTechId();
-        const Techniques::Technique* tech = gD3DApp->GetTechniqueById(terrain_tech_id);
-        CommandQueue* gfx_queue = command_list.GetQueue();
-        if (command_list.GetPSO() != terrain_tech_id) {
-            command_list.SetPSO(terrain_tech_id);
+        const ITechniques::Technique* tech = gFrontend->GetTechniqueById(terrain_tech_id);
+        ICommandQueue* gfx_queue = command_list->GetQueue();
+        if (command_list->GetPSO() != terrain_tech_id) {
+            command_list->SetPSO(terrain_tech_id);
         }
-        if (command_list.GetRootSign() != tech->root_signature) {
-            command_list.SetRootSign(tech->root_signature);
+        if (command_list->GetRootSign() != tech->root_signature) {
+            command_list->SetRootSign(tech->root_signature);
         }
-        gfx_queue->GetGpuHeap().CacheRootSignature(gD3DApp->GetRootSignById(tech->root_signature));
+        gfx_queue->GetGpuHeap().CacheRootSignature(gFrontend->GetRootSignById(tech->root_signature));
 
-        gD3DApp->CommitCB(command_list, cb_scene);
+        gFrontend->CommitCB(command_list, cb_scene);
         m_terrain->Render(command_list);
     }
 }
 
-void Level::RenderEntity(CommandList& command_list, LevelEntity & ent, bool &is_scene_constants_set){
+void Level::RenderEntity(ICommandList* command_list, LevelEntity & ent, bool &is_scene_constants_set){
     ent.LoadDataToGpu(command_list);
 
-    const Techniques::Technique *tech = gD3DApp->GetTechniqueById(ent.GetTechniqueId());
-    CommandQueue* gfx_queue = command_list.GetQueue();
-    if (command_list.GetPSO() != ent.GetTechniqueId()){
-        command_list.SetPSO(ent.GetTechniqueId());
+    const ITechniques::Technique *tech = gFrontend->GetTechniqueById(ent.GetTechniqueId());
+    ICommandQueue* gfx_queue = command_list->GetQueue();
+    if (command_list->GetPSO() != ent.GetTechniqueId()){
+        command_list->SetPSO(ent.GetTechniqueId());
     }
-    if (command_list.GetRootSign() != tech->root_signature){
-        command_list.SetRootSign(tech->root_signature);
+    if (command_list->GetRootSign() != tech->root_signature){
+        command_list->SetRootSign(tech->root_signature);
     }
-    gfx_queue->GetGpuHeap().CacheRootSignature(gD3DApp->GetRootSignById(tech->root_signature));
+    gfx_queue->GetGpuHeap().CacheRootSignature(gFrontend->GetRootSignById(tech->root_signature));
 
     if (!is_scene_constants_set){
-        gD3DApp->CommitCB(command_list, cb_scene);
+        gFrontend->CommitCB(command_list, cb_scene);
         DirectX::XMMATRIX m_ViewMatrix = DirectX::XMLoadFloat4x4(&m_camera->GetViewMx());
         DirectX::XMMATRIX m_ProjectionMatrix = DirectX::XMLoadFloat4x4(&m_camera->GetProjMx());
 
-        gD3DApp->SetMatrix4Constant(Constants::cV, m_ViewMatrix);
-        gD3DApp->SetMatrix4Constant(Constants::cP, m_ProjectionMatrix);
+        gFrontend->SetMatrix4Constant(Constants::cV, m_ViewMatrix);
+        gFrontend->SetMatrix4Constant(Constants::cP, m_ProjectionMatrix);
 
         DirectX::XMMATRIX Pinv = DirectX::XMMatrixInverse(nullptr, m_ProjectionMatrix);
-        gD3DApp->SetMatrix4Constant(Constants::cPinv, Pinv);
+        gFrontend->SetMatrix4Constant(Constants::cPinv, Pinv);
 
         DirectX::XMFLOAT4 cam_pos(m_camera->GetPosition().x, m_camera->GetPosition().y, m_camera->GetPosition().z, 1);
-        gD3DApp->SetVector4Constant(Constants::cCP, cam_pos);
+        gFrontend->SetVector4Constant(Constants::cCP, cam_pos);
         DirectX::XMFLOAT4 cam_dir(m_camera->GetDirection().x, m_camera->GetDirection().y, m_camera->GetDirection().z, 1);
-        gD3DApp->SetVector4Constant(Constants::cCD, cam_dir);
+        gFrontend->SetVector4Constant(Constants::cCD, cam_dir);
 
-        float w = (float)gD3DApp->GetWidth();
-        float h = (float)gD3DApp->GetHeight();
+        float w = (float)gFrontend->GetWidth();
+        float h = (float)gFrontend->GetHeight();
         DirectX::XMFLOAT4 rt_dim(w, h, 1.f / w, 1.f / h);
-        gD3DApp->SetVector4Constant(Constants::cRTdim, rt_dim);
+        gFrontend->SetVector4Constant(Constants::cRTdim, rt_dim);
 
-        DirectX::XMFLOAT4 z_near_far(m_camera->GetNearZ(), m_camera->GetFarZ(), (float)m_terrain->GetTerrainDim(), (float)gD3DApp->GetRenderMode());
-        gD3DApp->SetVector4Constant(Constants::cNearFar, z_near_far);
+        DirectX::XMFLOAT4 z_near_far(m_camera->GetNearZ(), m_camera->GetFarZ(), (float)m_terrain->GetTerrainDim(), (float)gFrontend->GetRenderMode());
+        gFrontend->SetVector4Constant(Constants::cNearFar, z_near_far);
 
-        DirectX::XMFLOAT4 time_vec(gD3DApp->FrameTime().count(), gD3DApp->TotalTime().count(), 0, 0);
-        gD3DApp->SetVector4Constant(Constants::cTime, time_vec);
+        DirectX::XMFLOAT4 time_vec(gFrontend->FrameTime().count(), gFrontend->TotalTime().count(), 0, 0);
+        gFrontend->SetVector4Constant(Constants::cTime, time_vec);
 
-        if (std::shared_ptr<GpuDataManager> gpu_res_mgr = gD3DApp->GetGpuDataManager().lock()) {
+        if (std::shared_ptr<GpuDataManager> gpu_res_mgr = gFrontend->GetGpuDataManager().lock()) {
             gpu_res_mgr->UploadToGpu(command_list);
-            if (std::shared_ptr<HeapBuffer> buff = gpu_res_mgr->GetVertexBuffer()->GetBuffer().lock()) {
-                command_list.SetGraphicsRootShaderResourceView(bi_vertex_buffer, buff);
+            if (std::shared_ptr<IHeapBuffer> buff = gpu_res_mgr->GetVertexBuffer()->GetBuffer().lock()) {
+                command_list->SetGraphicsRootShaderResourceView(bi_vertex_buffer, buff);
             }
         }
 		
         // update material CBs
-		if (std::shared_ptr<MaterialManager> mat_mgr = gD3DApp->GetMaterialManager().lock()) {
+		if (std::shared_ptr<MaterialManager> mat_mgr = gFrontend->GetMaterialManager().lock()) {
 			mat_mgr->BindMaterials(command_list);
 		}
 
@@ -278,39 +280,39 @@ void Level::RenderEntity(CommandList& command_list, LevelEntity & ent, bool &is_
     ent.Render(command_list);
 }
 
-void Level::RenderWater(CommandList& command_list)
+void Level::RenderWater(ICommandList* command_list)
 {
     uint32_t tech_id = m_water->GetTerrainTechId();
-	const Techniques::Technique* tech = gD3DApp->GetTechniqueById(tech_id);
-    CommandQueue * gfx_queue = command_list.GetQueue();
+	const ITechniques::Technique* tech = gFrontend->GetTechniqueById(tech_id);
+    ICommandQueue * gfx_queue = command_list->GetQueue();
 
-    if (command_list.GetPSO() != tech_id) {
-        command_list.SetPSO(tech_id);
+    if (command_list->GetPSO() != tech_id) {
+        command_list->SetPSO(tech_id);
     }
-    if (command_list.GetRootSign() != tech->root_signature) {
-        command_list.SetRootSign(tech->root_signature);
+    if (command_list->GetRootSign() != tech->root_signature) {
+        command_list->SetRootSign(tech->root_signature);
     }
         
-    gfx_queue->GetGpuHeap().CacheRootSignature(gD3DApp->GetRootSignById(tech->root_signature));
+    gfx_queue->GetGpuHeap().CacheRootSignature(gFrontend->GetRootSignById(tech->root_signature));
 
-    GpuResource* skybox_tex = m_skybox_ent->GetTexture();
-	if (std::shared_ptr<ResourceDescriptor> srv = skybox_tex->GetSRV().lock()) {
+    IGpuResource* skybox_tex = m_skybox_ent->GetTexture();
+	if (std::shared_ptr<IResourceDescriptor> srv = skybox_tex->GetSRV().lock()) {
 		gfx_queue->GetGpuHeap().StageDesctriptorInTable(bi_fwd_tex, tto_fwd_skybox, srv);
 	}
-    gD3DApp->CommitCB(command_list, cb_scene);
+    gFrontend->CommitCB(command_list, cb_scene);
     BindLights(command_list);
 
     m_water->Render(command_list);
 }
 
-void Level::RenderShadowMap(CommandList& command_list)
+void Level::RenderShadowMap(ICommandList* command_list)
 {
     m_sun->SetupShadowMap(command_list);
 
-    if (std::shared_ptr<GpuDataManager> gpu_res_mgr = gD3DApp->GetGpuDataManager().lock()) {
+    if (std::shared_ptr<GpuDataManager> gpu_res_mgr = gFrontend->GetGpuDataManager().lock()) {
         gpu_res_mgr->UploadToGpu(command_list);
-        if (std::shared_ptr<HeapBuffer> buff = gpu_res_mgr->GetVertexBuffer()->GetBuffer().lock()) {
-            command_list.SetGraphicsRootShaderResourceView(bi_vertex_buffer, buff);
+        if (std::shared_ptr<IHeapBuffer> buff = gpu_res_mgr->GetVertexBuffer()->GetBuffer().lock()) {
+            command_list->SetGraphicsRootShaderResourceView(bi_vertex_buffer, buff);
         }
     }
 
@@ -320,7 +322,7 @@ void Level::RenderShadowMap(CommandList& command_list)
     }
 }
 
-void Level::BindLights(CommandList& command_list){
+void Level::BindLights(ICommandList* command_list){
     ConstantBufferManager::SyncCpuDataToCB(command_list, m_lights_res.get(), m_lights.data(), (LightsNum * sizeof(LevelLight)), bi_lights_cb);
 }
 
@@ -332,7 +334,7 @@ const std::filesystem::path& Level::GetEntitiesDir() const{
     return m_entities_dir;
 }
 
-GpuResource& Level::GetSunShadowMap()
+IGpuResource& Level::GetSunShadowMap()
 {
     return m_sun->GetShadowMap();
 }

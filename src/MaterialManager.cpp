@@ -1,11 +1,7 @@
 #include "MaterialManager.h"
-#include "DXAppImplementation.h"
-#include "CommandQueue.h"
-#include "ResourceDescriptor.h"
-#include "DXHelper.h"
+#include "ConstantBufferManager.h"
+#include "RenderHelper.h"
 #include "defines.h"
-
-extern DXAppImplementation *gD3DApp;
 
 MaterialManager::~MaterialManager() = default;
 
@@ -21,7 +17,7 @@ uint32_t MaterialManager::CreateMaterial(float metallic, float roughness, float 
 }
 
 void MaterialManager::LoadMaterials() {
-    m_materials_res = std::make_unique<GpuResource>();
+    m_materials_res.reset(CreateGpuResource());
     uint32_t cb_size = calc_cb_size(materials_num * sizeof(Material));
     m_materials_res->CreateBuffer(HeapType::ht_default, cb_size, ResourceState::rs_resource_state_vertex_and_constant_buffer, std::wstring(L"materials_buffer"));
     CBVdesc desc;
@@ -29,6 +25,6 @@ void MaterialManager::LoadMaterials() {
     m_materials_res->Create_CBV(desc);
 }
 
-void MaterialManager::BindMaterials(CommandList& command_list) {
+void MaterialManager::BindMaterials(ICommandList* command_list) {
     ConstantBufferManager::SyncCpuDataToCB(command_list, m_materials_res.get(), m_materials.data(), (materials_num * sizeof(Material)), bi_materials_cb);
 }

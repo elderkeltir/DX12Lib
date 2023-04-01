@@ -11,6 +11,7 @@
 #undef max
 #endif
  
+#ifdef WIN32
 // In order to define a function called CreateWindow, the Windows macro needs to
 // be undefined.
 #if defined(CreateWindow)
@@ -21,12 +22,16 @@
 #include <wrl.h>
 using Microsoft::WRL::ComPtr;
 
-#include "DXAppImplementation.h"
-#include "Application.h"
+#include "WinApplication.h"
 
 _Use_decl_annotations_
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
 {
-    DXAppImplementation sample(1280, 720, L"DX12Lib");
-    return Application::Run(&sample, hInstance, nCmdShow);
+    WinApplication app(1280, 720, L"DX12Lib");
+    return app.Run(hInstance, nCmdShow);
 }
+#else
+int main() {
+    return error;
+}
+#endif // WIN32

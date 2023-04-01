@@ -49,41 +49,44 @@ add_executable(DX12Lib WIN32 main.cpp
     ${THIRD_PARTY_IMGUI_DIR}/backends/imgui_impl_dx12.cpp
     ${THIRD_PARTY_IMGUI_DIR}/backends/imgui_impl_win32.cpp
     #
-    Application.cpp
-    DXApp.cpp
-    DXAppImplementation.cpp
+    "WinApplication.cpp"
+    "Frontend.cpp"
+    #DXAppImplementation.cpp
     FileManager.cpp
     RenderModel.cpp
     ResourceManager.cpp
-    ShaderManager.cpp
+    "backend_dx12/ShaderManager.cpp"
     Transformations.cpp
     Level.cpp
     FreeCamera.cpp
-    HeapBuffer.cpp
-    ResourceDescriptor.cpp
-    GpuResource.cpp
-    DescriptorHeapCollection.cpp
+    "backend_dx12/HeapBuffer.cpp"
+    "backend_dx12/ResourceDescriptor.cpp"
+    "backend_dx12/GpuResource.cpp"
+    "backend_dx12/DescriptorHeapCollection.cpp"
     LevelEntity.cpp
     ConstantBufferManager.cpp
-    CommandQueue.cpp
-    Techniques.cpp
+    "backend_dx12/CommandQueue.cpp"
+    "backend_dx12/Techniques.cpp"
     RenderQuad.cpp
     RenderObject.cpp
     GpuDataManager.cpp
     MaterialManager.cpp
     RenderMesh.cpp
     SkyBox.cpp
-    DynamicGpuHeap.cpp
+    "backend_dx12/DynamicGpuHeap.cpp"
     SSAO.cpp
-    ImguiHelper.cpp
+    "backend_dx12/ImguiHelper.cpp"
     Console.cpp
-    ConsoleCommands.cpp
+    "ConsoleCommands.cpp"
     Plane.cpp
     Sun.cpp
-    CommandList.cpp
+    "backend_dx12/CommandList.cpp"
     Reflections.cpp
-    Fence.cpp
-    )
+    "backend_dx12/Fence.cpp"
+    "backend_dx12/SwapChain.cpp"
+    "backend_dx12/DxBackend.cpp"
+    "backend_dx12/DxDevice.cpp"
+    "backend_dx12/RootSignature.cpp")
 
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})

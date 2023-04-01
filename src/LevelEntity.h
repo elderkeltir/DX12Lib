@@ -9,7 +9,7 @@
 using Microsoft::WRL::ComPtr;
 
 class RenderModel;
-class CommandList;
+class ICommandList;
 
 class LevelEntity {
 public:
@@ -17,12 +17,12 @@ public:
     LevelEntity(const DirectX::XMFLOAT3 &pos, const DirectX::XMFLOAT3 &rot, const DirectX::XMFLOAT3 &scale);
     virtual void Load(const std::wstring &name);
     virtual void Update(float dt);
-    virtual void Render(CommandList& command_list);
+    virtual void Render(ICommandList* command_list);
     const DirectX::XMFLOAT4X4& GetXform() const { return m_xform; }
     virtual uint32_t GetTechniqueId() const { return m_tech_id; }
     void SetId(uint32_t id) { m_id = id; }
     uint32_t GetId() const { return m_id; }
-    void LoadDataToGpu(CommandList& command_list);
+    void LoadDataToGpu(ICommandList* command_list);
     void SetPos(const DirectX::XMFLOAT3& pos) { m_pos = pos; }
     void SetRot(const DirectX::XMFLOAT3& rot) { m_rot = rot; }
     void SetScale(const DirectX::XMFLOAT3& scale) { m_scale = scale; }

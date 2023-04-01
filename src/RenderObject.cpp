@@ -1,27 +1,27 @@
 #include "RenderObject.h"
-#include "GpuResource.h"
-#include "DXAppImplementation.h"
+#include "IGpuResource.h"
+#include "Frontend.h"
 #include "GpuDataManager.h"
-#include "CommandQueue.h"
+#include "ICommandList.h"
 
-extern DXAppImplementation *gD3DApp;
+extern Frontend* gFrontend;
 
 RenderObject::~RenderObject() {
     DeallocateVertexBuffer();
 }
 
-void RenderObject::LoadIndexDataOnGpu(CommandList& command_list){
+void RenderObject::LoadIndexDataOnGpu(ICommandList* command_list){
     if (m_dirty & db_index && m_mesh->GetIndicesNum()){
-        m_IndexBuffer = std::make_unique<GpuResource>();
+        m_IndexBuffer.reset(CreateGpuResource());
         m_IndexBuffer->CreateBuffer(HeapType::ht_default, (m_mesh->GetIndicesNum() * sizeof(uint16_t)), ResourceState::rs_resource_state_copy_dest, std::wstring(L"index_buffer").append(m_name));
         m_IndexBuffer->LoadBuffer(command_list, m_mesh->GetIndicesNum(), sizeof(uint16_t), m_mesh->GetIndicesData());
-        command_list.ResourceBarrier(*m_IndexBuffer, ResourceState::rs_resource_state_index_buffer);
+        command_list->ResourceBarrier(*m_IndexBuffer, ResourceState::rs_resource_state_index_buffer);
         m_IndexBuffer->Create_Index_View(ResourceFormat::rf_r16_uint, (m_mesh->GetIndicesNum() * sizeof(uint16_t)));
         m_dirty &= (~db_index);
     }
 }
 
-void RenderObject::Loadtexture(CommandList& command_list, GpuResource* res, TextureData* tex_data, const ResourceDesc &tex_desc, const SRVdesc::SRVdimensionType &srv_dim, uint32_t idx) const {
+void RenderObject::Loadtexture(ICommandList* command_list, IGpuResource* res, TextureData* tex_data, const ResourceDesc &tex_desc, const SRVdesc::SRVdimensionType &srv_dim, uint32_t idx) const {
     res->CreateTexture(HeapType::ht_default, tex_desc, ResourceState::rs_resource_state_copy_dest, nullptr, std::wstring(m_name).append(L"model_srv_").append(std::to_wstring(idx)).c_str());
 
     const uint32_t image_count = (uint32_t)tex_data->scratch_image.GetImageCount();
@@ -34,7 +34,7 @@ void RenderObject::Loadtexture(CommandList& command_list, GpuResource* res, Text
         subresource.data = pImages[i].pixels;
     }
     res->LoadBuffer(command_list, 0, (uint32_t)subresources.size(), subresources.data());
-    command_list.ResourceBarrier(*res, ResourceState::rs_resource_state_pixel_shader_resource);
+    command_list->ResourceBarrier(*res, ResourceState::rs_resource_state_pixel_shader_resource);
 
     SRVdesc srv_desc = {};
 
@@ -55,18 +55,18 @@ void RenderObject::Loadtexture(CommandList& command_list, GpuResource* res, Text
 }
 
 void RenderObject::AllocateVertexBuffer(uint32_t size) {
-    if (std::shared_ptr<GpuDataManager> gpu_res_mgr = gD3DApp->GetGpuDataManager().lock()){
+    if (std::shared_ptr<GpuDataManager> gpu_res_mgr = gFrontend->GetGpuDataManager().lock()){
         m_vertex_buffer_start = gpu_res_mgr->AllocateVertexBuffer(size);
         m_vertex_buffer_size = size;
     }
 }
 
 void RenderObject::DeallocateVertexBuffer() {
-    if (!gD3DApp) {
+    if (!gFrontend) {
         return;
     }
     
-    if (std::shared_ptr<GpuDataManager> gpu_res_mgr = gD3DApp->GetGpuDataManager().lock()){
+    if (std::shared_ptr<GpuDataManager> gpu_res_mgr = gFrontend->GetGpuDataManager().lock()){
         gpu_res_mgr->DeallocateVertexBuffer(m_vertex_buffer_start, m_vertex_buffer_size);
         m_vertex_buffer_start = 0ull;
         m_vertex_buffer_size = 0ul;

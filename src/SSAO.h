@@ -7,19 +7,19 @@
 #include <string>
 
 class RenderQuad;
-class GpuResource;
-class CommandList;
+class IGpuResource;
+class ICommandList;
 
 class SSAO {
 public:
 	SSAO();
 	void Initialize(uint32_t width, uint32_t height, std::optional<std::wstring> dbg_name);
-	GpuResource* GetSSAOres(uint32_t id) { assert(id < m_ssao_resurces.size()); return m_ssao_resurces[id].get(); }
-	GpuResource* GetRandomVals() { return m_ssao_quad_random_vals.get(); }
-	void GenerateSSAO(CommandList& command_list, bool gfx = true);
+	IGpuResource* GetSSAOres(uint32_t id) { assert(id < m_ssao_resurces.size()); return m_ssao_resurces[id].get(); }
+	IGpuResource* GetRandomVals() { return m_ssao_quad_random_vals.get(); }
+	void GenerateSSAO(ICommandList* command_list, bool gfx = true);
 
 private:
-	void GenerateRandomValuesTex(CommandList& command_list);
+	void GenerateRandomValuesTex(ICommandList* command_list);
 	void UpdateSsaoCB(uint32_t k_size = 14, float r = 0.25f, float bs = 0.025f, uint32_t noise_size = 4);
 	struct SsaoConstants
 	{
@@ -37,10 +37,10 @@ private:
 		void ComputeWeights(float sigma = 2.5f);
 	};
 
-	std::array<std::unique_ptr<GpuResource>, 3> m_ssao_resurces;
+	std::array<std::unique_ptr<IGpuResource>, 3> m_ssao_resurces;
 
-	std::unique_ptr<GpuResource> m_ssao_quad_random_vals;
-	std::unique_ptr<GpuResource> m_ssao_cb;
+	std::unique_ptr<IGpuResource> m_ssao_quad_random_vals;
+	std::unique_ptr<IGpuResource> m_ssao_cb;
 	std::unique_ptr<SsaoConstants> m_cbuffer_cpu;
 	enum dirty_flag { df_init = 1, df_generate = 1 << 1 };
 	uint8_t m_dirty{ uint8_t(-1) };

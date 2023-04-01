@@ -2,14 +2,10 @@
 
 #include <array>
 #include <DirectXMath.h>
-#include <directx/d3d12.h>
-#include <wrl.h>
 #include "LevelLight.h"
-#include "GpuResource.h"
+#include "IGpuResource.h"
 
-using Microsoft::WRL::ComPtr;
-
-class CommandList;
+class ICommandList;
 
 enum class Constants {
     cCP,                    // camera pos
@@ -28,63 +24,9 @@ enum class Constants {
     cSunP,                  // sun P mx
 };
 
-enum BindingId {
-    bi_model_cb                     = 0,
-    bi_g_buffer_tex_table           = 1,
-    bi_scene_cb                     = 2,
-    bi_vertex_buffer                = 4,
-    bi_materials_cb                 = 3,
-    bi_lights_cb                    = 3,
-    bi_deferred_shading_tex_table   = 1,
-    bi_post_proc_input_tex_table    = 0,
-    bi_ssao_cb                      = 0,
-    bi_ssao_input_tex               = 1,
-    bi_ssao_uav_tex                 = 3,
-    bi_terrain_hm                   = 1,
-    bi_fwd_tex                      = 1,
-    bi_refl_srv                     = 1,
-    bi_refl_uav                     = 3,
-};
 
-enum TextureTableOffset {
-    tto_albedo                      = 0,
-    tto_normals                     = 1,
-    tto_metallic                    = 2,
-    tto_roughness                   = 3,
-    tto_gbuff_albedo                = 0,
-    tto_gbuff_normals               = 1,
-    tto_gbuff_positions             = 2,
-    tto_gbuff_materials             = 3,
-    tto_gbuff_ssao                  = 4,
-    tto_gbuff_sun_sm                = 5,
-    tto_postp_input                 = 0,
-    tto_postp_gui                   = 1,
-    tto_postp_fwd                   = 2,
-    tto_postp_ssao                  = 3,
-    tto_postp_sun_sm                = 4,
-    tto_postp_ssr                   = 5,
-    tto_ssao_depth                  = 0,
-    tto_ssao_normals                = 1,
-    tto_ssao_random_vals            = 2,
-    tto_ssao_positions              = 3,
-    tto_ssao_blur_srv               = 0,
-    tto_ssao_blur_uav               = 0,
-    tto_fwd_skybox                  = 0,
-    tto_vertex_buffer               = 5,
-    tto_refl_normals                = 0,
-    tto_refl_colors                 = 1,
-    tto_refl_materials              = 2,
-    tto_refl_world_poses            = 3,
-    tto_refl_uav                    = 0,
-};
 
-enum ConstantBuffers {
-    cb_model                        = 0,
-    cb_scene                        = 1,
-    cb_lights                       = 2,
-    cb_materials                    = 3,
-    cb_ssao                         = 4,
-};
+
 
 class ConstantBufferManager {
 public:
@@ -95,10 +37,10 @@ public:
     void SetVector4Constant(Constants id, const DirectX::XMVECTOR & vec);
     void SetVector4Constant(Constants id, const DirectX::XMFLOAT4 & vec);
     void SetUint32(Constants id, uint32_t val);
-    void SetModelCB(GpuResource* res) { m_model_cb = res; }
-    void CommitCB(CommandList& command_list, ConstantBuffers id, bool gfx = true);
+    void SetModelCB(IGpuResource* res) { m_model_cb = res; }
+    void CommitCB(ICommandList* command_list, ConstantBuffers id, bool gfx = true);
 
-    static void SyncCpuDataToCB(CommandList& command_list, GpuResource* res, void* cpu_data, uint32_t size, BindingId bind_point, bool gfx = true);
+    static void SyncCpuDataToCB(ICommandList* command_list, IGpuResource* res, void* cpu_data, uint32_t size, BindingId bind_point, bool gfx = true);
 
 public:
     // 1 x 256
@@ -125,6 +67,6 @@ public:
         DirectX::XMFLOAT4X4 SunP;
     };
 
-    GpuResource* m_model_cb;
-    std::array<GpuResource, 2> m_scene_cbs;
+    IGpuResource* m_model_cb;
+    std::array<std::unique_ptr<IGpuResource>, 2> m_scene_cbs;
 };

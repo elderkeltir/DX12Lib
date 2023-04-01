@@ -11,15 +11,13 @@
 #include <rapidjson/stringbuffer.h>
 #include <fstream>
 
-#include "DXHelper.h"
-#include "DXAppImplementation.h"
+#include "Frontend.h"
 #include "RenderModel.h"
 #include "FileManager.h"
 #include "Level.h"
 #include "MaterialManager.h"
-#include "CommandQueue.h"
 
-extern DXAppImplementation *gD3DApp;
+extern Frontend* gFrontend;
 using rapidjson::Document;
 using rapidjson::Value;
 
@@ -36,7 +34,7 @@ void LevelEntity::Load(const std::wstring &name){
     // read file
     std::string content;
     {
-        if (std::shared_ptr<Level> level =  gD3DApp->GetLevel().lock()){
+        if (std::shared_ptr<Level> level =  gFrontend->GetLevel().lock()){
             const std::filesystem::path fullPath = (level->GetEntitiesDir() / name);
             std::ifstream ifs(fullPath.wstring());
             content.assign((std::istreambuf_iterator<char>(ifs)), (std::istreambuf_iterator<char>()));
@@ -52,12 +50,16 @@ void LevelEntity::Load(const std::wstring &name){
 
     const char * model_name_8 = d["model"].GetString();
     const std::wstring model_name(&model_name_8[0], &model_name_8[strlen(model_name_8)]);
-    if (std::shared_ptr<FileManager> fileMgr = gD3DApp->GetFileManager().lock()){
+    if (std::shared_ptr<FileManager> fileMgr = gFrontend->GetFileManager().lock()){
         m_model = fileMgr->LoadModel(model_name);
         m_model->SetName(model_name);
         m_model->SetTechniqueId(m_tech_id);
+        auto temp_hack = [](uint32_t id) {
+            return (id == 0);
+        };
 
-        if (gD3DApp->TechHasColor(m_tech_id)){
+        //if (gFrontend->TechHasColor(m_tech_id)){
+        if (temp_hack(m_tech_id)){
             const Value &color_val = d["color"];
             const DirectX::XMFLOAT3 color(color_val[0].GetFloat(), color_val[1].GetFloat(), color_val[2].GetFloat());
             m_model->SetColor(color);
@@ -67,7 +69,7 @@ void LevelEntity::Load(const std::wstring &name){
 			const Value& metallic = material["metallic"];
 			const Value& roughness = material["roughness"];
             const Value& reflectivity = material["reflectivity"];
-			if (std::shared_ptr<MaterialManager> mat_mgr = gD3DApp->GetMaterialManager().lock()) {
+			if (std::shared_ptr<MaterialManager> mat_mgr = gFrontend->GetMaterialManager().lock()) {
 				uint32_t mat_id = mat_mgr->CreateMaterial(metallic.GetFloat(), roughness.GetFloat(), reflectivity.GetFloat());
 				m_model->SetMaterial(mat_id);
 			}
@@ -85,10 +87,10 @@ void LevelEntity::Update(float dt){
     DirectX::XMStoreFloat4x4(&m_xform, xform);
 }
 
-void LevelEntity::Render(CommandList& command_list){
+void LevelEntity::Render(ICommandList* command_list){
     m_model->Render(command_list, m_xform);
 }
 
-void LevelEntity::LoadDataToGpu(CommandList& command_list) {
+void LevelEntity::LoadDataToGpu(ICommandList* command_list) {
     m_model->LoadDataToGpu(command_list);
 }

@@ -2,7 +2,7 @@
 #include <memory>
 #include <filesystem>
 #include "Level.h"
-#include "DXAppImplementation.h"
+//#include "DXAppImplementation.h"
 
 #if defined(min)
 #undef min
@@ -16,13 +16,12 @@
 #include <rapidjson/stringbuffer.h>
 #include <fstream>
 
-#include "DXHelper.h"
-#include "DXAppImplementation.h"
+#include "Frontend.h"
 #include "RenderModel.h"
 #include "FileManager.h"
 #include "Level.h"
 
-extern DXAppImplementation *gD3DApp;
+extern Frontend *gFrontend;
 using rapidjson::Document;
 using rapidjson::Value;
 
@@ -35,7 +34,7 @@ void SkyBox::Load(const std::wstring &name) {
     // read file
     std::string content;
     {
-        if (std::shared_ptr<Level> level =  gD3DApp->GetLevel().lock()){
+        if (std::shared_ptr<Level> level =  gFrontend->GetLevel().lock()){
             const std::filesystem::path fullPath = (level->GetEntitiesDir() / name);
             std::ifstream ifs(fullPath.wstring());
             content.assign((std::istreambuf_iterator<char>(ifs)), (std::istreambuf_iterator<char>()));
@@ -51,7 +50,7 @@ void SkyBox::Load(const std::wstring &name) {
 
     const char * tex_name_8 = d["texture"].GetString();
     const std::wstring tex_name(&tex_name_8[0], &tex_name_8[strlen(tex_name_8)]);
-    if (std::shared_ptr<FileManager> fileMgr = gD3DApp->GetFileManager().lock()){
+    if (std::shared_ptr<FileManager> fileMgr = gFrontend->GetFileManager().lock()){
         RenderObject * model = nullptr;
         fileMgr->CreateModel(tex_name, FileManager::Geom_type::gt_sphere, model);
         m_model = (RenderModel*)model;
@@ -60,6 +59,6 @@ void SkyBox::Load(const std::wstring &name) {
     }
 }
 
-GpuResource* SkyBox::GetTexture() {
+IGpuResource* SkyBox::GetTexture() {
 	return m_model->GetTexture(RenderObject::TextureType::DiffuseTexture);
 }

@@ -1,20 +1,17 @@
 #include "RenderQuad.h"
-#include "GpuResource.h"
-#include "ResourceDescriptor.h"
-#include "DXHelper.h"
+#include "IGpuResource.h"
 #include "FileManager.h"
-#include "DXAppImplementation.h"
-#include "DXHelper.h"
-#include "RenderMesh.h"
+#include "Frontend.h"
+#include "RenderHelper.h"
 #include "VertexFormats.h"
-#include "CommandQueue.h"
+#include "ICommandList.h"
 
-extern DXAppImplementation *gD3DApp;
+extern Frontend* gFrontend;
 
 static const uint32_t vert_num = 4;
 
 void RenderQuad::Initialize() {
-    if (std::shared_ptr<FileManager> fileMgr = gD3DApp->GetFileManager().lock()){
+    if (std::shared_ptr<FileManager> fileMgr = gFrontend->GetFileManager().lock()){
         RenderObject* obj = (RenderObject*)this;
         fileMgr->CreateModel(L"", FileManager::Geom_type::gt_quad, obj);
     }
@@ -32,11 +29,11 @@ bool RenderQuad::CreateQuadTexture(uint32_t width, uint32_t height, const std::v
         m_textures.resize(texture_num);
         for (uint32_t n = 0; n < texture_num; n++)
         {
-            std::vector<std::shared_ptr<GpuResource>> &set_resources = m_textures[n];
+            std::vector<std::shared_ptr<IGpuResource>> &set_resources = m_textures[n];
             set_resources.resize(formats.size());
             for (uint32_t m = 0; m < formats.size(); m++){
-                set_resources[m] = std::make_shared<GpuResource>();
-                std::shared_ptr<GpuResource>& res = set_resources[m];
+                set_resources[m].reset(CreateGpuResource());
+                std::shared_ptr<IGpuResource>& res = set_resources[m];
 
                 uint32_t res_flags = ResourceDesc::ResourceFlags::rf_allow_render_target;
 
@@ -71,11 +68,11 @@ bool RenderQuad::CreateQuadTexture(uint32_t width, uint32_t height, const std::v
     return true;
 }
 
-std::weak_ptr<GpuResource> RenderQuad::GetRt(uint32_t set_idx, uint32_t idx_in_set) {
+std::weak_ptr<IGpuResource> RenderQuad::GetRt(uint32_t set_idx, uint32_t idx_in_set) {
     return m_textures.at(set_idx).at(idx_in_set);
 }
 
-void RenderQuad::Render(CommandList& command_list) {
-    command_list.SetPrimitiveTopology(PrimitiveTopology::pt_trianglelist);
-    command_list.DrawInstanced(6, 1, 0, 0);
+void RenderQuad::Render(ICommandList* command_list) {
+    command_list->SetPrimitiveTopology(PrimitiveTopology::pt_trianglelist);
+    command_list->DrawInstanced(6, 1, 0, 0);
 }

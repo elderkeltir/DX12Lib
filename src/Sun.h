@@ -1,25 +1,25 @@
 #pragma once
 
 #include <memory>
+#include <array>
 #include <DirectXMath.h>
 
-class GpuResource;
-class CommandQueue;
-class CommandList;
+class IGpuResource;
+class ICommandList;
 
 class Sun {
 public:
-	void Initialize(CommandList& command_list);
+	void Initialize(ICommandList* command_list);
 	void Update(float dt);
-	void SetupShadowMap(CommandList& command_list);
-	GpuResource& GetShadowMap() { return m_shadow_map[m_current_id]; }
+	void SetupShadowMap(ICommandList* command_list);
+	IGpuResource& GetShadowMap() { return *(m_shadow_map[m_current_id]); }
 
 	Sun();
 
 private:
 	static constexpr uint32_t rt_num = 2;
 
-	std::unique_ptr<GpuResource[]> m_shadow_map;
+	std::array<std::unique_ptr<IGpuResource>, rt_num> m_shadow_map;
 	DirectX::XMFLOAT4X4 m_sun_view;
 	DirectX::XMFLOAT4X4 m_sun_projection;
 

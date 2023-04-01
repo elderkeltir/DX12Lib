@@ -12,14 +12,12 @@
 #include <assimp/Importer.hpp>      // C++ importer interface
 #include <assimp/scene.h>           // Output data structure
 #include <assimp/postprocess.h>     // Post processing flags
-
 #include "RenderModel.h"
 #include "RenderQuad.h"
-#include "DXAppImplementation.h"
-#include "DXHelper.h"
+#include "Frontend.h"
 #include "GeomUtils.h"
 
-extern DXAppImplementation *gD3DApp;
+extern Frontend* gFrontend;
 
 static const aiMatrix4x4 identity_mx(
 	1.f, 0.f, 0.f, 0.f,
@@ -27,6 +25,8 @@ static const aiMatrix4x4 identity_mx(
 	0.f, 0.f, 1.f, 0.f,
 	0.f, 0.f, 0.f, 1.f
 );
+
+#define ThrowIfFailed(exp) exp // TODO: hack
 
 static constexpr uint32_t NO_MESH_IDX = (uint32_t)(-1);
 
@@ -96,14 +96,17 @@ void FileManager::TraverseMeshes(const aiScene* scene, aiNode* rootNode, const a
 FileManager::FileManager() : 
 	m_modelImporter(std::make_unique<Assimp::Importer>())
 {
-	m_model_dir = gD3DApp->GetRootDir() / L"content" / L"models";
-	m_texture_dir = gD3DApp->GetRootDir() / L"content" / L"textures";
+	m_model_dir = gFrontend->GetRootDir() / L"content" / L"models";
+	m_texture_dir = gFrontend->GetRootDir() / L"content" / L"textures";
 
 	CreateSphere(m_geoms[gt_sphere].vertices, m_geoms[gt_sphere].indices);
 	m_geoms[gt_sphere].type = gt_sphere;
 	CreateTriangle(m_geoms[gt_triangle].indices);
 	m_geoms[gt_triangle].type = gt_triangle;
 
+	// win32 specific for texture loader lib
+	// TODO: remove damn dx-textures?
+	// or move into backend?
 	ThrowIfFailed(CoInitializeEx(nullptr, COINITBASE_MULTITHREADED));
 }
 
