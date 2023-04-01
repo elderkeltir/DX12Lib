@@ -48,13 +48,9 @@ add_library(backend_dx12 SHARED
     ${THIRD_PARTY_IMGUI_DIR}/backends/imgui_impl_dx12.cpp
     ${THIRD_PARTY_IMGUI_DIR}/backends/imgui_impl_win32.cpp
     #
-
     "ConsoleCommands.cpp"
-    
-
     "Console.cpp"
     "ShaderManager.cpp"
-
     "HeapBuffer.cpp"
     "ResourceDescriptor.cpp"
     "GpuResource.cpp"
@@ -74,12 +70,8 @@ set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
 include(CPack)
 
-#target_compile_options(${PROJECT_NAME} PUBLIC  "/EHsc")
-
-#target_link_options(${PROJECT_NAME} PRIVATE "/entry:WinMainCRTStartup")
 target_link_libraries(${PROJECT_NAME} d3d12.lib)
 target_link_libraries(${PROJECT_NAME} dxgi.lib)
-# target_link_libraries(${PROJECT_NAME} ${CMAKE_BINARY_DIR}/thirdParty/assimp/lib/$<CONFIGURATION>/assimp-vc143-mtd.lib)
 target_link_libraries(${PROJECT_NAME} ${THIRD_PARTY_DIR}/DirectXShaderCompiler/lib/x64/dxcompiler.lib)
 target_link_libraries(${PROJECT_NAME} ${THIRD_PARTY_DIR}/winpixeventruntime/bin/x64/WinPixEventRuntime.lib)
 target_link_libraries(${PROJECT_NAME} DirectX-Guids)

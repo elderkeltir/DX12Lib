@@ -75,7 +75,7 @@ target_link_options(${PROJECT_NAME} PRIVATE "/entry:WinMainCRTStartup")
 # target_link_libraries(${PROJECT_NAME} ${CMAKE_BINARY_DIR}/thirdParty/assimp/lib/$<CONFIGURATION>/assimp-vc143-mtd.lib)
 target_link_libraries(${PROJECT_NAME} assimp)
 
-target_link_libraries(${PROJECT_NAME} DirectX-Guids)
+#target_link_libraries(${PROJECT_NAME} DirectX-Guids)
 target_link_libraries(${PROJECT_NAME} DirectXTex)
 
 target_link_libraries(${PROJECT_NAME} backend_dx12)
