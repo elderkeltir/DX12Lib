@@ -25,7 +25,7 @@ set(THIRD_PARTY_DIR ${ROOT_FOLDER}/../thirdParty)
 include_directories(${PROJECT_SOURCE_DIR})
 include_directories(${PROJECT_SOURCE_DIR}/backend_interface)
 
-include_directories(${THIRD_PARTY_DIR}/DirectXTex/DirectXTex)
+
 include_directories(${THIRD_PARTY_DIR}/assimp/include)
 include_directories(${CMAKE_BINARY_DIR}/thirdParty/assimp/include)
 include_directories(${THIRD_PARTY_DIR}/rapidjson/include)
@@ -76,7 +76,7 @@ target_link_options(${PROJECT_NAME} PRIVATE "/entry:WinMainCRTStartup")
 target_link_libraries(${PROJECT_NAME} assimp)
 
 #target_link_libraries(${PROJECT_NAME} DirectX-Guids)
-target_link_libraries(${PROJECT_NAME} DirectXTex)
+
 
 target_link_libraries(${PROJECT_NAME} backend_dx12)
 

@@ -38,16 +38,15 @@ Frontend::~Frontend()
 {
 }
 
-void Frontend::OnInit(const WindowHandler& hwnd)
+void Frontend::OnInit(const WindowHandler& hwnd, const std::filesystem::path &root_dir)
 {
 	m_start_time = std::chrono::system_clock::now();
 	gFrontend = this;
 
-	ResourceManager::OnInit();
-
 	// create backend
+	ResourceManager::OnInit(root_dir);
 	m_backend.reset(CreateBackend());
-	m_backend->OnInit(hwnd, m_width, m_height, GetRootDir());
+	m_backend->OnInit(hwnd, m_width, m_height, root_dir);
 
 	ConstantBufferManager::OnInit();
 
@@ -62,8 +61,6 @@ void Frontend::OnInit(const WindowHandler& hwnd)
 	m_reflections->Initialize();
 
 	m_gpu_data_mgr->Initialize();
-
-	
 }
 
 void Frontend::OnUpdate()

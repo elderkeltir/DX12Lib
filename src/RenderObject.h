@@ -4,7 +4,7 @@
 #include <vector>
 #include <string>
 #include <memory>
-#include "TextureData.h"
+#include "ITextureLoader.h"
 #include "RenderMesh.h"
 #include "defines.h"
 
@@ -24,11 +24,10 @@ public:
     virtual bool IsInitialized() const { return m_is_initialized; }
     virtual void LoadDataToGpu(ICommandList* command_list) { };
     virtual void SetMesh(RenderMesh * mesh) { m_mesh = mesh; }
-    virtual void SetTexture(TextureData * texture_data, TextureType type) {};
+    virtual void SetTexture(ITextureLoader::TextureData * texture_data, TextureType type) {};
 
 protected:
     virtual void LoadIndexDataOnGpu(ICommandList* command_list);
-    void Loadtexture(ICommandList* command_list, IGpuResource* res, TextureData* tex_data, const ResourceDesc &tex_desc, const SRVdesc::SRVdimensionType &srv_dim, uint32_t idx) const;
     void AllocateVertexBuffer(uint32_t size);
 
     enum dirty_bits {

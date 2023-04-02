@@ -97,17 +97,13 @@ FileManager::FileManager() :
 	m_modelImporter(std::make_unique<Assimp::Importer>())
 {
 	m_model_dir = gFrontend->GetRootDir() / L"content" / L"models";
-	m_texture_dir = gFrontend->GetRootDir() / L"content" / L"textures";
+	m_texture_loader.reset(CreateTextureLoader(gFrontend->GetRootDir()));
+	m_texture_loader->OnInit();
 
 	CreateSphere(m_geoms[gt_sphere].vertices, m_geoms[gt_sphere].indices);
 	m_geoms[gt_sphere].type = gt_sphere;
 	CreateTriangle(m_geoms[gt_triangle].indices);
 	m_geoms[gt_triangle].type = gt_triangle;
-
-	// win32 specific for texture loader lib
-	// TODO: remove damn dx-textures?
-	// or move into backend?
-	ThrowIfFailed(CoInitializeEx(nullptr, COINITBASE_MULTITHREADED));
 }
 
 
@@ -125,10 +121,6 @@ void FileManager::ReadModelFromFBX(const std::wstring &name, uint32_t id, Render
 		aiProcess_Triangulate |
 		aiProcess_SortByPType |
 		aiProcess_ConvertToLeftHanded );
-#ifdef _DEBUG
-	OutputDebugStringA(file_path.u8string().c_str());
-	OutputDebugStringA("\n");
-#endif // _DEBUG
 	if (scene) {
 		aiNode* rootNode = scene->mRootNode;
 		SetupModelRoot(scene, outModel);
@@ -254,8 +246,6 @@ void FileManager::InitializeModel(const aiScene* scene, const aiNode* rootNode, 
 						std::ostringstream ss;
 						ss << rootNode->mName.C_Str() << " << TextureType=" << g << ", count=" << material->GetTextureCount(aiTextureType(g)) << ", name:" << texturePath.C_Str();
 						std::string str = ss.str();
-						OutputDebugStringA(str.c_str());
-						OutputDebugStringA("\n");
 					}
 				}
 #endif // _DEBUG
@@ -275,7 +265,7 @@ void FileManager::InitializeModel(const aiScene* scene, const aiNode* rootNode, 
 						else
 						{
 							const std::wstring texture_path(&texturePath.C_Str()[0], &texturePath.C_Str()[strlen(texturePath.C_Str())]);
-							TextureData *texture_data = LoadTexture(texture_path, diffuse_tex);
+							ITextureLoader::TextureData* texture_data = m_texture_loader->LoadTextureOnCPU(texture_path);
 							assert(texture_data);
 							outModel->SetTexture(texture_data, RenderModel::TextureType::DiffuseTexture);
 						}
@@ -295,7 +285,7 @@ void FileManager::InitializeModel(const aiScene* scene, const aiNode* rootNode, 
 						else
 						{
 							const std::wstring texture_path(&texturePath.C_Str()[0], &texturePath.C_Str()[strlen(texturePath.C_Str())]);
-							TextureData *texture_data = LoadTexture(texture_path, normal_tex);
+							ITextureLoader::TextureData* texture_data = m_texture_loader->LoadTextureOnCPU(texture_path);
 							assert(texture_data);
 							outModel->SetTexture(texture_data, RenderModel::TextureType::NormalTexture);
 						}
@@ -314,7 +304,7 @@ void FileManager::InitializeModel(const aiScene* scene, const aiNode* rootNode, 
 						else
 						{
 							const std::wstring texture_path(&texturePath.C_Str()[0], &texturePath.C_Str()[strlen(texturePath.C_Str())]);
-							TextureData *texture_data = LoadTexture(texture_path, aiTextureType_METALNESS);
+							ITextureLoader::TextureData* texture_data = m_texture_loader->LoadTextureOnCPU(texture_path);
 							assert(texture_data);
 							outModel->SetTexture(texture_data, RenderModel::TextureType::MetallicTexture);
 						}
@@ -334,7 +324,7 @@ void FileManager::InitializeModel(const aiScene* scene, const aiNode* rootNode, 
 						else
 						{
 							const std::wstring texture_path(&texturePath.C_Str()[0], &texturePath.C_Str()[strlen(texturePath.C_Str())]);
-							TextureData* texture_data = LoadTexture(texture_path, roughness_tex);
+							ITextureLoader::TextureData* texture_data = m_texture_loader->LoadTextureOnCPU(texture_path);
 							assert(texture_data);
 							outModel->SetTexture(texture_data, RenderModel::TextureType::RoughTexture);
 						}
@@ -350,6 +340,11 @@ const std::filesystem::path& FileManager::GetModelDir() const{
 	return m_model_dir;
 }
 
+void FileManager::LoadTextureOnGPU(ICommandList* command_list, IGpuResource* res, ITextureLoader::TextureData* tex_data)
+{
+	m_texture_loader->LoadTextureOnGPU(command_list, res, tex_data);
+}
+
 RenderModel* FileManager::LoadModelInternal(const std::wstring &name){
 	uint32_t idx = m_load_models.push_back();
 	RenderModel *new_model = &m_load_models[idx];
@@ -358,42 +353,6 @@ RenderModel* FileManager::LoadModelInternal(const std::wstring &name){
 	assert(new_model->IsInitialized());
 
 	return new_model;
-}
-
-TextureData* FileManager::LoadTexture(const std::wstring &name, uint32_t type){
-	std::filesystem::path related_path(name);
-	//related_path.replace_extension(L".DDS");
-	const std::wstring filename = related_path.filename().wstring();
-
-	const auto it = std::find_if(m_load_textures.begin(), m_load_textures.end(), [&filename](TextureData &texture){ return (texture.name == filename); });
-	if (it != m_load_textures.end()){
-		return &(*it);
-	}
-	else {
-		TextureData *texture = &m_load_textures[m_load_textures.push_back()];
-		texture->name = filename;
-		std::filesystem::path full_path((m_texture_dir / filename));
-		assert(std::filesystem::exists(full_path));
-
-		if (full_path.extension() == ".dds" || full_path.extension() == ".DDS") {
-			ThrowIfFailed(DirectX::LoadFromDDSFile( full_path.wstring().c_str(), DirectX::DDS_FLAGS_NONE, &texture->meta_data, texture->scratch_image));
-		}
-		else if (full_path.extension() == ".hdr" || full_path.extension() == ".HDR") {
-			ThrowIfFailed(DirectX::LoadFromHDRFile( full_path.wstring().c_str(), &texture->meta_data, texture->scratch_image));
-		}
-		else if (full_path.extension() == ".tga" || full_path.extension() == ".TGA") {
-			ThrowIfFailed(DirectX::LoadFromTGAFile( full_path.wstring().c_str(), &texture->meta_data, texture->scratch_image));
-		}
-		else {
-			ThrowIfFailed(DirectX::LoadFromWICFile( full_path.wstring().c_str(), DirectX::WIC_FLAGS_NONE, &texture->meta_data, texture->scratch_image));
-		}
-
-		if ( type == aiTextureType_DIFFUSE || type == aiTextureType_BASE_COLOR)	{
-			texture->meta_data.format = DirectX::MakeSRGB(texture->meta_data.format);
-		}
-
-		return texture;
-	}
 }
 
 void FileManager::CreateModel(const std::wstring &tex_name, Geom_type type, RenderObject*& model) {
@@ -414,7 +373,7 @@ void FileManager::CreateModel(const std::wstring &tex_name, Geom_type type, Rend
 	}
 
 	if (!tex_name.empty()){
-		TextureData *texture_data = LoadTexture(tex_name, aiTextureType_DIFFUSE);
+		ITextureLoader::TextureData* texture_data = m_texture_loader->LoadTextureOnCPU(tex_name);
 		assert(texture_data);
 		model->SetTexture(texture_data, RenderModel::TextureType::DiffuseTexture);
 	}

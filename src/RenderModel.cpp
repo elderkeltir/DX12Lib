@@ -14,8 +14,11 @@
 #include "ITechniques.h"
 #include "defines.h"
 #include "ConstantBufferManager.h"
+#include "Frontend.h"
+#include "Level.h"
+#include "FileManager.h"
 
-extern Frontend *gFrontend;
+extern Frontend* gFrontend;
 
 RenderModel::RenderModel() :
     m_transformations(std::make_unique<Transformations>())
@@ -111,29 +114,10 @@ void RenderModel::LoadTextures(ICommandList* command_list){
         }
 
         if (res && m_dirty & flag){
-            SRVdesc::SRVdimensionType srv_dim = SRVdesc::SRVdimensionType::srv_dt_texture2d;
-            ResourceDesc tex_desc;
-
-            switch (m_textures_data[idx]->meta_data.dimension)
-            {
-                case DirectX::TEX_DIMENSION_TEXTURE1D:
-                    tex_desc = ResourceDesc::tex_1d((ResourceFormat)m_textures_data[idx]->meta_data.format, static_cast<UINT64>( m_textures_data[idx]->meta_data.width ), static_cast<UINT16>(m_textures_data[idx]->meta_data.arraySize) );
-                    srv_dim = SRVdesc::SRVdimensionType::srv_dt_texture1d;
-                    break;
-                case DirectX::TEX_DIMENSION_TEXTURE2D:
-                    tex_desc = ResourceDesc::tex_2d((ResourceFormat)m_textures_data[idx]->meta_data.format, static_cast<UINT64>( m_textures_data[idx]->meta_data.width ), static_cast<UINT>(m_textures_data[idx]->meta_data.height), static_cast<UINT16>(m_textures_data[idx]->meta_data.arraySize) );
-                    srv_dim = (m_textures_data[idx]->meta_data.arraySize > 1) ? SRVdesc::SRVdimensionType::srv_dt_texturecube : SRVdesc::SRVdimensionType::srv_dt_texture2d;
-                    break;
-                case DirectX::TEX_DIMENSION_TEXTURE3D:
-                    srv_dim = SRVdesc::SRVdimensionType::srv_dt_texture3d;
-                    tex_desc = ResourceDesc::tex_3d((ResourceFormat)m_textures_data[idx]->meta_data.format, static_cast<UINT64>( m_textures_data[idx]->meta_data.width ), static_cast<UINT>(m_textures_data[idx]->meta_data.height), static_cast<UINT16>(m_textures_data[idx]->meta_data.depth) );
-                    break;
-                default:
-                    throw std::exception( "Invalid texture dimension." );
-                    break;
+            if (std::shared_ptr<FileManager> fm = gFrontend->GetFileManager().lock()) {
+                fm->LoadTextureOnGPU(command_list, res, m_textures_data[idx]);
             }
-            
-            Loadtexture(command_list, res, m_textures_data[idx], tex_desc, srv_dim, idx);
+
             m_dirty &= (~flag);
         }
     }
@@ -221,7 +205,7 @@ void RenderModel::LoadDataToGpu(ICommandList* command_list){
     }
 }
 
-void RenderModel::SetTexture(TextureData * texture_data, TextureType type){
+void RenderModel::SetTexture(ITextureLoader::TextureData * texture_data, TextureType type){
     m_textures_data[type] = texture_data;
     switch (type){
         case TextureType::DiffuseTexture:

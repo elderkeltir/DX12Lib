@@ -31,7 +31,7 @@ include_directories(${THIRD_PARTY_DIR}/DirectX-Headers/include)
 include_directories(${THIRD_PARTY_DIR}/DirectXShaderCompiler/inc)
 include_directories(${THIRD_PARTY_DIR}/winpixeventruntime/Include)
 include_directories(${THIRD_PARTY_DIR}/imgui)
-
+include_directories(${THIRD_PARTY_DIR}/DirectXTex/DirectXTex)
 # message(STATUS "foo include dir: ${THIRD_PARTY_DIR}/assimp/include")
 # include_directories("C:\\code\\DX12Lib\\thirdParty\\assimp\\include")
 
@@ -64,7 +64,8 @@ add_library(backend_dx12 SHARED
     "SwapChain.cpp"
     "DxBackend.cpp"
     "DxDevice.cpp"
-    "RootSignature.cpp")
+    "RootSignature.cpp"
+    "TextureLoader.cpp")
 
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
@@ -75,6 +76,7 @@ target_link_libraries(${PROJECT_NAME} dxgi.lib)
 target_link_libraries(${PROJECT_NAME} ${THIRD_PARTY_DIR}/DirectXShaderCompiler/lib/x64/dxcompiler.lib)
 target_link_libraries(${PROJECT_NAME} ${THIRD_PARTY_DIR}/winpixeventruntime/bin/x64/WinPixEventRuntime.lib)
 target_link_libraries(${PROJECT_NAME} DirectX-Guids)
+target_link_libraries(${PROJECT_NAME} DirectXTex)
 
 
 # Copy thirdparty bins

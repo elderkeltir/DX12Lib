@@ -42,7 +42,6 @@ WinApplication::WinApplication(uint32_t width, uint32_t height, const std::wstri
 {
 }
 
-// TODO: this whole file seems to be windows specific?
 int WinApplication::Run(HINSTANCE hInstance, int nCmdShow)
 {
     // Parse the command line parameters
@@ -81,7 +80,19 @@ int WinApplication::Run(HINSTANCE hInstance, int nCmdShow)
     // Initialize the sample. OnInit is defined in each child-implementation of DXApp.
     WindowHandler w_hndl;
     w_hndl.ptr = (uint64_t)&m_hwnd;
-    m_frontend->OnInit(w_hndl);
+    std::filesystem::path root_dir;
+
+    // find absolute path
+    wchar_t executablePath[MAX_PATH];
+    HMODULE hModule = GetModuleHandle(NULL);
+    if (hModule)
+    {
+        GetModuleFileName(hModule, executablePath, sizeof(wchar_t) * MAX_PATH);
+        std::filesystem::path p = std::filesystem::path(executablePath);
+        root_dir = p.parent_path().parent_path().parent_path();
+    }
+
+    m_frontend->OnInit(w_hndl, root_dir);
 
     ShowWindow(m_hwnd, nCmdShow);
 

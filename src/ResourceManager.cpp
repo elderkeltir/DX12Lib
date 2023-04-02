@@ -5,20 +5,13 @@
 
 ResourceManager::ResourceManager()
 {
-    // exe path
-    wchar_t executablePath[MAX_PATH];
-    HMODULE hModule = GetModuleHandle(NULL);
-    if (hModule)
-    {
-        GetModuleFileName(hModule, executablePath, sizeof(wchar_t) * MAX_PATH);
-        std::filesystem::path p = std::filesystem::path(executablePath);
-	    m_root_dir = p.parent_path().parent_path().parent_path();
-    }
 }
 
 ResourceManager::~ResourceManager() = default;
 
-void ResourceManager::OnInit(){
+void ResourceManager::OnInit(const std::filesystem::path& root_dir){
+    m_root_dir = root_dir;
+
     m_fileMgr = std::make_shared<FileManager>();
     m_gpu_data_mgr = std::make_shared<GpuDataManager>();
     m_material_mgr = std::make_shared<MaterialManager>();

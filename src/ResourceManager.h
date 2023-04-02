@@ -12,7 +12,7 @@ class ResourceManager {
 public:
     ResourceManager();
     virtual ~ResourceManager();
-    virtual void OnInit();
+    virtual void OnInit(const std::filesystem::path& root_dir);
 
     virtual std::weak_ptr<FileManager> GetFileManager() const { return m_fileMgr; }
     virtual std::weak_ptr<GpuDataManager> GetGpuDataManager() const { return m_gpu_data_mgr; }

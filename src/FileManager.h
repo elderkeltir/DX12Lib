@@ -8,6 +8,7 @@
 #include "simple_object_pool.h"
 #include "RenderModel.h"
 #include "free_allocator.h"
+#include "ITextureLoader.h"
 
 namespace Assimp
 {
@@ -18,6 +19,8 @@ struct aiScene;
 struct aiNode;
 
 class RenderQuad;
+class ICommandList;
+class IGpuResource;
 
 class FileManager
 {
@@ -36,9 +39,11 @@ public:
     RenderModel* LoadModel(const std::wstring &name);
     void CreateModel(const std::wstring &tex_name, Geom_type type, RenderObject* &model);
     const std::filesystem::path& GetModelDir() const;
+
+    void LoadTextureOnGPU(ICommandList* command_list, IGpuResource* res, ITextureLoader::TextureData* tex_data);
 private:
     static constexpr uint32_t meshes_capacity = 256;
-    static constexpr uint32_t textures_capacity = 128;
+
 
     void SetupModelRoot(const aiScene* scene, RenderModel* curr_model);
     void TraverseMeshes(const aiScene* scene, aiNode* rootNode, const aiMatrix4x4 &parent_trans, RenderModel* parent_model);
@@ -46,15 +51,15 @@ private:
     RenderModel* LoadModelInternal(const std::wstring &name);
     void ReadModelFromFBX(const std::wstring &name, uint32_t id, RenderModel* outModel);
     void InitializeModel(const aiScene* scene, const aiNode* rootNode, uint32_t meshesIdx, const aiMatrix4x4 &model_xform, RenderModel* outModel);
-    TextureData*  LoadTexture(const std::wstring &name, uint32_t type);
+    
 
     std::unique_ptr<Assimp::Importer> m_modelImporter;
     pro_game_containers::simple_object_pool<RenderModel, meshes_capacity * 2> m_load_models;
     pro_game_containers::simple_object_pool<RenderMesh, meshes_capacity> m_load_meshes;
-    pro_game_containers::simple_object_pool<TextureData, textures_capacity> m_load_textures;
+    
     std::array<Geom, gt_num> m_geoms;
     //std::array<std::wstring, gt_num> m_geom_name;
 
     std::filesystem::path m_model_dir;
-    std::filesystem::path m_texture_dir;
+    std::unique_ptr<ITextureLoader> m_texture_loader;
 };

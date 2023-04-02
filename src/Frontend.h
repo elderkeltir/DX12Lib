@@ -42,7 +42,7 @@ public:
     Frontend(uint32_t width, uint32_t height, std::wstring name);
     ~Frontend();
 
-    void OnInit(const WindowHandler &hwnd);
+    void OnInit(const WindowHandler &hwnd, const std::filesystem::path& root_dir);
     void OnUpdate();
     void OnRender();
     void OnDestroy();

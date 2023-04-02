@@ -3,6 +3,7 @@
 #include <array>
 #include "simple_object_pool.h"
 #include "RenderObject.h"
+#include "ITextureLoader.h"
 
 class Transformations;
 class ICommandList;
@@ -23,7 +24,7 @@ public:
     void Rotate(const DirectX::XMFLOAT3 &angles);
     void Scale(const DirectX::XMFLOAT3 &scale);
 
-    void SetTexture(TextureData * texture_data, TextureType type) override;
+    void SetTexture(ITextureLoader::TextureData * texture_data, TextureType type) override;
     void SetTechniqueId(uint32_t id) { m_tech_id = id; for(auto &child : m_children) child->SetTechniqueId(id); }
     void SetColor(const DirectX::XMFLOAT3 &color) { m_color = color; for(auto &child : m_children) child->SetColor(color); }
     void SetMaterial(uint32_t id) { m_material_id = id; for(auto &child : m_children) child->SetMaterial(id); }
@@ -42,7 +43,7 @@ private:
     std::unique_ptr<IGpuResource> m_normals_tex;
     std::unique_ptr<IGpuResource> m_metallic_tex;
     std::unique_ptr<IGpuResource> m_roughness_tex;
-    std::array<TextureData*, TextureCount> m_textures_data;
+    std::array<ITextureLoader::TextureData*, TextureCount> m_textures_data;
     std::unique_ptr<Transformations> m_transformations;
     std::vector<RenderModel*> m_children;
     uint32_t m_instance_num{ 1 };
