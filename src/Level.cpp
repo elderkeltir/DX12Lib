@@ -15,7 +15,6 @@
 
 #include "defines.h"
 #include "FreeCamera.h"
-//#include "DXAppImplementation.h"
 #include "FileManager.h"
 #include "IGpuResource.h"
 #include "RenderHelper.h"

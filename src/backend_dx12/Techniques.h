@@ -15,8 +15,11 @@ using Microsoft::WRL::ComPtr;
 
 class Techniques : public ITechniques {
 public:
+    struct TechniqueDx : public ITechniques::Technique {
+        ComPtr<ID3D12PipelineState> pipeline_state;
+    };
     void OnInit(std::optional<std::wstring> dbg_name = std::nullopt) override;
-    const ITechniques::Technique * GetTechniqueById(uint32_t id) const override { return &m_techniques[id]; }
+    const ITechniques::Technique * GetTechniqueById(uint32_t id) const override { return (ITechniques::Technique*)&m_techniques[id]; }
     const IRootSignature* GetRootSignById(uint32_t id) const override { return &m_root_signatures[id]; }
     bool TechHasColor(uint32_t tech_id) override;
     void RebuildShaders(std::optional<std::wstring> dbg_name = std::nullopt) override;
@@ -31,6 +34,6 @@ private:
     static constexpr uint32_t RootSignCount = 16;
     static constexpr uint32_t DescRangeNum = 256;
     pro_game_containers::simple_object_pool<RootSignature, RootSignCount> m_root_signatures;
-    pro_game_containers::simple_object_pool<Technique, TechniquesCount> m_techniques;
+    pro_game_containers::simple_object_pool<TechniqueDx, TechniquesCount> m_techniques;
     pro_game_containers::simple_object_pool <CD3DX12_DESCRIPTOR_RANGE1, DescRangeNum> m_desc_ranges;
 };

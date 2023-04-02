@@ -15,9 +15,6 @@
 #include <directx/d3d12.h>
 #include <dxgi1_6.h>
 #include "WinPixEventRuntime/pix3.h"
-
-
-
 #include <cassert>
 
 DxBackend* gBackend = nullptr;
@@ -74,8 +71,8 @@ void DxBackend::OnInit(const WindowHandler& window_hndl, uint32_t width, uint32_
 	// Queues
 	m_commandQueueGfx.reset(new CommandQueue);
 	m_commandQueueCompute.reset(new CommandQueue);
-	m_commandQueueGfx->OnInit(m_device->GetNativeObject(), ICommandQueue::QueueType::qt_gfx, GfxQueueCmdList_num, L"Gfx");
-	m_commandQueueCompute->OnInit(m_device->GetNativeObject(), ICommandQueue::QueueType::qt_compute, ComputeQueueCmdList_num, L"Compute");
+	m_commandQueueGfx->OnInit(ICommandQueue::QueueType::qt_gfx, GfxQueueCmdList_num, L"Gfx");
+	m_commandQueueCompute->OnInit(ICommandQueue::QueueType::qt_compute, ComputeQueueCmdList_num, L"Compute");
 
 	m_descriptor_heap_collection.swap(std::make_shared<DescriptorHeapCollection>());
 	m_descriptor_heap_collection->Initialize();
@@ -98,10 +95,10 @@ void DxBackend::OnInit(const WindowHandler& window_hndl, uint32_t width, uint32_
 	m_techniques->OnInit();
 
 	m_gui.reset(new ImguiHelper);
-	m_gui->Initialize(m_device->GetNativeObject(), FramesCount);
+	m_gui->Initialize(FramesCount);
 	
 	m_fence_inter_queue.reset(new Fence);
-	m_fence_inter_queue->Initialize(m_device->GetNativeObject(), m_fence_inter_queue_val);
+	m_fence_inter_queue->Initialize(m_fence_inter_queue_val);
 }
 
 uint32_t DxBackend::GetCurrentBackBufferIndex() const

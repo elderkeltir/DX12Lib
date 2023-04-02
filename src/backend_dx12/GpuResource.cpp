@@ -37,7 +37,7 @@ void GpuResource::SetBuffer(ComPtr<ID3D12Resource> res){
         ResetViews();
     }
     m_buffer = std::make_shared<HeapBuffer>();
-    m_buffer->Set(res);
+    ((HeapBuffer*)m_buffer.get())->Set(res);
 }
 
 void GpuResource::LoadBuffer(ICommandList* command_list, uint32_t numElements, uint32_t elementSize, const void* bufferData){

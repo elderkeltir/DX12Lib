@@ -16,7 +16,7 @@ class IFence;
 class CommandQueue : public ICommandQueue {
     friend class DXAppImplementation;
 public:
-    void OnInit(ComPtr<ID3D12Device2> device, QueueType type, uint32_t command_list_num, std::optional<std::wstring> dbg_name = std::nullopt) override;
+    void OnInit(QueueType type, uint32_t command_list_num, std::optional<std::wstring> dbg_name = std::nullopt) override;
     void OnDestroy() override { Flush(); CloseHandle(m_fenceEvent); }
     uint32_t Signal() override;
     void Signal(std::unique_ptr<IFence>& fence, uint32_t fence_value) override;

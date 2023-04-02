@@ -1,5 +1,5 @@
 #include "ImguiHelper.h"
-
+#include <directx/d3dx12.h>
 #include <vector>
 #include "imgui.h"
 #include "backends/imgui_impl_win32.h"
@@ -13,8 +13,8 @@
 #include "Console.h"
 #include "DynamicGpuHeap.h"
 #include "Logger.h"
-
-#include "ICommandList.h"
+#include "CommandList.h"
+#include "DxDevice.h"
 
 extern DxBackend* gBackend;
 
@@ -53,8 +53,9 @@ ImguiHelper::ImguiHelper() :
 	m_commandQueueGfx.reset(new CommandQueue);
 }
 
-void ImguiHelper::Initialize(ComPtr<ID3D12Device2>& device, uint32_t frames_num)
+void ImguiHelper::Initialize(uint32_t frames_num)
 {
+	ComPtr<ID3D12Device2>& device = gBackend->GetDevice()->GetNativeObject();
 	HWND hwnd = *(HWND*)(gBackend->GetSwapChain()->GetWindowHndl().ptr);
 	m_device = device;
 	m_frames_num = frames_num;
@@ -73,7 +74,7 @@ void ImguiHelper::Initialize(ComPtr<ID3D12Device2>& device, uint32_t frames_num)
 	srvuacbvHandle.ptr = cpu_decs.ptr;
 	srvuacbvHandle_gpu.ptr = gpu_desc.ptr;
 
-	m_commandQueueGfx->OnInit(m_device, ICommandQueue::QueueType::qt_gfx, m_frames_num, L"GUI");
+	m_commandQueueGfx->OnInit(ICommandQueue::QueueType::qt_gfx, m_frames_num, L"GUI");
 
 	// Setup Dear ImGui context
 	IMGUI_CHECKVERSION();
@@ -89,7 +90,7 @@ void ImguiHelper::Initialize(ComPtr<ID3D12Device2>& device, uint32_t frames_num)
 	// Setup Platform/Renderer backends
 	ImGui_ImplWin32_Init(hwnd);
 	ImGui_ImplDX12_Init(m_device.Get(), m_frames_num,
-		(DXGI_FORMAT)format, m_gpu_visible_heap->GetVisibleHeap().Get(),
+		(DXGI_FORMAT)format, ((DynamicGpuHeap*)m_gpu_visible_heap.get())->GetVisibleHeap().Get(),
 		srvuacbvHandle,
 		srvuacbvHandle_gpu);
 
@@ -126,7 +127,7 @@ void ImguiHelper::Render(uint32_t frame_id)
 	ICommandList* command_list = m_commandQueueGfx->ResetActiveCL();
 
 	// set gpu heap
-	command_list->SetDescriptorHeap(*m_gpu_visible_heap.get());
+	command_list->SetDescriptorHeap(m_gpu_visible_heap.get());
 
 	UINT backBufferIdx = frame_id;
 	if (IGpuResource* rt = m_rts[frame_id].get()) {
@@ -139,7 +140,7 @@ void ImguiHelper::Render(uint32_t frame_id)
 
 	// Render Dear ImGui graphics
 	ImGui::Render();
-	ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), command_list->GetRawCommandList().Get());
+	ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), ((CommandList*)command_list)->GetRawCommandList().Get());
 
 	if (IGpuResource* rt = m_rts[frame_id].get()) {
 		command_list->ResourceBarrier(*rt, ResourceState::rs_resource_state_pixel_shader_resource);

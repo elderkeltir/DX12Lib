@@ -82,8 +82,8 @@ std::array<const CD3DX12_STATIC_SAMPLER_DESC, 7> GetStaticSamplers()
 
 TODO("Minor. Implement PSO composition and serialization later. maybe.")
 // g-buffer color
-static Techniques::Technique CreateTechnique_0(ComPtr<ID3D12Device2> &device, RootSignature& root_sign, std::optional<std::wstring> dbg_name = std::nullopt){
-    Techniques::Technique tech;
+static Techniques::TechniqueDx CreateTechnique_0(ComPtr<ID3D12Device2> &device, RootSignature& root_sign, std::optional<std::wstring> dbg_name = std::nullopt){
+    Techniques::TechniqueDx tech;
     tech.vs = L"g_buffer_vs.hlsl";
     tech.ps = L"g_buffer_ps.hlsl";
     tech.vertex_type = 0;
@@ -130,8 +130,8 @@ static Techniques::Technique CreateTechnique_0(ComPtr<ID3D12Device2> &device, Ro
     return tech;
 }
 // g-buffer texture
-static Techniques::Technique CreateTechnique_1(ComPtr<ID3D12Device2> &device, RootSignature& root_sign, std::optional<std::wstring> dbg_name = std::nullopt){
-    Techniques::Technique tech;
+static Techniques::TechniqueDx CreateTechnique_1(ComPtr<ID3D12Device2> &device, RootSignature& root_sign, std::optional<std::wstring> dbg_name = std::nullopt){
+    Techniques::TechniqueDx tech;
     tech.vs = L"g_buffer_vs.hlsl";
     tech.ps = L"g_buffer_ps.hlsl";
     tech.vertex_type = 1;
@@ -177,8 +177,8 @@ static Techniques::Technique CreateTechnique_1(ComPtr<ID3D12Device2> &device, Ro
     return tech;
 }
 // post-processing
-static Techniques::Technique CreateTechnique_2(ComPtr<ID3D12Device2> &device, RootSignature& root_sign, std::optional<std::wstring> dbg_name = std::nullopt){
-    Techniques::Technique tech;
+static Techniques::TechniqueDx CreateTechnique_2(ComPtr<ID3D12Device2> &device, RootSignature& root_sign, std::optional<std::wstring> dbg_name = std::nullopt){
+    Techniques::TechniqueDx tech;
     tech.vs = L"quad_screen_vs.hlsl";
     tech.ps = L"post_processing_ps.hlsl";
     tech.vertex_type = 2;
@@ -224,8 +224,8 @@ static Techniques::Technique CreateTechnique_2(ComPtr<ID3D12Device2> &device, Ro
     return tech;
 }
 // def shading
-static Techniques::Technique CreateTechnique_3(ComPtr<ID3D12Device2> &device, RootSignature& root_sign, std::optional<std::wstring> dbg_name = std::nullopt){
-    Techniques::Technique tech;
+static Techniques::TechniqueDx CreateTechnique_3(ComPtr<ID3D12Device2> &device, RootSignature& root_sign, std::optional<std::wstring> dbg_name = std::nullopt){
+    Techniques::TechniqueDx tech;
     tech.vs = L"quad_screen_vs.hlsl";
     tech.ps = L"def_shading_ps.hlsl";
     tech.vertex_type = 2;
@@ -270,8 +270,8 @@ static Techniques::Technique CreateTechnique_3(ComPtr<ID3D12Device2> &device, Ro
     return tech;
 }
 // skybox
-static Techniques::Technique CreateTechnique_4(ComPtr<ID3D12Device2> &device, RootSignature& root_sign, std::optional<std::wstring> dbg_name = std::nullopt){
-    Techniques::Technique tech;
+static Techniques::TechniqueDx CreateTechnique_4(ComPtr<ID3D12Device2> &device, RootSignature& root_sign, std::optional<std::wstring> dbg_name = std::nullopt){
+    Techniques::TechniqueDx tech;
     tech.vs = L"skybox_vs.hlsl";
     tech.ps = L"skybox_ps.hlsl";
     tech.vertex_type = 3;
@@ -328,8 +328,8 @@ static Techniques::Technique CreateTechnique_4(ComPtr<ID3D12Device2> &device, Ro
     return tech;
 }
 // ssao
-static Techniques::Technique CreateTechnique_5(ComPtr<ID3D12Device2>& device, RootSignature& root_sign, std::optional<std::wstring> dbg_name = std::nullopt) {
-	Techniques::Technique tech;
+static Techniques::TechniqueDx CreateTechnique_5(ComPtr<ID3D12Device2>& device, RootSignature& root_sign, std::optional<std::wstring> dbg_name = std::nullopt) {
+	Techniques::TechniqueDx tech;
 	tech.cs = L"ssao_cs.hlsl";
 	tech.root_signature = root_sign.GetRSId();
 
@@ -347,8 +347,8 @@ static Techniques::Technique CreateTechnique_5(ComPtr<ID3D12Device2>& device, Ro
 	return tech;
 }
 // gaussian blur
-static Techniques::Technique CreateTechnique_6(ComPtr<ID3D12Device2>& device, RootSignature& root_sign, std::optional<std::wstring> dbg_name = std::nullopt) {
-	Techniques::Technique tech;
+static Techniques::TechniqueDx CreateTechnique_6(ComPtr<ID3D12Device2>& device, RootSignature& root_sign, std::optional<std::wstring> dbg_name = std::nullopt) {
+	Techniques::TechniqueDx tech;
 	tech.cs = L"gaussian_blur_cs.hlsl";
 	tech.root_signature = root_sign.GetRSId();
 
@@ -366,8 +366,8 @@ static Techniques::Technique CreateTechnique_6(ComPtr<ID3D12Device2>& device, Ro
     return tech;
 }
 // terrain
-static Techniques::Technique CreateTechnique_7(ComPtr<ID3D12Device2>& device, RootSignature& root_sign, std::optional<std::wstring> dbg_name = std::nullopt) {
-	Techniques::Technique tech;
+static Techniques::TechniqueDx CreateTechnique_7(ComPtr<ID3D12Device2>& device, RootSignature& root_sign, std::optional<std::wstring> dbg_name = std::nullopt) {
+	Techniques::TechniqueDx tech;
 	tech.vs = L"terrain_vs.hlsl";
 	tech.ps = L"terrain_ps.hlsl";
 	tech.root_signature = root_sign.GetRSId();
@@ -423,8 +423,8 @@ static Techniques::Technique CreateTechnique_7(ComPtr<ID3D12Device2>& device, Ro
 	return tech;
 }
 // water
-static Techniques::Technique CreateTechnique_8(ComPtr<ID3D12Device2>& device, RootSignature& root_sign, std::optional<std::wstring> dbg_name = std::nullopt) {
-	Techniques::Technique tech;
+static Techniques::TechniqueDx CreateTechnique_8(ComPtr<ID3D12Device2>& device, RootSignature& root_sign, std::optional<std::wstring> dbg_name = std::nullopt) {
+	Techniques::TechniqueDx tech;
 	tech.vs = L"water_vs.hlsl";
 	tech.ps = L"water_ps.hlsl";
 	tech.root_signature = root_sign.GetRSId();
@@ -497,8 +497,8 @@ static Techniques::Technique CreateTechnique_8(ComPtr<ID3D12Device2>& device, Ro
 }
 
 // shadow_map
-static Techniques::Technique CreateTechnique_9(ComPtr<ID3D12Device2>& device, RootSignature& root_sign, std::optional<std::wstring> dbg_name = std::nullopt) {
-	Techniques::Technique tech;
+static Techniques::TechniqueDx CreateTechnique_9(ComPtr<ID3D12Device2>& device, RootSignature& root_sign, std::optional<std::wstring> dbg_name = std::nullopt) {
+	Techniques::TechniqueDx tech;
 	tech.vs = L"shadow_vs.hlsl";
 	tech.ps = L"";
 	tech.root_signature = root_sign.GetRSId();
@@ -547,8 +547,8 @@ static Techniques::Technique CreateTechnique_9(ComPtr<ID3D12Device2>& device, Ro
 	return tech;
 }
 // refl
-static Techniques::Technique CreateTechnique_10(ComPtr<ID3D12Device2>& device, RootSignature& root_sign, std::optional<std::wstring> dbg_name = std::nullopt) {
-    Techniques::Technique tech;
+static Techniques::TechniqueDx CreateTechnique_10(ComPtr<ID3D12Device2>& device, RootSignature& root_sign, std::optional<std::wstring> dbg_name = std::nullopt) {
+    Techniques::TechniqueDx tech;
     tech.cs = L"refl_cs.hlsl";
     tech.root_signature = root_sign.GetRSId();
 

@@ -1,16 +1,12 @@
 #pragma once
 
-#include <wrl.h>
 #include <string>
 #include <optional>
 #include <memory>
 
-using Microsoft::WRL::ComPtr;
-
 class IFence;
 class ICommandList;
 class IDynamicGpuHeap;
-struct ID3D12Device2;
 
 class ICommandQueue {
 public:
@@ -20,7 +16,7 @@ public:
         qt_copy
     };
 
-    virtual void OnInit(ComPtr<ID3D12Device2> device, QueueType type, uint32_t command_list_num, std::optional<std::wstring> dbg_name = std::nullopt) = 0;
+    virtual void OnInit(QueueType type, uint32_t command_list_num, std::optional<std::wstring> dbg_name = std::nullopt) = 0;
     virtual void OnDestroy() = 0;
 
     virtual uint32_t Signal() = 0;

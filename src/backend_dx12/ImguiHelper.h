@@ -2,7 +2,7 @@
 
 #include "IImguiHelper.h"
 #include "IDynamicGpuHeap.h"
-#include <directx/d3dx12.h>
+
 #include <memory>
 #include <array>
 
@@ -12,13 +12,14 @@ using Microsoft::WRL::ComPtr;
 class ICommandQueue;
 class IGpuResource;
 class AppConsole;
+struct ID3D12Device2;
 
 
 class ImguiHelper : public IImguiHelper {
 public:
 	ImguiHelper();
 
-	void Initialize(ComPtr<ID3D12Device2> &device, uint32_t frames_num) override;
+	void Initialize(uint32_t frames_num) override;
 	void Destroy() override;
 	void Render(uint32_t frame_id) override;
 	bool WantCapture(CaptureInput_type type) const override;

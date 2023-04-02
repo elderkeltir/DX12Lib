@@ -2,7 +2,6 @@
 
 #include <memory>
 #include <string>
-#include <wrl.h>
 #include <DirectXMath.h>
 
 

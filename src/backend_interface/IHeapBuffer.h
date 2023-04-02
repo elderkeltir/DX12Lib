@@ -4,10 +4,6 @@
 #include <string>
 #include "defines.h"
 
-#include <wrl.h>
-using Microsoft::WRL::ComPtr;
-struct ID3D12Resource;
-
 class ICommandList;
 
 class IHeapBuffer {
@@ -21,8 +17,4 @@ public:
     virtual uint8_t* Map() = 0;
     virtual void Unmap() = 0;
     virtual void* GetCpuData() = 0;
-
-    // TODO: get rid of dx12 depend
-    virtual void Set(ComPtr<ID3D12Resource> resourse) = 0;
-    virtual ComPtr<ID3D12Resource>& GetResource() = 0;
 };

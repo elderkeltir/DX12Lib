@@ -2,17 +2,12 @@
 
 #include <string>
 #include <optional>
-#include <wrl.h>                // COM helpers.
-using Microsoft::WRL::ComPtr;
-struct ID3D12Device2;
-struct ID3D12PipelineState;
-class IRootSignature;
 
+class IRootSignature;
 
 class ITechniques {
 public:
     struct Technique {
-        ComPtr<ID3D12PipelineState> pipeline_state; // TODO: get rid of it? or use ifdef
         uint32_t root_signature;
         std::wstring vs;
         std::wstring ps;

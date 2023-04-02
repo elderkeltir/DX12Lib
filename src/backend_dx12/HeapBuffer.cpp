@@ -3,7 +3,7 @@
 #include "dx12_helper.h"
 #include <directx/d3d12.h>
 #include "DxBackend.h"
-#include "ICommandList.h"
+#include "CommandList.h"
 #include "DxDevice.h"
 
 extern DxBackend* gBackend;
@@ -92,7 +92,7 @@ void HeapBuffer::Load(ICommandList* command_list, uint32_t numElements, uint32_t
         subresourceData.RowPitch = bufferSize;
         subresourceData.SlicePitch = subresourceData.RowPitch;
 
-        UpdateSubresources(command_list->GetRawCommandList().Get(),
+        UpdateSubresources(((CommandList*)command_list)->GetRawCommandList().Get(),
             m_resourse.Get(), pIntermediateResource.Get(),
             0, 0, 1, &subresourceData);
     }
@@ -118,7 +118,7 @@ void HeapBuffer::Load(ICommandList* command_list, uint32_t firstSubresource, uin
             m_recreate_intermediate_res = !m_recreate_intermediate_res;
         }
 
-        UpdateSubresources(command_list->GetRawCommandList().Get(),
+        UpdateSubresources(((CommandList*)command_list)->GetRawCommandList().Get(),
             m_resourse.Get(), pIntermediateResource.Get(),
             0, firstSubresource, numSubresources, (D3D12_SUBRESOURCE_DATA*)subresourceData);
     }

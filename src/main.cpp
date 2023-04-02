@@ -17,10 +17,6 @@
 #if defined(CreateWindow)
 #undef CreateWindow
 #endif
- 
-// Windows Runtime Library. Needed for Microsoft::WRL::ComPtr<> template class.
-#include <wrl.h>
-using Microsoft::WRL::ComPtr;
 
 #include "WinApplication.h"
 

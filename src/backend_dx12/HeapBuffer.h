@@ -23,8 +23,8 @@ public:
     void* GetCpuData() override { return m_cpu_data; }
     //void Copy(const ICommandList &command_list, HeapBuffer &dest, uint64_t dstOffset, uint64_t srcOffset, uint64_t size);
 
-    void Set(ComPtr<ID3D12Resource> resourse) override { m_resourse = resourse; }
-    ComPtr<ID3D12Resource> &GetResource() override { return m_resourse; }
+    void Set(ComPtr<ID3D12Resource> resourse) { m_resourse = resourse; }
+    ComPtr<ID3D12Resource> &GetResource() { return m_resourse; }
 private:
     ComPtr<ID3D12Resource> m_resourse;
     ComPtr<ID3D12Resource> pIntermediateResource;

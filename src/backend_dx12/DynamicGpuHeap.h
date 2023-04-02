@@ -21,7 +21,7 @@ public:
     void StageDesctriptorInTable(uint32_t root_id, uint32_t offset, const std::shared_ptr<IResourceDescriptor>& desc_handle) override;
     void ReserveDescriptor(CPUdescriptor& cpu_descriptor, GPUdescriptor& gpu_descriptor) override;
     void CommitRootSignature(ICommandList* command_list, bool gfx = true) override;
-    const ComPtr<ID3D12DescriptorHeap>& GetVisibleHeap() const override { return m_visible_heap; }
+    const ComPtr<ID3D12DescriptorHeap>& GetVisibleHeap() const { return m_visible_heap; }
     void Reset() override {
         m_actual_heap_size = 0;
         m_tables_mask ^= m_tables_mask;

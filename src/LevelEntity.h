@@ -2,10 +2,7 @@
 
 #include <string>
 #include <DirectXMath.h>
-#include <wrl.h>
 #include "simple_object_pool.h"
-
-using Microsoft::WRL::ComPtr;
 
 class RenderModel;
 class ICommandList;

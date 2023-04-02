@@ -3,15 +3,12 @@
 #include <memory>
 #include <vector>
 #include "defines.h"
-#include <wrl.h>
-using Microsoft::WRL::ComPtr;
 
 class IHeapBuffer;
 class IGpuResource;
 class ICommandQueue;
 class IDynamicGpuHeap;
 struct IndexVufferView;
-struct ID3D12GraphicsCommandList6;
 
 class ICommandList {
 	friend class ICommandQueue;
@@ -27,7 +24,7 @@ public:
 	virtual void SetPrimitiveTopology(PrimitiveTopology primirive_topology) = 0;
 	virtual void DrawInstanced(uint32_t vertex_per_instance, uint32_t instance_count, uint32_t start_vertex_location, uint32_t start_instance_location) = 0;
 	virtual void DrawIndexedInstanced(uint32_t index_count_per_instance, uint32_t instance_count, uint32_t start_index_location, int32_t base_vertex_location, uint32_t start_instance_location) = 0;
-	virtual void SetDescriptorHeap(const IDynamicGpuHeap& dynamic_heap) = 0;
+	virtual void SetDescriptorHeap(const IDynamicGpuHeap* dynamic_heap) = 0;
 	virtual void SetRenderTargets(const std::vector<IGpuResource*>& resources, IGpuResource* depth_stencil_descriptor) = 0;
 	virtual void ClearRenderTargetView(IGpuResource* res, const float color[4], uint32_t num_rects, const RectScissors* rect) = 0;
 	virtual void ClearRenderTargetView(IGpuResource& res, const float color[4], uint32_t num_rects, const RectScissors* rect) = 0;
@@ -44,6 +41,5 @@ public:
 	virtual uint32_t GetPSO() const = 0;
 	virtual uint32_t GetRootSign() const = 0;
 
-	virtual ComPtr<ID3D12GraphicsCommandList6>& GetRawCommandList() = 0;
 	virtual ICommandQueue* GetQueue() = 0;
 };

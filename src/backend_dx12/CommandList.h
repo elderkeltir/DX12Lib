@@ -6,6 +6,7 @@ using Microsoft::WRL::ComPtr;
 
 #include "IGpuResource.h"
 
+struct ID3D12GraphicsCommandList6;
 class ICommandQueue;
 struct IndexVufferView;
 class IHeapBuffer;
@@ -25,7 +26,7 @@ public:
 	void SetPrimitiveTopology(PrimitiveTopology primirive_topology) override;
 	void DrawInstanced(uint32_t vertex_per_instance, uint32_t instance_count, uint32_t start_vertex_location, uint32_t start_instance_location) override;
 	void DrawIndexedInstanced(uint32_t index_count_per_instance, uint32_t instance_count, uint32_t start_index_location, int32_t base_vertex_location, uint32_t start_instance_location) override;
-	void SetDescriptorHeap(const IDynamicGpuHeap&dynamic_heap) override;
+	void SetDescriptorHeap(const IDynamicGpuHeap*dynamic_heap) override;
 	void SetRenderTargets(const std::vector<IGpuResource*> &resources, IGpuResource* depth_stencil_descriptor) override;
 	void ClearRenderTargetView(IGpuResource* res, const float color[4], uint32_t num_rects, const RectScissors* rect) override;
 	void ClearRenderTargetView(IGpuResource& res, const float color[4], uint32_t num_rects, const RectScissors* rect) override {
@@ -46,7 +47,7 @@ public:
 	uint32_t GetPSO() const  override { return m_pso; }
 	uint32_t GetRootSign() const  override { return m_root_sign; }
 
-	ComPtr<ID3D12GraphicsCommandList6>& GetRawCommandList()  override { return m_command_list; }
+	ComPtr<ID3D12GraphicsCommandList6>& GetRawCommandList() { return m_command_list; }
 	ICommandQueue* GetQueue()  override { return m_queue; }
 private:
 	ComPtr<ID3D12GraphicsCommandList6> m_command_list;

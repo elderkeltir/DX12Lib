@@ -3,13 +3,16 @@
 #include "IGpuResource.h"
 #include "directx/d3dx12.h"
 #include "ResourceDescriptor.h"
-#include "IDynamicGpuHeap.h"
-#include "IHeapBuffer.h"
+#include "DynamicGpuHeap.h"
+#include "HeapBuffer.h"
 #include "DxBackend.h"
 #include <array>
 #include "RootSignature.h"
+#include "Techniques.h"
 
 extern DxBackend* gBackend;
+
+#define GetDxHeap(heap) ((HeapBuffer*)heap.get())
 
 void CommandList::Reset()
 {
@@ -43,18 +46,18 @@ void CommandList::SetComputeRootDescriptorTable(uint32_t root_parameter_index, G
 
 void CommandList::SetGraphicsRootConstantBufferView(uint32_t root_parameter_index, const std::shared_ptr<IHeapBuffer>& buff)
 {
-	m_command_list->SetGraphicsRootConstantBufferView(root_parameter_index, buff->GetResource()->GetGPUVirtualAddress());
+	m_command_list->SetGraphicsRootConstantBufferView(root_parameter_index, GetDxHeap(buff)->GetResource()->GetGPUVirtualAddress());
 }
 
 void CommandList::SetComputeRootConstantBufferView(uint32_t root_parameter_index, const std::shared_ptr<IHeapBuffer>& buff)
 {
-	m_command_list->SetComputeRootConstantBufferView(root_parameter_index, buff->GetResource()->GetGPUVirtualAddress());
+	m_command_list->SetComputeRootConstantBufferView(root_parameter_index, GetDxHeap(buff)->GetResource()->GetGPUVirtualAddress());
 }
 
 void CommandList::SetIndexBuffer(const IndexVufferView* view)
 {
 	D3D12_INDEX_BUFFER_VIEW view_native;
-	view_native.BufferLocation = view->buffer_location->GetResource()->GetGPUVirtualAddress();
+	view_native.BufferLocation = GetDxHeap(view->buffer_location)->GetResource()->GetGPUVirtualAddress();
 	view_native.Format = (DXGI_FORMAT)view->format;
 	view_native.SizeInBytes = view->size_in_bytes;
 
@@ -76,9 +79,9 @@ void CommandList::DrawIndexedInstanced(uint32_t index_count_per_instance, uint32
 	m_command_list->DrawIndexedInstanced(index_count_per_instance, instance_count, start_index_location, base_vertex_location, start_instance_location);
 }
 
-void CommandList::SetDescriptorHeap(const IDynamicGpuHeap& dynamic_heap)
+void CommandList::SetDescriptorHeap(const IDynamicGpuHeap* dynamic_heap)
 {
-    ID3D12DescriptorHeap* descriptorHeaps[] = { dynamic_heap.GetVisibleHeap().Get() };
+    ID3D12DescriptorHeap* descriptorHeaps[] = { ((DynamicGpuHeap*)dynamic_heap)->GetVisibleHeap().Get() };
 	m_command_list->SetDescriptorHeaps(_countof(descriptorHeaps), descriptorHeaps);
 }
 
@@ -127,7 +130,7 @@ void CommandList::Dispatch(uint32_t thread_group_count_x, uint32_t thread_group_
 
 void CommandList::SetGraphicsRootShaderResourceView(uint32_t root_parameter_index, const std::shared_ptr<IHeapBuffer>& buff)
 {
-	m_command_list->SetGraphicsRootShaderResourceView(root_parameter_index, buff->GetResource()->GetGPUVirtualAddress());
+	m_command_list->SetGraphicsRootShaderResourceView(root_parameter_index, GetDxHeap(buff)->GetResource()->GetGPUVirtualAddress());
 }
 
 void CommandList::ResourceBarrier(std::shared_ptr<IGpuResource>& res, uint32_t to) {
@@ -135,7 +138,7 @@ void CommandList::ResourceBarrier(std::shared_ptr<IGpuResource>& res, uint32_t t
         D3D12_RESOURCE_STATES calculated_from = (D3D12_RESOURCE_STATES)res->GetState();
         D3D12_RESOURCE_STATES to_native = (D3D12_RESOURCE_STATES)to;
         if (calculated_from != to_native) {
-            m_command_list->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(buff->GetResource().Get(), calculated_from, to_native));
+            m_command_list->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(GetDxHeap(buff)->GetResource().Get(), calculated_from, to_native));
             res->UpdateState((ResourceState)to);
         }
     }
@@ -146,7 +149,7 @@ void CommandList::ResourceBarrier(IGpuResource& res, uint32_t to) {
         D3D12_RESOURCE_STATES calculated_from = (D3D12_RESOURCE_STATES)res.GetState();
         D3D12_RESOURCE_STATES to_native = (D3D12_RESOURCE_STATES)to;
         if (calculated_from != to_native) {
-            m_command_list->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(buff->GetResource().Get(), calculated_from, to_native));
+            m_command_list->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(GetDxHeap(buff)->GetResource().Get(), calculated_from, to_native));
             res.UpdateState((ResourceState)to);
         }
     }
@@ -160,7 +163,7 @@ void CommandList::ResourceBarrier(std::vector<std::shared_ptr<IGpuResource>>& re
             D3D12_RESOURCE_STATES calculated_from = (D3D12_RESOURCE_STATES)gpu_res->GetState();
             D3D12_RESOURCE_STATES to_native = (D3D12_RESOURCE_STATES)to;
             if (calculated_from != to_native) {
-                resources.push_back(CD3DX12_RESOURCE_BARRIER::Transition(buff->GetResource().Get(), calculated_from, to_native));
+                resources.push_back(CD3DX12_RESOURCE_BARRIER::Transition(GetDxHeap(buff)->GetResource().Get(), calculated_from, to_native));
                 gpu_res->UpdateState((ResourceState)to);
             }
         }
@@ -171,7 +174,7 @@ void CommandList::ResourceBarrier(std::vector<std::shared_ptr<IGpuResource>>& re
 
 void CommandList::SetPSO(uint32_t id) {
     m_pso = id;
-    auto tech = gBackend->GetTechniqueById(id);
+    auto tech = (Techniques::TechniqueDx*)gBackend->GetTechniqueById(id);
 
     m_command_list->SetPipelineState(tech->pipeline_state.Get());
 }

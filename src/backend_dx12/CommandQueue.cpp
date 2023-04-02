@@ -3,11 +3,12 @@
 #include "DynamicGpuHeap.h"
 #include <directx/d3dx12.h>
 #include "RootSignature.h"
-//#include "DXAppImplementation.h"
 #include "Fence.h"
 #include "CommandList.h"
+#include "DxBackend.h"
+#include "DxDevice.h"
 
-extern DXAppImplementation* gD3DApp;
+extern DxBackend* gBackend;
 
 #define GetFence(fence) ((Fence*)fence.get())->GetFence()
 #define GetNativeCmdList() ((CommandList*)m_command_list.get())->m_command_list
@@ -44,7 +45,7 @@ void CommandQueue::WaitOnGPU(std::unique_ptr<IFence> &fence, uint32_t fence_valu
 	}
 }
 
-void CommandQueue::OnInit(ComPtr<ID3D12Device2> device, QueueType type, uint32_t command_list_num, std::optional<std::wstring> dbg_name) {
+void CommandQueue::OnInit(QueueType type, uint32_t command_list_num, std::optional<std::wstring> dbg_name) {
     CommandList* cmd_list = new CommandList;
 
     m_command_list_num = command_list_num;
@@ -65,6 +66,7 @@ void CommandQueue::OnInit(ComPtr<ID3D12Device2> device, QueueType type, uint32_t
     D3D12_COMMAND_QUEUE_DESC queueDesc = {};
     queueDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
     queueDesc.Type = cmd_list_type;
+    ComPtr<ID3D12Device2>& device = gBackend->GetDevice()->GetNativeObject();
     ThrowIfFailed(device->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(&m_commandQueue)));
     SetName(m_commandQueue, dbg_name.value_or(L"").append(L"_direct_queue_" + std::to_wstring((uint32_t)type)).c_str());
 
@@ -77,7 +79,7 @@ void CommandQueue::OnInit(ComPtr<ID3D12Device2> device, QueueType type, uint32_t
     ThrowIfFailed(cmd_list->m_command_list->Close());
 
     m_fence.reset(new Fence);
-    m_fence->Initialize(device, m_fence_value);
+    m_fence->Initialize(m_fence_value);
     SetName(GetFence(m_fence), dbg_name.value_or(L"").append(L"_fence").c_str());
     m_fenceEvent = CreateEvent(nullptr, FALSE, FALSE, nullptr);
     if (m_fenceEvent == nullptr)
@@ -99,7 +101,7 @@ ICommandList* CommandQueue::ResetActiveCL() {
     ThrowIfFailed(GetNativeCmdList()->Reset(m_commandAllocator[m_active_cl].Get(), nullptr));
 
     // set gpu heap
-    m_command_list->SetDescriptorHeap(*m_dynamic_gpu_heaps[m_active_cl]);
+    m_command_list->SetDescriptorHeap(m_dynamic_gpu_heaps[m_active_cl].get());
     m_dynamic_gpu_heaps[m_active_cl]->Reset();
     m_command_list->Reset();
 
