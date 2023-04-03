@@ -1,6 +1,3 @@
-
-
- 
 // The min/max macros conflict with like-named member functions.
 // Only use std::min and std::max defined in <algorithm>.
 #if defined(min)
@@ -27,7 +24,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
     return app.Run(hInstance, nCmdShow);
 }
 #else
+#include "LinApplication.h"
+
 int main() {
-    return error;
+    LinApplication app(1280, 720, L"DX12Lib-linux");
+    return app.Run();
 }
 #endif // WIN32

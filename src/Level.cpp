@@ -49,7 +49,7 @@ void Level::Load(const std::wstring& name) {
     std::string content;
     {
         const std::filesystem::path fullPath = (m_levels_dir / name);
-        std::ifstream ifs(fullPath.wstring());
+        std::ifstream ifs(fullPath.string().c_str());
         content.assign((std::istreambuf_iterator<char>(ifs)), (std::istreambuf_iterator<char>()));
     }
 
@@ -69,7 +69,7 @@ void Level::Load(const std::wstring& name) {
         const Value& camera_near = camera["near"];
         const Value& camera_far = camera["far"];
 
-        m_camera.swap(std::make_shared<FreeCamera>(camera_fov.GetFloat(), camera_near.GetFloat(), camera_far.GetFloat(), gFrontend->GetAspectRatio()));
+        m_camera = std::make_shared<FreeCamera>(camera_fov.GetFloat(), camera_near.GetFloat(), camera_far.GetFloat(), gFrontend->GetAspectRatio());
         m_camera->Move(pos);
         m_camera->Rotate(dir);
     }
@@ -150,7 +150,7 @@ void Level::Load(const std::wstring& name) {
         const Value& skybox = d["skybox"];
         const char* skybox_name_8 = skybox["entity"].GetString();
         const std::wstring skybox_name(&skybox_name_8[0], &skybox_name_8[strlen(skybox_name_8)]);
-        m_skybox_ent.swap(std::make_unique<SkyBox>());
+        m_skybox_ent.reset(new SkyBox);
         m_skybox_ent->Load(skybox_name);
     }
 
@@ -164,7 +164,7 @@ void Level::Load(const std::wstring& name) {
         const uint32_t terrain_dim = terrain["dim"].GetUint();
         const uint32_t terrain_tech_id = terrain["tech_id"].GetUint();
 
-        m_terrain.swap(std::make_unique<Plane>());
+        m_terrain.reset(new Plane);
         m_terrain->Load(terrain_hm_name, terrain_dim, terrain_tech_id, pos);
     }
 
@@ -176,7 +176,7 @@ void Level::Load(const std::wstring& name) {
 		const Value& water_pos = water["pos"];
 		const DirectX::XMFLOAT4 pos(water_pos[0].GetFloat(), water_pos[1].GetFloat(), water_pos[2].GetFloat(), 1);
 
-        m_water.swap(std::make_unique<Plane>());
+        m_water.reset(new Plane);
         m_water->Load(L"", water_dim, water_tech_id, pos);
     }
 }
@@ -195,7 +195,7 @@ void Level::Update(float dt){
 }
 
 void Level::Render(ICommandList* command_list){
-    TODO("Normal! Create Gatherer or RenderScene to avoid this shity code")
+    //TODO("Normal! Create Gatherer or RenderScene to avoid this shity code")
     bool is_scene_constants_set = false;
 
     for (uint32_t id = 0; id < m_entites.size(); id++) {
