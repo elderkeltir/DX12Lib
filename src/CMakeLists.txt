@@ -13,8 +13,10 @@ ADD_DEFINITIONS(-D_DEBUG)
 ADD_DEFINITIONS(-D_WINDOWS)
 set(CMAKE_MFC_FLAG 2)
 else()
+add_definitions(-DVK_USE_PLATFORM_XCB_KHR)
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -D_DEBUG")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
+include_directories(${THIRD_PARTY_DIR}/glfw/include)
 endif()
 
 set(CMAKE_BUILD_PARALLEL_LEVEL 16)
@@ -23,6 +25,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED on)
 set(ROOT_FOLDER ${PROJECT_SOURCE_DIR})
 set(THIRD_PARTY_DIR ${ROOT_FOLDER}/../thirdParty)
 
+
+
 if(WIN32)
 add_executable(${PROJECT_NAME}  WIN32 main.cpp
     WinApplication.cpp
@@ -30,14 +34,11 @@ add_executable(${PROJECT_NAME}  WIN32 main.cpp
     Frontend.cpp
     RenderModel.cpp
     ResourceManager.cpp
-
     Transformations.cpp
     Level.cpp
     FreeCamera.cpp
-
     LevelEntity.cpp
     ConstantBufferManager.cpp
-
     RenderQuad.cpp
     RenderObject.cpp
     GpuDataManager.cpp
@@ -45,7 +46,6 @@ add_executable(${PROJECT_NAME}  WIN32 main.cpp
     RenderMesh.cpp
     SkyBox.cpp
     SSAO.cpp
-
     Plane.cpp
     Sun.cpp
     Reflections.cpp
@@ -53,35 +53,35 @@ add_executable(${PROJECT_NAME}  WIN32 main.cpp
 else()
 add_executable(${PROJECT_NAME}   main.cpp
     LinApplication.cpp
-    FileManager.cpp
-    Frontend.cpp
-    RenderModel.cpp
-    ResourceManager.cpp
-
-    Transformations.cpp
-    Level.cpp
-    FreeCamera.cpp
-
-    LevelEntity.cpp
-    ConstantBufferManager.cpp
-
-    RenderQuad.cpp
-    RenderObject.cpp
-    GpuDataManager.cpp
-    MaterialManager.cpp
-    RenderMesh.cpp
-    SkyBox.cpp
-    SSAO.cpp
-
-    Plane.cpp
-    Sun.cpp
-    Reflections.cpp
+    # FileManager.cpp
+    # Frontend.cpp
+    # RenderModel.cpp
+    # ResourceManager.cpp
+    # Transformations.cpp
+    # Level.cpp
+    # FreeCamera.cpp
+    # LevelEntity.cpp
+    # ConstantBufferManager.cpp
+    # RenderQuad.cpp
+    # RenderObject.cpp
+    # GpuDataManager.cpp
+    # MaterialManager.cpp
+    # RenderMesh.cpp
+    # SkyBox.cpp
+    # SSAO.cpp
+    # Plane.cpp
+    # Sun.cpp
+    # Reflections.cpp
 )
 endif()
 
 if (WIN32)
-target_compile_options(${PROJECT_NAME} PUBLIC  "/EHsc")
+target_compile_options(${PROJECT_NAME} PUBLIC "/EHsc")
 target_link_options(${PROJECT_NAME} PRIVATE "/entry:WinMainCRTStartup")
+else()
+find_package(PkgConfig REQUIRED)
+find_package(Vulkan REQUIRED)
+target_link_libraries(${PROJECT_NAME} Vulkan::Vulkan)
 endif()
 
 target_include_directories(${PROJECT_NAME}  PUBLIC ${THIRD_PARTY_DIR}/rapidjson/include)
@@ -89,10 +89,6 @@ target_include_directories(${PROJECT_NAME}  PUBLIC ${PROJECT_SOURCE_DIR}/backend
 target_include_directories(${PROJECT_NAME}  PUBLIC ${THIRD_PARTY_DIR}/assimp/include)
 target_include_directories(${PROJECT_NAME}  PUBLIC ${CMAKE_BINARY_DIR}/thirdParty/assimp/include)
 target_include_directories(${PROJECT_NAME}  PUBLIC ${THIRD_PARTY_DIR}/DirectXMath/Inc)
-
-
-# target_link_libraries(${PROJECT_NAME} dl)
-# target_link_libraries(${PROJECT_NAME} pthread)
 
 target_link_libraries(${PROJECT_NAME} assimp)
 
@@ -111,4 +107,8 @@ COMMAND ${CMAKE_COMMAND} -E copy_if_different
     "${CMAKE_BINARY_DIR}/src/backend_dx12/backend_dx12d.pdb"
     "${CMAKE_BINARY_DIR}/src"
 )
+else()
+target_link_libraries(${PROJECT_NAME} dl)
+target_link_libraries(${PROJECT_NAME} pthread)
+target_link_libraries(${PROJECT_NAME} glfw)
 endif()

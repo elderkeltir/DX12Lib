@@ -1,5 +1,7 @@
 #pragma once
 
+#ifndef WIN32
+
 #include <cstdint>
 #include <string>
 
@@ -12,3 +14,5 @@ private:
     uint32_t m_height;
     std::wstring m_window_name;
 };
+
+#endif // WIN32
