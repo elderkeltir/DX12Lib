@@ -25,8 +25,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED on)
 set(ROOT_FOLDER ${PROJECT_SOURCE_DIR})
 set(THIRD_PARTY_DIR ${ROOT_FOLDER}/../thirdParty)
 
-
-
 if(WIN32)
 add_executable(${PROJECT_NAME}  WIN32 main.cpp
     WinApplication.cpp
@@ -75,10 +73,18 @@ add_executable(${PROJECT_NAME}   main.cpp
 )
 endif()
 
+if(WIN32)
+add_subdirectory(backend_dx12)
+else()
+add_subdirectory(backend_vk)
+endif()
+
 if (WIN32)
 target_compile_options(${PROJECT_NAME} PUBLIC "/EHsc")
 target_link_options(${PROJECT_NAME} PRIVATE "/entry:WinMainCRTStartup")
+target_link_libraries(${PROJECT_NAME} backend_dx12)
 else()
+target_link_libraries(${PROJECT_NAME} backend_vk)
 find_package(PkgConfig REQUIRED)
 find_package(Vulkan REQUIRED)
 target_link_libraries(${PROJECT_NAME} Vulkan::Vulkan)

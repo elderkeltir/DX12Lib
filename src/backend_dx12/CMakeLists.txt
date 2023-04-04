@@ -39,7 +39,7 @@ include_directories(${THIRD_PARTY_DIR}/DirectXTex/DirectXTex)
 
 
 # source files
-add_library(backend_dx12 SHARED
+add_library(${PROJECT_NAME} SHARED
     # imgui
     ${THIRD_PARTY_IMGUI_DIR}/imgui.cpp
     ${THIRD_PARTY_IMGUI_DIR}/imgui_draw.cpp
@@ -80,7 +80,6 @@ target_link_libraries(${PROJECT_NAME} DirectXTex)
 
 
 # Copy thirdparty bins
-
 set(DXC_BIN_DIR ${THIRD_PARTY_DIR}/DirectXShaderCompiler/bin/x64)
 set(WPER_BIN_DIR ${THIRD_PARTY_DIR}/winpixeventruntime/bin/x64)
 add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
