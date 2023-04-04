@@ -35,7 +35,7 @@ namespace pro_game_containers {
             std::vector<MemoryBlock>::iterator before_block = m_free_spaces.end();
             std::vector<MemoryBlock>::iterator after_block = m_free_spaces.end();
 
-            for (auto &it = m_free_spaces.begin(); it != m_free_spaces.end(); ++it){
+            for (auto it = m_free_spaces.begin(); it != m_free_spaces.end(); ++it){
                 if (it->start == start + size){
                     after_block = it;
                 }

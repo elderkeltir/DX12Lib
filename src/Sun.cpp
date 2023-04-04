@@ -69,11 +69,16 @@ void Sun::Update(float dt)
 
 				DirectX::XMFLOAT3 up3(0, 1,0);
 				DirectX::XMVECTOR up = DirectX::XMLoadFloat3(&up3);
-
-				up = DirectX::XMVector3Normalize(DirectX::XMVectorSubtract(up, DirectX::XMVectorScale(sun_dir, DirectX::XMVector3Dot(sun_dir, up).m128_f32[0])));
-
-				if (up.m128_f32[1] < 0) {
-					up.m128_f32[1] *= -1;
+				DirectX::XMVECTOR dot_vec = DirectX::XMVector3Dot(sun_dir, up);
+				DirectX::XMFLOAT3 dot_vec_f3;
+				DirectX::XMStoreFloat3(&dot_vec_f3, dot_vec);
+				up = DirectX::XMVector3Normalize(DirectX::XMVectorSubtract(up, DirectX::XMVectorScale(sun_dir, dot_vec_f3.x)));
+				
+				DirectX::XMFLOAT3 up_vec_f3;
+				DirectX::XMStoreFloat3(&up_vec_f3, up);
+				if (up_vec_f3.y < 0) {
+					up_vec_f3.y *= -1;
+					up = DirectX::XMLoadFloat3(&up_vec_f3);
 				}
 
 				// V

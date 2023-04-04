@@ -177,7 +177,7 @@ void RenderModel::Render(ICommandList* command_list, const DirectX::XMFLOAT4X4 &
             gFrontend->CommitCB(command_list, cb_model);
         }
 
-        TODO("Major! DrawIndexed should be at upper level where you know there are few such meshes to render")
+        //TODO("Major! DrawIndexed should be at upper level where you know there are few such meshes to render");
         command_list->DrawIndexedInstanced(m_mesh->GetIndicesNum(), m_instance_num, 0, 0, 0);
     }
     DirectX::XMFLOAT4X4 new_parent_xform;

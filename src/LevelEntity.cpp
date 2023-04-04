@@ -36,7 +36,7 @@ void LevelEntity::Load(const std::wstring &name){
     {
         if (std::shared_ptr<Level> level =  gFrontend->GetLevel().lock()){
             const std::filesystem::path fullPath = (level->GetEntitiesDir() / name);
-            std::ifstream ifs(fullPath.wstring());
+            std::ifstream ifs(fullPath.string().c_str());
             content.assign((std::istreambuf_iterator<char>(ifs)), (std::istreambuf_iterator<char>()));
         }
     }

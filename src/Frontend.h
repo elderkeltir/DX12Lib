@@ -3,6 +3,7 @@
 #include <string>
 #include <memory>
 #include <chrono>
+#include <vector>
 
 #include "ResourceManager.h"
 #include "ConstantBufferManager.h"

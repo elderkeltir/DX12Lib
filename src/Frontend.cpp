@@ -232,7 +232,8 @@ void Frontend::UpdateCamera(std::shared_ptr<FreeCamera>& camera, float dt) {
 		const float camera_speed = 30;
 		const DirectX::XMVECTOR dir_vec = neg ? DirectX::XMVectorNegate(DirectX::XMLoadFloat3(&dir)) : DirectX::XMLoadFloat3(&dir);
 		const DirectX::XMVECTOR pos_vec = DirectX::XMLoadFloat3(&pos);
-		DirectX::XMVECTOR new_pos_vec = DirectX::XMVectorMultiplyAdd(dir_vec, DirectX::XMLoadFloat3(&DirectX::XMFLOAT3(camera_speed * dt, camera_speed * dt, camera_speed * dt)), pos_vec);
+		auto mx = DirectX::XMFLOAT3(camera_speed * dt, camera_speed * dt, camera_speed * dt);
+		DirectX::XMVECTOR new_pos_vec = DirectX::XMVectorMultiplyAdd(dir_vec, DirectX::XMLoadFloat3(&mx), pos_vec);
 		camera->Move(new_pos_vec);
 	};
 
