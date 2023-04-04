@@ -10,4 +10,5 @@ public:
     virtual void ReserveRTVhandle(CPUdescriptor& rtvHandle) = 0;
     virtual void ReserveDSVhandle(CPUdescriptor& dsvHandle) = 0;
     virtual void ReserveSRVUAVCBVhandle(CPUdescriptor& srvuacbvHandle) = 0;
+    virtual ~IDescriptorHeapCollection() = default;
 };

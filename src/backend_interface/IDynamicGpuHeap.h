@@ -17,5 +17,5 @@ public:
     virtual void ReserveDescriptor(CPUdescriptor& cpu_descriptor, GPUdescriptor& gpu_descriptor) = 0;
     virtual void CommitRootSignature(ICommandList* command_list, bool gfx = true) = 0;
     virtual void Reset() = 0;
-    virtual ~IDynamicGpuHeap() {}
+    virtual ~IDynamicGpuHeap()  = default;
 };

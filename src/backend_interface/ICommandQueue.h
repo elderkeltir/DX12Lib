@@ -30,5 +30,5 @@ public:
     virtual void ExecuteActiveCL() = 0;
 
     virtual IDynamicGpuHeap& GetGpuHeap() = 0;
-
+    virtual ~ICommandQueue() = default;
 };

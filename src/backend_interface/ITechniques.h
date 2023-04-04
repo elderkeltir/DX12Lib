@@ -29,4 +29,5 @@ public:
     virtual const IRootSignature* GetRootSignById(uint32_t id) const = 0;
     virtual bool TechHasColor(uint32_t tech_id) = 0;
     virtual void RebuildShaders(std::optional<std::wstring> dbg_name = std::nullopt) = 0;
+    virtual ~ITechniques() = default;
 };

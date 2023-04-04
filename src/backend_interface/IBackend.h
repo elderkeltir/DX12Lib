@@ -39,4 +39,5 @@ public:
 	virtual IImguiHelper* GetUI() = 0;
 	virtual bool PassImguiWndProc(const ImguiWindowData& data) = 0;
 	virtual bool ShouldClose() = 0;
+	virtual ~IBackend() = default;
 };

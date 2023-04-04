@@ -42,4 +42,5 @@ public:
 	virtual uint32_t GetRootSign() const = 0;
 
 	virtual ICommandQueue* GetQueue() = 0;
+	virtual ~ICommandList() = default;
 };

@@ -2,6 +2,7 @@
 #include <array>
 #include <type_traits>
 #include <cassert>
+#include <cstdint>
 
 namespace pro_game_containers {
     template <class T, uint32_t capacity>

@@ -39,6 +39,7 @@ public:
 
     virtual ResourceState GetState() const = 0;
     virtual void UpdateState(ResourceState new_state) = 0;
+    virtual ~IGpuResource() = default;
 };
 
 #ifdef _WIN32

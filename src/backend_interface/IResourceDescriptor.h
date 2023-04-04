@@ -21,4 +21,5 @@ public:
 
     virtual CPUdescriptor GetCPUhandle() const = 0;
     virtual ResourceDescriptorType GetType() const = 0;
+    virtual ~IResourceDescriptor() = default;
 };

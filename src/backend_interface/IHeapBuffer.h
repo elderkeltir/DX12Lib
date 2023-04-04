@@ -17,4 +17,6 @@ public:
     virtual uint8_t* Map() = 0;
     virtual void Unmap() = 0;
     virtual void* GetCpuData() = 0;
+
+    virtual ~IHeapBuffer() = default;
 };

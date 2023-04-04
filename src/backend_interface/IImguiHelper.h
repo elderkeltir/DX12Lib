@@ -16,4 +16,5 @@ public:
 	virtual void AddToConsoleLog(const std::string& line) = 0;
 
 	virtual IGpuResource* GetGuiQuad(uint32_t frame_id) = 0;
+	virtual ~IImguiHelper() = default;
 };
