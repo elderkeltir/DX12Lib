@@ -16,3 +16,6 @@
 [submodule "thirdParty/DirectXMath"]
 	path = thirdParty/DirectXMath
 	url = https://github.com/Esentiel/DirectXMath.git
+[submodule "thirdParty/glfw"]
+	path = thirdParty/glfw
+	url = https://github.com/glfw/glfw.git
