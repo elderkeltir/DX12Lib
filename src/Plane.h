@@ -19,5 +19,5 @@ private:
 	DirectX::XMFLOAT4 m_pos;
 	uint32_t m_plane_dim;
 	uint32_t m_tech_id;
-	RenderModel* m_model;
+	RenderModel* m_model{ nullptr };
 };

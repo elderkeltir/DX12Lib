@@ -80,7 +80,7 @@ std::array<const CD3DX12_STATIC_SAMPLER_DESC, 7> GetStaticSamplers()
         depthMapSam };
 }
 
-TODO("Minor. Implement PSO composition and serialization later. maybe.")
+//TODO("Minor. Implement PSO composition and serialization later. maybe.")
 // g-buffer color
 static Techniques::TechniqueDx CreateTechnique_0(ComPtr<ID3D12Device2> &device, RootSignature& root_sign, std::optional<std::wstring> dbg_name = std::nullopt){
     Techniques::TechniqueDx tech;

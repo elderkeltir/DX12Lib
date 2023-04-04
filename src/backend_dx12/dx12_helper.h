@@ -1,8 +1,5 @@
 #pragma once
 
-// include general helpers (todo and others)
-#include "RenderHelper.h"
-
 #include <directx/d3dx12.h>
 #include <stdexcept>
 #include <wrl.h>
