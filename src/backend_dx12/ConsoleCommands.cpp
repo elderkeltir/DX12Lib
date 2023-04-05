@@ -1,6 +1,5 @@
 #include "ConsoleCommands.h"
 
-#include "WinApplication.h"
 #include "DxBackend.h"
 
 extern DxBackend* gBackend;

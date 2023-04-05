@@ -99,6 +99,7 @@ target_include_directories(${PROJECT_NAME}  PUBLIC ${THIRD_PARTY_DIR}/DirectXMat
 target_link_libraries(${PROJECT_NAME} assimp)
 
 if (WIN32)
+set(ASSIMP_BIN_DIR ${CMAKE_BINARY_DIR}/thirdParty/assimp/bin/)
 add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
 COMMAND ${CMAKE_COMMAND} -E copy_if_different
     "${ASSIMP_BIN_DIR}/assimp-vc143-mtd.dll"
