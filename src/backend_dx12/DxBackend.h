@@ -47,7 +47,7 @@ public:
 	const ITechniques::Technique* GetTechniqueById(uint32_t id) const override;
 	const IRootSignature* GetRootSignById(uint32_t id) override;
 	uint32_t GetRenderMode() const override { return m_render_mode; }
-	uint32_t GetFrameCount() const { return FramesCount; }
+	uint32_t GetFrameCount() const override { return FramesCount; }
 	IImguiHelper* GetUI() override { return m_gui.get(); }
 	void RebuildShaders(std::optional<std::wstring> dbg_name = std::nullopt);
 	void SetRenderMode(uint32_t mode) { m_render_mode = mode; }
