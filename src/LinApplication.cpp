@@ -40,6 +40,22 @@ VkInstance createInstance() {
         extensions[i] = glfwxtensions[i];
     }
 	extensions[glfwExtensionsNum] = VK_EXT_DEBUG_UTILS_EXTENSION_NAME;
+	/*
+	// omitted code to initialise the extension
+
+	VkCommandBuffer cmd = ...;
+
+	VkDebugUtilsLabelEXT markerInfo = {};
+	markerInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_LABEL_EXT;
+	markerInfo.pLabelName = "Begin Section";
+	vkCmdBeginDebugUtilsLabelEXT(cmd, &markerInfo);
+
+	// contents of section here
+
+	vkCmdEndDebugUtilsLabelEXT(cmd);
+
+	// queue-level markers can be provided similarly.
+	*/
 
 	createInfo.ppEnabledExtensionNames = extensions.data();
 	createInfo.enabledExtensionCount = extensions.size();
