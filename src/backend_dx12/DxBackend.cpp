@@ -17,6 +17,10 @@
 #include "WinPixEventRuntime/pix3.h"
 #include <cassert>
 
+#if defined(USE_PIX) && defined(USE_PIX_DEBUG)
+#include "PIXapi.h"
+#endif // defined(USE_PIX) && defined(USE_PIX_DEBUG)
+
 DxBackend* gBackend = nullptr;
 
 IBackend* CreateBackend() {
@@ -170,13 +174,13 @@ void DxBackend::RenderUI()
 	m_gui->Render(m_frameIndex);
 }
 
-void DxBackend::PIXbegin(ICommandList* cmd_list, const std::string& name)
+void DxBackend::DebugSectionBegin(ICommandList* cmd_list, const std::string& name)
 {
 	CommandList* cl = (CommandList*)cmd_list;
 	PIXBeginEvent(cl->GetRawCommandList().Get(), PIX_COLOR(55, 120, 55), name.c_str());
 }
 
-void DxBackend::PIXend(ICommandList* cmd_list)
+void DxBackend::DebugSectionEnd(ICommandList* cmd_list)
 {
 	CommandList* cl = (CommandList*)cmd_list;
 	PIXEndEvent(cl->GetRawCommandList().Get());

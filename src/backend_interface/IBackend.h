@@ -30,8 +30,8 @@ public:
 	virtual ICommandList* InitCmdList() = 0;
 	virtual void ChechUpdatedShader() = 0;
 	virtual void RenderUI() = 0;
-	virtual void PIXbegin(ICommandList* cmd_list, const std::string & name) = 0;
-	virtual void PIXend(ICommandList* cmd_list) = 0;
+	virtual void DebugSectionBegin(ICommandList* cmd_list, const std::string & name) = 0;
+	virtual void DebugSectionEnd(ICommandList* cmd_list) = 0;
 	virtual const ITechniques::Technique* GetTechniqueById(uint32_t id) const = 0;
 	virtual const IRootSignature* GetRootSignById(uint32_t id) = 0;
 	virtual uint32_t GetRenderMode() const = 0;

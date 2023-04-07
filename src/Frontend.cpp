@@ -18,8 +18,8 @@
 
 Frontend* gFrontend = nullptr;
 
-#define BEGIN_EVENT(cmd_list, name) m_backend->PIXbegin(cmd_list, name)
-#define END_EVENT(cmd_list) m_backend->PIXend(cmd_list)
+#define BEGIN_EVENT(cmd_list, name) m_backend->DebugSectionBegin(cmd_list, name)
+#define END_EVENT(cmd_list) m_backend->DebugSectionEnd(cmd_list)
 
 Frontend::Frontend(uint32_t width, uint32_t height, std::wstring name) : 
 	m_width(width),

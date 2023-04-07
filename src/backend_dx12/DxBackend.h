@@ -42,8 +42,8 @@ public:
 	ICommandList* InitCmdList() override;
 	void ChechUpdatedShader() override;
 	void RenderUI() override;
-	void PIXbegin(ICommandList* cmd_list, const std::string& name) override;
-	void PIXend(ICommandList* cmd_list) override;
+	void DebugSectionBegin(ICommandList* cmd_list, const std::string& name) override;
+	void DebugSectionEnd(ICommandList* cmd_list) override;
 	const ITechniques::Technique* GetTechniqueById(uint32_t id) const override;
 	const IRootSignature* GetRootSignById(uint32_t id) override;
 	uint32_t GetRenderMode() const override { return m_render_mode; }

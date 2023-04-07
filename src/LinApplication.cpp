@@ -35,21 +35,11 @@ VkInstance createInstance() {
 
     uint32_t glfwExtensionsNum = 0;
 	const char ** glfwxtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionsNum);
-    std::vector<const char*> extensions(glfwExtensionsNum);
+    std::vector<const char*> extensions(glfwExtensionsNum + 1);
     for (size_t i = 0u; i < glfwExtensionsNum; i++){
         extensions[i] = glfwxtensions[i];
     }
-
-
-
-
-	// const char* extensions[] =
-	// {
-	// 	VK_KHR_SURFACE_EXTENSION_NAME,
-
-	// 	VK_KHR_WAYLAND_SURFACE_EXTENSION_NAME,
-
-	// };
+	extensions[glfwExtensionsNum] = VK_EXT_DEBUG_UTILS_EXTENSION_NAME;
 
 	createInfo.ppEnabledExtensionNames = extensions.data();
 	createInfo.enabledExtensionCount = extensions.size();
