@@ -1,0 +1,173 @@
+#include "SwapChain.h"
+#include "VkBackend.h"
+#include "CommandQueue.h"
+#include "vk_helper.h"
+#include "HeapBuffer.h"
+#include "VkDevice.h"
+#include "GpuResource.h"
+
+extern VkBackend* gBackend;
+
+void SwapChain::OnInit(const WindowHandler& window_hndl, uint32_t width, uint32_t height, uint32_t frame_count) {
+    VkDevice device = gBackend->GetDevice()->GetNativeObject();
+    VkPhysicalDevice physical_device = gBackend->GetDevice()->GetPhysicalDevice();
+
+    // TODO: init m_surface?
+    assert(false);
+
+    VkFormat format = GetSwapchainFormat();
+    VkImageAspectFlags aspect = VK_IMAGE_ASPECT_COLOR_BIT;
+    VkImageAspectFlags depth_aspect = VK_IMAGE_ASPECT_DEPTH_BIT;
+
+    CreateSwapChain();
+	assert(m_swap_chain);
+
+    uint32_t imageCount{0};
+	VK_CHECK(vkGetSwapchainImagesKHR(device, m_swap_chain, &imageCount, 0));
+    assert(imageCount == 2);
+
+    std::vector<VkImage> images(imageCount);
+	VK_CHECK(vkGetSwapchainImagesKHR(device, m_swap_chain, &imageCount, images.data()));
+
+	for (uint32_t i = 0; i < imageCount; ++i)
+	{
+        std::unique_ptr<IGpuResource> rt(new GpuResource);
+        if (std::shared_ptr<IHeapBuffer> buf = rt->GetBuffer().lock()){
+            HeapBuffer* buffer = (HeapBuffer*) buf.get();
+            buffer->SetImage(images[i], format, aspect);
+        }
+        rt->CreateRTV();
+
+        m_renderTargets[i].swap(rt);
+	}
+
+	// depth buffer
+    m_depth_stencil.reset(new GpuResource);
+    HeapType h_type; // TODO: fill in
+    ResourceDesc res_desc;
+    res_desc.format = VK_FORMAT_D32_SFLOAT; // TODO: cast to my format
+    res_desc.width = width;
+    res_desc.height = height;
+    m_depth_stencil->CreateTexture(h_type, res_desc, init_state, nullptr, L"depth_buffer"); // TODO: state?
+    DSVdesc depth_desc; // TODO: seems like shit?
+    m_depth_stencil->Create_DSV(depth_desc);
+    SRVdesc srv_desc;
+    m_depth_stencil->Create_SRV(srv_desc);
+
+	m_frame_buffers.resize(imageCount);
+	for (uint32_t i = 0; i < imageCount; ++i)
+	{
+		m_frame_buffers[i] = CreateFramebuffer(m_renderTargets[i]->GetRTV(), m_depth_stencil->GetRTV());
+		assert(m_frame_buffers[i]);
+	}
+}
+
+uint32_t SwapChain::GetCurrentBackBufferIndex() const {
+    return m_current_frame_id;
+}
+
+IGpuResource& SwapChain::GetCurrentBackBuffer() {
+    return *m_renderTargets[m_current_frame_id];
+}
+
+IGpuResource* SwapChain::GetDepthBuffer() {
+    return m_depthStencil.get();
+}
+
+void SwapChain::Present() {
+	VkPresentInfoKHR presentInfo = { VK_STRUCTURE_TYPE_PRESENT_INFO_KHR };
+	presentInfo.waitSemaphoreCount = 1;
+	//presentInfo.pWaitSemaphores = &m_releaseSemaphore; // TODO: ???
+	presentInfo.swapchainCount = 1;
+	presentInfo.pSwapchains = &m_swap_chain;
+	presentInfo.pImageIndices = &m_current_frame_id;
+
+    std::shared_ptr<ICommandQueue>& gfx_queue = gBackend->GetQueue(ICommandQueue::QueueType::qt_gfx);
+    CommandQueue* queue = (CommandQueue*) gfx_queue.get();
+	VK_CHECK(vkQueuePresentKHR(queue->GetNativeObject(), &presentInfo));
+}
+
+void SwapChain::CreateSwapChain(VkFormat format) {
+    VkDevice device = gBackend->GetDevice()->GetNativeObject();
+
+	VkSurfaceCapabilitiesKHR surfaceCaps = GetSurfaceCapabilities();
+	VkCompositeAlphaFlagBitsKHR surfaceComposite =
+		(surfaceCaps.supportedCompositeAlpha & VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR)
+		? VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR
+		: (surfaceCaps.supportedCompositeAlpha & VK_COMPOSITE_ALPHA_PRE_MULTIPLIED_BIT_KHR)
+		? VK_COMPOSITE_ALPHA_PRE_MULTIPLIED_BIT_KHR
+		: (surfaceCaps.supportedCompositeAlpha & VK_COMPOSITE_ALPHA_POST_MULTIPLIED_BIT_KHR)
+		? VK_COMPOSITE_ALPHA_POST_MULTIPLIED_BIT_KHR
+		: VK_COMPOSITE_ALPHA_INHERIT_BIT_KHR;
+
+    assert(surfaceCaps.minImageCount >= 2); // TODO: magic number
+
+    uint32_t family_idx = gBackend->GetDevice()->GetFamilyIndex(true);
+	VkSwapchainCreateInfoKHR createInfo = { VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR };
+	createInfo.surface = m_surface;
+	createInfo.minImageCount = 2; // TODO: magic number
+	createInfo.imageFormat = format;
+	createInfo.imageColorSpace = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR;
+	createInfo.imageExtent.width = m_width;
+	createInfo.imageExtent.height = m_height;
+	createInfo.imageArrayLayers = 1;
+	createInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+	createInfo.queueFamilyIndexCount = 1;
+	createInfo.pQueueFamilyIndices = &family_idx;
+	createInfo.preTransform = VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR;
+	createInfo.compositeAlpha = surfaceComposite;
+	createInfo.presentMode = VK_PRESENT_MODE_FIFO_KHR;
+
+	VK_CHECK(vkCreateSwapchainKHR(device, &createInfo, 0, &m_swap_chain));
+}
+
+VkSurfaceCapabilitiesKHR SwapChain::GetSurfaceCapabilities() const {
+	VkSurfaceCapabilitiesKHR surfaceCaps;
+    VkPhysicalDevice physical_device = gBackend->GetDevice()->GetPhysicalDevice();
+	VK_CHECK(vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physical_device, m_surface, &surfaceCaps));
+
+	return surfaceCaps;
+}
+
+VkFormat SwapChain::GetSwapchainFormat() const{
+    VkPhysicalDevice physical_device = gBackend->GetDevice()->GetPhysicalDevice();
+    assert(false); // TODO: cast vk format into mine, 'cause below code expects mine format type!
+
+	uint32_t formatCount = 0;
+	VK_CHECK(vkGetPhysicalDeviceSurfaceFormatsKHR(physical_device, m_surface, &formatCount, 0));
+	assert(formatCount > 0);
+
+	std::vector<VkSurfaceFormatKHR> formats(formatCount);
+	VK_CHECK(vkGetPhysicalDeviceSurfaceFormatsKHR(physical_device, m_surface, &formatCount, formats.data()));
+
+	if (formatCount == 1 && formats[0].format == VK_FORMAT_UNDEFINED)
+		return VK_FORMAT_R8G8B8A8_UNORM;
+
+	for (uint32_t i = 0; i < formatCount; ++i)
+		if (formats[i].format == VK_FORMAT_R8G8B8A8_UNORM || formats[i].format == VK_FORMAT_B8G8R8A8_UNORM)
+			return formats[i].format;
+
+	return formats[0].format;
+}
+
+VkFramebuffer SwapChain::CreateFramebuffer(std::weak_ptr<IResourceDescriptor> rt, std::weak_ptr<IResourceDescriptor> depth) {
+    VkDevice device = gBackend->GetDevice()->GetNativeObject();
+
+	std::vector<VkImageView> attachments = {
+				imageView,
+				depthImageView
+	};
+
+	VkFramebufferCreateInfo createInfo = { VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO };
+	createInfo.renderPass = r_renderPass;
+	createInfo.attachmentCount = attachments.size();
+	createInfo.pAttachments = attachments.data();
+	createInfo.width = m_width;
+	createInfo.height = m_height;
+	createInfo.layers = 1;
+
+	VkFramebuffer framebuffer = 0;
+	VK_CHECK(vkCreateFramebuffer(device, &createInfo, 0, &framebuffer));
+
+	return framebuffer;
+}

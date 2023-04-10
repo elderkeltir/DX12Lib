@@ -11,7 +11,7 @@ class DescriptorHeapCollection : public IDescriptorHeapCollection {
 public:
     void Initialize(std::optional<std::wstring> dbg_name = std::nullopt) override;
 
-    void ReserveRTVhandle(CPUdescriptor &rtvHandle) override {
+    void ReserveRTVhandle(CCPUdescriptor& rtvHandle, uint64_t data = 0, bool gpu_only = false) override {
         CD3DX12_CPU_DESCRIPTOR_HANDLE hndl;
         assert(m_rtv_actual_size < rtvHeap_size);
         hndl = m_rtvHeap->GetCPUDescriptorHandleForHeapStart();
@@ -20,7 +20,7 @@ public:
         rtvHandle.ptr = hndl.ptr;
     }
     
-    void ReserveDSVhandle(CPUdescriptor &dsvHandle) override {
+    void ReserveDSVhandle(CPUdescriptor& dsvHandle, uint64_t data = 0, bool gpu_only = false) override {
         CD3DX12_CPU_DESCRIPTOR_HANDLE hndl;
         assert(m_dsv_actual_size < dsvHeap_size);
         hndl = m_dsvHeap->GetCPUDescriptorHandleForHeapStart();
@@ -29,7 +29,19 @@ public:
         dsvHandle.ptr = hndl.ptr;
     }
 
-    void ReserveSRVUAVCBVhandle(CPUdescriptor &srvuacbvHandle) override {
+    void ReserveCBVhandle(CPUdescriptor& cbvHandle, uint64_t data = 0, bool gpu_only = false) override {
+        ReserveSRVUAVCBVhandle(uavHandle);
+    }
+
+    void ReserveSRVhandle(CPUdescriptor& srvHandle, uint64_t data = 0, bool gpu_only = false) override {
+        ReserveSRVUAVCBVhandle(uavHandle);
+    }
+
+    void ReserveUAVhandle(CPUdescriptor& uavHandle, uint64_t data = 0, bool gpu_only = false) override {
+        ReserveSRVUAVCBVhandle(uavHandle);
+    }
+
+    void ReserveSRVUAVCBVhandle(CPUdescriptor &srvuacbvHandle, bool gpu_only = false) {
         CD3DX12_CPU_DESCRIPTOR_HANDLE hndl;
             assert(m_srv_uav_actual_size < srvUavCbvHeap_size);
             hndl = m_srvUavCbvHeap->GetCPUDescriptorHandleForHeapStart();

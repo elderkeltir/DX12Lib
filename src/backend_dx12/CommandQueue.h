@@ -22,6 +22,12 @@ public:
     void Signal(std::unique_ptr<IFence>& fence, uint32_t fence_value) override;
     void WaitOnCPU(uint32_t fence_value) override;
     void WaitOnGPU(std::unique_ptr<IFence>& fence, uint32_t fence_value) override;
+
+    // not used
+    void Signal(IFence* fence, bool on_cpu) override {}
+    void WaitOnCPU(IFence* fence) override {}
+    void WaitOnGPU(IFence* fence) override {}
+    //
     void Flush() override;
 
     ICommandList* ResetActiveCL() override;
@@ -30,7 +36,7 @@ public:
 
     IDynamicGpuHeap& GetGpuHeap() override;
 
-    virtual ~CommandQueue();
+    ~CommandQueue() override;
 
     ComPtr<ID3D12CommandQueue>& GetNativeObject() {
         return m_commandQueue;

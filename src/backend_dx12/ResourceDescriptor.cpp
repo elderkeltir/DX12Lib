@@ -47,7 +47,7 @@ bool ResourceDescriptor::Create_DSV(std::weak_ptr<IHeapBuffer> buff, const DSVde
 
 bool ResourceDescriptor::Create_SRV(std::weak_ptr<IHeapBuffer> buff, const SRVdesc &desc){
     if (IDescriptorHeapCollection* descriptorHeapCollection = gBackend->GetDescriptorHeapCollection()){
-        descriptorHeapCollection->ReserveSRVUAVCBVhandle(m_cpu_handle);
+        descriptorHeapCollection->ReserveSRVhandle(m_cpu_handle);
         if (std::shared_ptr<IHeapBuffer> buffer = buff.lock()){
             D3D12_SHADER_RESOURCE_VIEW_DESC srv_desc;
             srv_desc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
@@ -84,7 +84,7 @@ bool ResourceDescriptor::Create_SRV(std::weak_ptr<IHeapBuffer> buff, const SRVde
 
 bool ResourceDescriptor::Create_UAV(std::weak_ptr<IHeapBuffer> buff, const UAVdesc &desc){
     if (IDescriptorHeapCollection* descriptorHeapCollection = gBackend->GetDescriptorHeapCollection()){
-        descriptorHeapCollection->ReserveSRVUAVCBVhandle(m_cpu_handle);
+        descriptorHeapCollection->ReserveUAVhandle(m_cpu_handle);
         if (std::shared_ptr<IHeapBuffer> buffer = buff.lock()){
             D3D12_UNORDERED_ACCESS_VIEW_DESC uav_desc;
             uav_desc.Format = (DXGI_FORMAT)desc.format;
@@ -104,7 +104,7 @@ bool ResourceDescriptor::Create_UAV(std::weak_ptr<IHeapBuffer> buff, const UAVde
 
 bool ResourceDescriptor::Create_CBV(std::weak_ptr<IHeapBuffer> buff, const CBVdesc &desc) {
     if (IDescriptorHeapCollection* descriptorHeapCollection = gBackend->GetDescriptorHeapCollection()){
-        descriptorHeapCollection->ReserveSRVUAVCBVhandle(m_cpu_handle);
+        descriptorHeapCollection->ReserveUAVhandle(m_cpu_handle);
         if (std::shared_ptr<IHeapBuffer> buffer = buff.lock()){
             D3D12_CONSTANT_BUFFER_VIEW_DESC cbv_desc;
             cbv_desc.SizeInBytes = desc.size_in_bytes;

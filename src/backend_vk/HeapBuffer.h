@@ -1,33 +1,45 @@
 #pragma once
 
-#include <cstdint>
 #include "IHeapBuffer.h"
-#include <wrl.h>
-using Microsoft::WRL::ComPtr;
-
-class ICommandList;
-struct ID3D12Resource;
-struct ClearColor;
-struct ResourceDesc;
+#include "VkMemoryHelper.h"
+#include "vk_helper.h"
 
 class HeapBuffer : public IHeapBuffer {
 public:
+    enum BufferResourceType { rt_undef, rt_buffer, rt_texture };
+
     void Create(HeapType type, uint32_t bufferSize, ResourceState initial_state, std::optional<std::wstring> dbg_name = std::nullopt) override;
     void CreateTexture(HeapType type, const ResourceDesc& res_desc, ResourceState initial_state, const ClearColor* clear_val, std::optional<std::wstring> dbg_name = std::nullopt) override;
-    
+
     void Load(ICommandList* command_list, uint32_t numElements, uint32_t elementSize, const void* bufferData) override;
     void Load(ICommandList* command_list, uint32_t firstSubresource, uint32_t numSubresources, SubresourceData* subresourceData) override;
-    
+
     void* Map() override;
     void Unmap() override;
     void* GetCpuData() override { return m_cpu_data; }
-    //void Copy(const ICommandList &command_list, HeapBuffer &dest, uint64_t dstOffset, uint64_t srcOffset, uint64_t size);
 
-    void Set(ComPtr<ID3D12Resource> resourse) { m_resourse = resourse; }
-    ComPtr<ID3D12Resource> &GetResource() { return m_resourse; }
+    BufferResourceType GetVkType() const {
+        return m_type;
+    }
+
+    const BufferMemAllocation& GetBufferInfo(VkDeviceSize &size, VkDeviceSize &offset) const {
+        assert(m_type == BufferResourceType::rt_buffer);
+
+        return m_buffer_allocation;
+    }
+
+    const ImageMemAllocation& GetImageInfo() const {
+        assert(m_type == BufferResourceType::rt_texture);
+
+        return m_image_allocation;
+    }
+
+    void SetImage(VkImage image, VkFormat format, VkImageAspectFlags aspect);
+
 private:
-    ComPtr<ID3D12Resource> m_resourse;
-    ComPtr<ID3D12Resource> pIntermediateResource;
+    BufferResourceType m_type { BufferResourceType::rt_undef };
+    ImageMemAllocation m_image_allocation;
+    BufferMemAllocation m_buffer_allocation;
+
     void* m_cpu_data{nullptr};
-    bool m_recreate_intermediate_res{false};
 };

@@ -14,7 +14,7 @@ public:
     virtual void Load(ICommandList* command_list, uint32_t numElements, uint32_t elementSize, const void* bufferData) = 0;
     virtual void Load(ICommandList* command_list, uint32_t firstSubresource, uint32_t numSubresources, SubresourceData* subresourceData) = 0;
 
-    virtual uint8_t* Map() = 0;
+    virtual void* Map() = 0;
     virtual void Unmap() = 0;
     virtual void* GetCpuData() = 0;
 

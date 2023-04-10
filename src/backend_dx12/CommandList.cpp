@@ -191,3 +191,4 @@ void CommandList::SetRootSign(uint32_t id, bool gfx) {
         m_command_list->SetComputeRootSignature(r.Get());
     }
 }
+

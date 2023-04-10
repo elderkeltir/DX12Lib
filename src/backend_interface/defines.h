@@ -168,11 +168,23 @@ struct ClearColor {
     } depth_tencil;
 };
 
-enum class HeapType {
-    ht_default = 1,
-    ht_upload = 2,
-    ht_readback = 3,
-    ht_custom = 4
+enum HeapType : uint32_t {
+    ht_none                                 = 1 << 0,
+    ht_default                              = 1 << 1,
+    ht_upload                               = 1 << 2,
+    ht_readback                             = 1 << 3,
+    ht_custom                               = 1 << 4,
+    ht_transfer_src                         = 1 << 5,
+    ht_buff_transfer_dst                    = 1 << 6,
+    ht_buff_uniform_buffer                  = 1 << 7,
+    ht_buff_index_buffer                    = 1 << 8,
+    ht_buff_vertex_buffer                   = 1 << 9,
+    ht_image_sampled                        = 1 << 10,
+    ht_image_depth_stencil_attachment       = 1 << 11,
+
+    ht_aspect_color_bit                     = 1 << 24,
+    ht_aspect_depth_bit                     = 1 << 25,
+    ht_aspect_stencil_bit                   = 1 << 26,
 };
 
 struct ResourceViewDesc {
@@ -541,4 +553,3 @@ enum TextureTableOffset {
     tto_refl_world_poses = 3,
     tto_refl_uav = 0,
 };
-

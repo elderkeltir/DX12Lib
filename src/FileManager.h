@@ -7,7 +7,6 @@
 #include <assimp/matrix4x4.h>
 #include "simple_object_pool.h"
 #include "RenderModel.h"
-#include "free_allocator.h"
 #include "ITextureLoader.h"
 
 namespace Assimp

@@ -124,7 +124,7 @@ void HeapBuffer::Load(ICommandList* command_list, uint32_t firstSubresource, uin
     }
 }
 
-uint8_t* HeapBuffer::Map(){
+void* HeapBuffer::Map(){
     BYTE* pData;
     ThrowIfFailed(m_resourse->Map(0, nullptr, reinterpret_cast<void**>(&pData)));
     m_cpu_data = pData;
