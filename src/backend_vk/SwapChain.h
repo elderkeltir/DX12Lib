@@ -24,10 +24,9 @@ private:
 	void CreateSwapChain(VkFormat format);
 	VkSurfaceCapabilitiesKHR GetSurfaceCapabilities() const;
 	VkFormat GetSwapchainFormat() const;
-	VkFramebuffer CreateFramebuffer(std::weak_ptr<IResourceDescriptor> rt, std::weak_ptr<IResourceDescriptor> depth);
 
 	VkSwapchainKHR m_swap_chain;
-	VkSurface m_surface;
+	VkSurfaceKHR m_surface;
 	std::vector<VkFramebuffer> m_frame_buffers;
 
 	std::array<std::unique_ptr<IGpuResource>, 2> m_renderTargets;

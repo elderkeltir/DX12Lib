@@ -1,6 +1,10 @@
 #include "VkBackend.h"
 #include "CommandList.h"
 #include "VkDevice.h"
+#include "GpuResource.h"
+#include "IResourceDescriptor.h"
+#include "SwapChain.h"
+#include "vk_helper.h"
 
 #define GetNativeCmdList(cmd_list) ((CommandList*)cmd_list)->GetNativeObject()
 
@@ -105,3 +109,38 @@ bool VkBackend::ShouldClose() {
 
 }
 
+void VkBackend::CreateFrameBuffer(std::vector<IGpuResource*> &rts, IGpuResource * depth, uint32_t tech_id) {
+	if (rts.empty() && !depth)
+		return;
+
+	uint32_t size = rts.size() + (depth ? 1 : 0);
+	std::vector<VkImageView> attachments(size);
+	for (uint32_t i = 0; i < rts.size(); i++){
+		GpuResource *  rt = (GpuResource*)rts[i];
+		if (std::shared_ptr<IResourceDescriptor> rtv = rt->GetRTV().lock()){
+			attachments[i] = (VkImageView)rtv->GetCPUhandle().ptr;
+		}
+	}
+
+	if (depth) {
+		if (std::shared_ptr<IResourceDescriptor> rtv = depth->GetRTV().lock()){
+			attachments[size - 1] = (VkImageView)rtv->GetCPUhandle().ptr;
+	}
+
+	VkRenderPass rp = GetTechniqueById(tech_id)->render_pass; // TODO: implememnt later
+	VkFramebufferCreateInfo createInfo = { VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO };
+	createInfo.renderPass = rp;
+	createInfo.attachmentCount = attachments.size();
+	createInfo.pAttachments = attachments.data();
+	createInfo.width = m_swap_chain->GetWidth();
+	createInfo.height = m_swap_chain->GetHeight();
+	createInfo.layers = 1;
+
+	VkFramebuffer framebuffer = 0;
+	VkDevice device = m_device->GetNativeObject();
+	VK_CHECK(vkCreateFramebuffer(device, &createInfo, 0, &framebuffer));
+
+	GpuResource *  rt = (GpuResource*) ( !rts.empty() ? rts.front() : depth);
+	rt->SetFrameBuffer(framebuffer);
+	rt->SetRenderPass(rp);
+}

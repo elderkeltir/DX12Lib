@@ -10,7 +10,7 @@ class IDynamicGpuHeap;
 
 class ICommandQueue {
 public:
-    enum class QueueType {
+    enum class QueueType : uint32_t {
         qt_gfx,
         qt_compute,
         qt_copy

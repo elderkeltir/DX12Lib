@@ -1,7 +1,9 @@
 #include "CommandList.h"
 #include "vk_helper.h"
-#include "IGpuResource.h"
+#include "GpuResource.h"
 #include "HeapBuffer.h"
+#include "CommandQueue.h"
+#include "DynamicGpuHeap.h"
 
 VkIndexType CastIndexType(ResourceFormat format) {
     switch(format){
@@ -35,19 +37,17 @@ void CommandList::SetComputeRootDescriptorTable(uint32_t root_parameter_index, G
 }
 
 void CommandList::SetGraphicsRootConstantBufferView(uint32_t root_parameter_index, const std::shared_ptr<IHeapBuffer>& buff) {
-    assert(false);
+    ((DynamicGpuHeap&)m_queue->GetGpuHeap()).StageDesctriptorInTable(root_parameter_index, 0, buff);
 }
 
 void CommandList::SetComputeRootConstantBufferView(uint32_t root_parameter_index, const std::shared_ptr<IHeapBuffer>& buff) {
-    assert(false);
+    ((DynamicGpuHeap&)m_queue->GetGpuHeap()).StageDesctriptorInTable(root_parameter_index, 0, buff);
 }
 
 void CommandList::SetIndexBuffer(const IndexVufferView* view) {
-    // get buffer info
     HeapBuffer* buff = (HeapBuffer*)view->buffer_location.get();
-    VkDeviceSize size, offset;
-    VkBuffer buff_native = buff->GetBufferInfo(size, offset);
-    vkCmdBindIndexBuffer(m_command_list, buff_native, offset, CastIndexType(view->format));
+    BufferMemAllocation buff_native = buff->GetBufferInfo();
+    vkCmdBindIndexBuffer(m_command_list, buff_native.buffer, buff_native.offset, CastIndexType(view->format));
 }
 
 void CommandList::SetPrimitiveTopology(PrimitiveTopology primirive_topology) {
@@ -67,7 +67,33 @@ void CommandList::SetDescriptorHeap(const IDynamicGpuHeap* dynamic_heap) {
 }
 
 void CommandList::SetRenderTargets(const std::vector<IGpuResource*>& resources, IGpuResource* depth_stencil_descriptor) {
-    assert(false); // TODO: maybe something to mix with renderpass, begin render path etx
+    if (m_current_renderpass) {
+        vkCmdEndRenderPass(m_command_list);
+        m_current_renderpass = nullptr;
+    }
+
+    VkClearColorValue color = { 48.f / 255.f, 10.f / 255.f, 36.f / 255.f, 1 };
+	std::vector<VkClearValue> clearValues(resources.size());
+    for (uint32_t i = 0; i < resources.size(); i++){
+	    clearValues[i].color = { color };
+    }
+    if (depth_stencil_descriptor) {
+        clearValues.push_back(VkClearValue());
+        clearValues.back().depthStencil = { 1.0f, 0 };
+    }
+
+    GpuResource *  rt = (GpuResource*) ( !resources.empty() ? resources.front() : depth_stencil_descriptor);
+
+	VkRenderPassBeginInfo passBeginInfo = { VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO };
+	passBeginInfo.renderPass = rt->GetRenderPass();
+	passBeginInfo.framebuffer = rt->GetFrameBuffer();
+	passBeginInfo.renderArea.extent.width = rt->GetResourceDesc().width;
+	passBeginInfo.renderArea.extent.height = rt->GetResourceDesc().height;
+	passBeginInfo.clearValueCount = clearValues.size();
+	passBeginInfo.pClearValues = clearValues.data();
+
+	vkCmdBeginRenderPass(m_command_list, &passBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
+    m_current_renderpass = rt->GetRenderPass();
 }
 
 void CommandList::ClearRenderTargetView(IGpuResource* res, const float color[4], uint32_t num_rects, const RectScissors* rect) {
@@ -91,7 +117,7 @@ void CommandList::Dispatch(uint32_t thread_group_count_x, uint32_t thread_group_
 }
 
 void CommandList::SetGraphicsRootShaderResourceView(uint32_t root_parameter_index, const std::shared_ptr<IHeapBuffer>& buff) {
-    assert(false); // TODO: ???
+    ((DynamicGpuHeap&)m_queue->GetGpuHeap()).StageDesctriptorInTable(root_parameter_index, 0, buff);
 }
 
 void CommandList::ResourceBarrier(std::shared_ptr<IGpuResource>& res, uint32_t to) {

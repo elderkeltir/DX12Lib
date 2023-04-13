@@ -3,6 +3,7 @@
 #include "Fence.h"
 #include "VkBackend.h"
 #include "VkDevice.h"
+#include "DynamicGpuHeap.h"
 
 extern VkBackend* gBackend;
 
@@ -60,6 +61,11 @@ void CommandQueue::OnInit(ICommandQueue::QueueType type, uint32_t command_list_n
 
 	m_fence.reset(new Fence);
 	m_fence->Initialize(0);
+
+	for (uint32_t i = 0; i < 2; i++){
+		m_dynamic_gpu_heaps[i].reset(new DynamicGpuHeap);
+		m_dynamic_gpu_heaps[i]->Initialize((uint32_t)m_type);
+	}
 }
 
 void CommandQueue::OnDestroy() {
@@ -148,8 +154,8 @@ void CommandQueue::ExecuteActiveCL()  {
 	VK_CHECK(vkEndCommandBuffer(((CommandList*)GetActiveCL())->GetNativeObject()));
 }
 
-IDynamicGpuHeap& GetGpuHeap()  {
-	assert(false);
+IDynamicGpuHeap& CommandQueue::GetGpuHeap()  {
+	return *m_dynamic_gpu_heaps[gBackend->GetCurrentBackBufferIndex()];
 }
 
 uint32_t CommandQueue::TestFamilQueueyIndex(uint8_t queueFlags, uint8_t queueNotFlags) {

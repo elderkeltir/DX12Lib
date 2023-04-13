@@ -23,7 +23,7 @@ void DynamicGpuHeap::Initialize(uint32_t frame_id) {
     m_desciptor_size = gBackend->GetDevice()->GetNativeObject()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 }
 
-void DynamicGpuHeap::CacheRootSignature(const IRootSignature * root_sig) {
+void DynamicGpuHeap::CacheRootSignature(const IRootSignature * root_sig, uint32_t tech_id) {
     RootSignature* root_signature = (RootSignature*)root_sig;
     const auto &root_params_vec = root_signature->GetRootParams();
     m_tables_mask = 0;

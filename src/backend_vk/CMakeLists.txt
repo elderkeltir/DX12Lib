@@ -53,6 +53,8 @@ add_library(${PROJECT_NAME} SHARED
     ShaderManager.cpp
     TextureLoader.cpp
     ImguiHelper.cpp
+    RootSignature.cpp
+    DynamicGpuHeap.cpp
 )
 
 find_package(PkgConfig REQUIRED)

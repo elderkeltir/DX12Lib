@@ -318,7 +318,10 @@ void Frontend::PrepareRenderTarget(ICommandList* command_list, IGpuResource& rt,
 
 void Frontend::RenderLevel(ICommandList* command_list) {
 	std::vector<ResourceFormat> formats = { ResourceFormat::rf_r16g16b16a16_float, ResourceFormat::rf_r16g16b16a16_float, ResourceFormat::rf_r16g16b16a16_float, ResourceFormat::rf_r16g16b16a16_float };
-	m_deferred_shading_quad->CreateQuadTexture(m_width, m_height, formats, m_backend->GetFrameCount(), 0, L"m_deferred_shading_quad_");
+	bool create_fb = !m_deferred_shading_quad->CreateQuadTexture(m_width, m_height, formats, m_backend->GetFrameCount(), 0, L"m_deferred_shading_quad_");
+	if (create_fb){
+		m_deferred_shading_quad->CreateFrameBuffer(GetDepthBuffer(), tt_gbuffer);
+	}
 	{
 		std::vector<std::shared_ptr<IGpuResource>>& rts = m_deferred_shading_quad->GetRts(FrameId());
 		command_list->ResourceBarrier(rts, ResourceState::rs_resource_state_render_target);
@@ -402,7 +405,11 @@ void Frontend::RenderPostProcessQuad(ICommandList* command_list) {
 void Frontend::RenderForwardQuad(ICommandList* command_list) {
 	{
 		std::vector<ResourceFormat> formats = { ResourceFormat::rf_r16g16b16a16_float };
-		m_forward_quad->CreateQuadTexture(m_width, m_height, formats, m_backend->GetFrameCount(), 0, L"m_forward_quad_");
+		bool create_fb = !m_forward_quad->CreateQuadTexture(m_width, m_height, formats, m_backend->GetFrameCount(), 0, L"m_forward_quad_");
+		if (create_fb){
+			m_forward_quad->CreateFrameBuffer(GetDepthBuffer(), tt_water);
+		}
+	}
 	}
 
 	if (std::shared_ptr<IGpuResource> rt = m_forward_quad->GetRt(FrameId()).lock()) {
@@ -438,7 +445,10 @@ void Frontend::RenderDeferredShadingQuad(ICommandList* command_list) {
 
 	{
 		std::vector<ResourceFormat> formats = { ResourceFormat::rf_r16g16b16a16_float };
-		m_post_process_quad->CreateQuadTexture(m_width, m_height, formats, m_backend->GetFrameCount(), 0, L"m_post_process_quad_");
+		bool create_fb = !m_post_process_quad->CreateQuadTexture(m_width, m_height, formats, m_backend->GetFrameCount(), 0, L"m_post_process_quad_");
+		if (create_fb){
+			m_post_process_quad->CreateFrameBuffer(nullptr, tt_deferred_shading);
+		}
 		if (std::shared_ptr<IGpuResource> rt = m_post_process_quad->GetRt(FrameId()).lock()) {
 			command_list->ResourceBarrier(rt, ResourceState::rs_resource_state_render_target);
 			PrepareRenderTarget(command_list, m_post_process_quad->GetRts(FrameId()), false);
@@ -658,4 +668,8 @@ const ITechniques::Technique* Frontend::GetTechniqueById(uint32_t id) const
 const IRootSignature* Frontend::GetRootSignById(uint32_t id)
 {
 	return m_backend->GetRootSignById(id);
+}
+
+void Frontend::CreateFrameBuffer(std::vector<IGpuResource*> &rts, IGpuResource * depth, uint32_t tech_id) {
+	m_backend->CreateFrameBuffer(rts, depth, tech_id);
 }

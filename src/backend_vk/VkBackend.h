@@ -34,6 +34,7 @@ public:
 	IImguiHelper* GetUI() override;
 	bool PassImguiWndProc(const ImguiWindowData& data) override;
 	bool ShouldClose() override;
+	void CreateFrameBuffer(std::vector<IGpuResource*> &rts, IGpuResource * depth, uint32_t tech_id) override;
 
 	VkInstance GetInstance() {
 		return m_instance;

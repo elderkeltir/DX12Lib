@@ -11,7 +11,7 @@ public:
     void Initialize();
 
     bool CreateQuadTexture(uint32_t width, uint32_t height, const std::vector<ResourceFormat> &formats, uint32_t texture_num, uint32_t uavs, std::optional<std::wstring> dbg_name = std::nullopt);
-
+    void CreateFrameBuffer(IGpuResource* depth, uint32_t tech_id);
     std::weak_ptr<IGpuResource> GetRt(uint32_t set_idx, uint32_t idx_in_set = 0u);
     std::vector< std::shared_ptr<IGpuResource>>& GetRts(uint32_t set_idx) { return m_textures.at(set_idx); }
     void Render(ICommandList* command_list);

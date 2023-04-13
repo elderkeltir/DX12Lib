@@ -22,7 +22,7 @@ public:
         return m_type;
     }
 
-    const BufferMemAllocation& GetBufferInfo(VkDeviceSize &size, VkDeviceSize &offset) const {
+    const BufferMemAllocation& GetBufferInfo() const {
         assert(m_type == BufferResourceType::rt_buffer);
 
         return m_buffer_allocation;

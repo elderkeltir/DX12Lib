@@ -57,8 +57,8 @@ void SwapChain::OnInit(const WindowHandler& window_hndl, uint32_t width, uint32_
 	m_frame_buffers.resize(imageCount);
 	for (uint32_t i = 0; i < imageCount; ++i)
 	{
-		m_frame_buffers[i] = CreateFramebuffer(m_renderTargets[i]->GetRTV(), m_depth_stencil->GetRTV());
-		assert(m_frame_buffers[i]);
+		std::vector<IGpuResource*> rts{ m_renderTargets[i].get() };
+		gBackend->CreateFrameBuffer(rts, nullptr, tt_postprocessing);
 	}
 }
 
@@ -71,7 +71,7 @@ IGpuResource& SwapChain::GetCurrentBackBuffer() {
 }
 
 IGpuResource* SwapChain::GetDepthBuffer() {
-    return m_depthStencil.get();
+    return m_depth_stencil.get();
 }
 
 void SwapChain::Present() {
@@ -148,26 +148,4 @@ VkFormat SwapChain::GetSwapchainFormat() const{
 			return formats[i].format;
 
 	return formats[0].format;
-}
-
-VkFramebuffer SwapChain::CreateFramebuffer(std::weak_ptr<IResourceDescriptor> rt, std::weak_ptr<IResourceDescriptor> depth) {
-    VkDevice device = gBackend->GetDevice()->GetNativeObject();
-
-	std::vector<VkImageView> attachments = {
-				imageView,
-				depthImageView
-	};
-
-	VkFramebufferCreateInfo createInfo = { VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO };
-	createInfo.renderPass = r_renderPass;
-	createInfo.attachmentCount = attachments.size();
-	createInfo.pAttachments = attachments.data();
-	createInfo.width = m_width;
-	createInfo.height = m_height;
-	createInfo.layers = 1;
-
-	VkFramebuffer framebuffer = 0;
-	VK_CHECK(vkCreateFramebuffer(device, &createInfo, 0, &framebuffer));
-
-	return framebuffer;
 }

@@ -26,6 +26,7 @@ void GpuResource::CreateTexture(HeapType type, const ResourceDesc &res_desc, Res
     m_buffer = std::make_shared<HeapBuffer>();
     m_buffer->CreateTexture(type, res_desc, initial_state, clear_val, dbg_name);
     m_current_state = initial_state;
+    m_res_desc = res_desc;
 }
 
 void GpuResource::LoadBuffer(ICommandList* command_list, uint32_t numElements, uint32_t elementSize, const void* bufferData){

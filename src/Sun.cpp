@@ -6,6 +6,7 @@
 #include "Frontend.h"
 #include "FreeCamera.h"
 #include "IDynamicGpuHeap.h"
+#include "ITechniques.h"
 
 extern Frontend* gFrontend;
 
@@ -40,6 +41,10 @@ void Sun::Initialize(ICommandList* command_list)
 			srv_desc.texture2d.mip_levels = 1;
 			srv_desc.texture2d.res_min_lod_clamp = 0.0f;
 			m_shadow_map[i]->Create_SRV(srv_desc);
+
+			// FB
+			std::vector<IGpuResource*> rts;
+			gFrontend->CreateFrameBuffer(rts, m_shadow_map[i].get(), ITechniques::TecnhinueType::tt_shadow_map);
 		}
 
 		m_dirty &= (~df_init);

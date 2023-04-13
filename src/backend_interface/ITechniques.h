@@ -16,10 +16,15 @@ public:
         uint32_t id;
     };
     enum TecnhinueType {
+        tt_gbuffer = 0,
+        tt_gbuffer_textures = 1,
         tt_post_processing = 2,
         tt_deferred_shading = 3,
+        tt_skybox = 4,
         tt_ssao = 5,
         tt_blur = 6,
+        tt_terrain = 7,
+        tt_water = 8,
         tt_shadow_map = 9,
         tt_reflection_map = 10,
     };

@@ -17,7 +17,7 @@ class IResourceDescriptor;
 class DynamicGpuHeap : public IDynamicGpuHeap {
 public:
     void Initialize(uint32_t frame_id) override;
-    void CacheRootSignature(const IRootSignature* root_sig) override;
+    void CacheRootSignature(const IRootSignature* root_sig, uint32_t tech_id = 0) override;
     void StageDesctriptorInTable(uint32_t root_id, uint32_t offset, const std::shared_ptr<IResourceDescriptor>& desc_handle) override;
     void ReserveDescriptor(CPUdescriptor& cpu_descriptor, GPUdescriptor& gpu_descriptor) override;
     void CommitRootSignature(ICommandList* command_list, bool gfx = true) override;

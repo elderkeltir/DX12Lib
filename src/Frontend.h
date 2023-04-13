@@ -75,6 +75,8 @@ public:
     bool PassImguiWndProc(const ImguiWindowData &data);
     
     bool ShouldClose() const;
+
+    void CreateFrameBuffer(std::vector<IGpuResource*> &rts, IGpuResource * depth, uint32_t tech_id);
 protected:
     void UpdateCamera(std::shared_ptr<FreeCamera>& camera, float dt);
     void PrepareRenderTarget(ICommandList* command_list, const std::vector<std::shared_ptr<IGpuResource>>& rt, bool set_dsv = true, bool clear_dsv = true);

@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <memory>
 #include <string>
+#include <vector>
 #include <filesystem>
 #include "ICommandQueue.h"
 #include "ITechniques.h"
@@ -39,5 +40,6 @@ public:
 	virtual IImguiHelper* GetUI() = 0;
 	virtual bool PassImguiWndProc(const ImguiWindowData& data) = 0;
 	virtual bool ShouldClose() = 0;
+	virtual void CreateFrameBuffer(std::vector<IGpuResource*> &rts, IGpuResource * depth, uint32_t tech_id) = 0;
 	virtual ~IBackend() = default;
 };

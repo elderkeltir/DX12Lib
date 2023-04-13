@@ -27,17 +27,20 @@ void DescriptorHeapCollection::Initialize(std::optional<std::wstring> dbg_name) 
 	poolInfo.pPoolSizes = poolSizes.data();
 	poolInfo.maxSets = uint32_t(srv_img_desc_count + uav_img_desc_count + srv_buf_desc_count + cbv_buf_desc_count + uav_buf_desc_count);
 
-	vkCreateDescriptorPool(device, &poolInfo, nullptr, &m_pool_cpu);
+	for (uint32_t i = 0; i < frame_num * 2; i++){
+		vkCreateDescriptorPool(device, &poolInfo, nullptr, &m_pool_cpu[i]);
 
-    poolInfo.flags = VK_DESCRIPTOR_POOL_CREATE_HOST_ONLY_BIT_EXT; // TODO: most likely will not use this one?
-    vkCreateDescriptorPool(device, &poolInfo, nullptr, &m_pool_gpu);
+		poolInfo.flags = VK_DESCRIPTOR_POOL_CREATE_HOST_ONLY_BIT_EXT; // TODO: most likely will not use this one?
+		vkCreateDescriptorPool(device, &poolInfo, nullptr, &m_pool_gpu[i]);
+	}
 }
 
 DescriptorHeapCollection::~DescriptorHeapCollection() {
     VkDevice device = gBackend->GetDevice()->GetNativeObject();
-
-    vkDestroyDescriptorPool(device, m_pool_gpu, nullptr);
-    vkDestroyDescriptorPool(device, m_pool_cpu, nullptr);
+	for (uint32_t i = 0; i < frame_num * 2; i++){
+		vkDestroyDescriptorPool(device, m_pool_gpu[i], nullptr);
+		vkDestroyDescriptorPool(device, m_pool_cpu[i], nullptr);
+	}
 }
 
 void DescriptorHeapCollection::ReserveRTVhandle(CPUdescriptor& rtvHandle, uint64_t data = 0, bool gpu_only) {

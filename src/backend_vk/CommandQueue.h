@@ -50,6 +50,7 @@ private:
 
     VkQueue m_queue;
     VkCommandPool m_command_pool;
+    std::array<std::unique_ptr<IDynamicGpuHeap>, 2> m_dynamic_gpu_heaps;
 
     std::vector<ICommandList*> cmd_lists;
 };

@@ -53,6 +53,7 @@ public:
 	void SetRenderMode(uint32_t mode) { m_render_mode = mode; }
 	bool PassImguiWndProc(const ImguiWindowData& data) override;
 	bool ShouldClose() override { return m_should_close; }
+	void CreateFrameBuffer(std::vector<IGpuResource*> &rts, IGpuResource * depth, uint32_t tech_id) override {}
 
 	const std::filesystem::path& GetRootDir() const {
 		return m_root_dir;
