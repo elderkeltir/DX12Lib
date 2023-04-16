@@ -158,7 +158,7 @@ IDynamicGpuHeap& CommandQueue::GetGpuHeap()  {
 	return *m_dynamic_gpu_heaps[gBackend->GetCurrentBackBufferIndex()];
 }
 
-uint32_t CommandQueue::TestFamilQueueyIndex(uint8_t queueFlags, uint8_t queueNotFlags) {
+uint32_t CommandQueue::TestFamilQueueyIndex(uint8_t queueFlags) {
 	uint32_t queueCount = 0;
 	VkPhysicalDevice phys_dev = gBackend->GetDevice()->GetPhysicalDevice();
 	vkGetPhysicalDeviceQueueFamilyProperties(phys_dev, &queueCount, 0);
@@ -168,7 +168,7 @@ uint32_t CommandQueue::TestFamilQueueyIndex(uint8_t queueFlags, uint8_t queueNot
 	uint32_t fallback_queue_family = VK_QUEUE_FAMILY_IGNORED;
 
 	for (uint32_t i = 0; i < queueCount; ++i){
-		if ((queues[i].queueFlags & queueFlags) && !(queues[i].queueFlags & queueNotFlags))
+        if ((queues[i].queueFlags & queueFlags))
 			return i;
 
 		if (queues[i].queueFlags & queueFlags){

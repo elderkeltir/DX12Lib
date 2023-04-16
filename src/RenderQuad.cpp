@@ -79,7 +79,7 @@ void RenderQuad::Render(ICommandList* command_list) {
 
 void RenderQuad::CreateFrameBuffer(IGpuResource* depth, uint32_t tech_id) {
     for (uint32_t i = 0; i < m_textures.size(); i++) {
-        std::vector<std::shared_ptr<IGpuResource>> &resources = m_textures[n];
+        std::vector<std::shared_ptr<IGpuResource>> &resources = m_textures[i];
         std::vector<IGpuResource*> rts(resources.size());
         for (uint32_t j = 0; j < resources.size(); j++){
             rts[j] = resources[j].get();

@@ -1,6 +1,7 @@
 #include "HeapBuffer.h"
 #include "VkMemoryHelper.h"
 #include "VkBackend.h"
+#include "CommandList.h"
 
 extern VkBackend *gBackend;
 
@@ -43,7 +44,7 @@ VkImageAspectFlags CatsAspectFlags(HeapType type) {
 void HeapBuffer::Create(HeapType type, uint32_t bufferSize, ResourceState initial_state, std::optional<std::wstring> dbg_name) {
     m_type = BufferResourceType::rt_buffer;
     VkBufferUsageFlags usage = CastHeapTypeBuffer(type);
-    gBackend->GetMemoryHelper()->AllocateBuffer(bufferSize, usage, dbg_name);
+    m_buffer_allocation = gBackend->GetMemoryHelper()->AllocateBuffer(bufferSize, usage, dbg_name);
 }
 
 void HeapBuffer::CreateTexture(HeapType type, const ResourceDesc& res_desc, ResourceState initial_state, const ClearColor* clear_val, std::optional<std::wstring> dbg_name) {
@@ -58,13 +59,62 @@ void HeapBuffer::CreateTexture(HeapType type, const ResourceDesc& res_desc, Reso
 void HeapBuffer::Load(ICommandList* command_list, uint32_t numElements, uint32_t elementSize, const void* bufferData) {
     assert(m_type == BufferResourceType::rt_buffer);
 
-    vkCmdCopyBuffer()
+    const uint32_t buff_size = numElements * elementSize;
+    VkBufferUsageFlags usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
+    BufferMemAllocation buffer_allocation = gBackend->GetMemoryHelper()->AllocateBuffer(buff_size, usage, L"src_buffer");
+    void* data = gBackend->GetMemoryHelper()->Map(buffer_allocation);
+
+    memcpy(data, bufferData, buff_size);
+    gBackend->GetMemoryHelper()->Unmap(buffer_allocation);
+
+    VkCommandBuffer cmd_list = ((CommandList*)command_list)->GetNativeObject();
+
+    VkBufferCopy copyRegion{};
+	copyRegion.srcOffset = buffer_allocation.offset;
+	copyRegion.dstOffset = m_buffer_allocation.offset;
+	copyRegion.size = buffer_allocation.size;
+	vkCmdCopyBuffer(cmd_list, buffer_allocation.buffer, m_buffer_allocation.buffer, 1, &copyRegion);
 }
 
 void HeapBuffer::Load(ICommandList* command_list, uint32_t firstSubresource, uint32_t numSubresources, SubresourceData* subresourceData) {
     assert(m_type == BufferResourceType::rt_texture);
+    assert(numSubresources == 1); // TODO: handle this later
 
-    vkCmdCopyImage();
+    const uint32_t buff_size = subresourceData->slice_pitch;
+    VkBufferUsageFlags usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
+    BufferMemAllocation buffer_allocation = gBackend->GetMemoryHelper()->AllocateBuffer(buff_size, usage, L"src_buffer");
+    void* data = gBackend->GetMemoryHelper()->Map(buffer_allocation);
+
+    memcpy(data, subresourceData->data, buff_size);
+    gBackend->GetMemoryHelper()->Unmap(buffer_allocation);
+
+    VkCommandBuffer cmd_list = ((CommandList*)command_list)->GetNativeObject();
+
+    VkBufferImageCopy region{};
+	region.bufferOffset = buffer_allocation.offset;
+	region.bufferRowLength = 0;
+	region.bufferImageHeight = 0;
+
+	region.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+	region.imageSubresource.mipLevel = 0;
+	region.imageSubresource.baseArrayLayer = 0;
+	region.imageSubresource.layerCount = 1;
+
+	region.imageOffset = {0, 0, 0};
+	region.imageExtent = {
+		subresourceData->width,
+		subresourceData->height,
+		1
+	};
+
+	vkCmdCopyBufferToImage(
+		cmd_list,
+		buffer_allocation.buffer,
+		m_image_allocation.image,
+		VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+		1,
+		&region
+	);
 }
 
 void* HeapBuffer::Map() {

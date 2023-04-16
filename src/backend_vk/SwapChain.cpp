@@ -7,19 +7,21 @@
 #include "GpuResource.h"
 
 extern VkBackend* gBackend;
+class GLFWwindow;
 
 void SwapChain::OnInit(const WindowHandler& window_hndl, uint32_t width, uint32_t height, uint32_t frame_count) {
     VkDevice device = gBackend->GetDevice()->GetNativeObject();
     VkPhysicalDevice physical_device = gBackend->GetDevice()->GetPhysicalDevice();
 
-    // TODO: init m_surface?
-    assert(false);
+    VkSurfaceKHR (*CreateSurface)(VkInstance inst, GLFWwindow * window) = (VkSurfaceKHR (*)(VkInstance, GLFWwindow *))window_hndl.callback;
+
+    m_surface = CreateSurface(gBackend->GetInstance(), (GLFWwindow*)window_hndl.ptr);
 
     VkFormat format = GetSwapchainFormat();
     VkImageAspectFlags aspect = VK_IMAGE_ASPECT_COLOR_BIT;
     VkImageAspectFlags depth_aspect = VK_IMAGE_ASPECT_DEPTH_BIT;
 
-    CreateSwapChain();
+    CreateSwapChain(VkFormat::VK_FORMAT_R8G8B8A8_UNORM);
 	assert(m_swap_chain);
 
     uint32_t imageCount{0};
@@ -45,10 +47,10 @@ void SwapChain::OnInit(const WindowHandler& window_hndl, uint32_t width, uint32_
     m_depth_stencil.reset(new GpuResource);
     HeapType h_type; // TODO: fill in
     ResourceDesc res_desc;
-    res_desc.format = VK_FORMAT_D32_SFLOAT; // TODO: cast to my format
+    res_desc.format = ResourceFormat::rf_d32_float;
     res_desc.width = width;
     res_desc.height = height;
-    m_depth_stencil->CreateTexture(h_type, res_desc, init_state, nullptr, L"depth_buffer"); // TODO: state?
+    m_depth_stencil->CreateTexture(h_type, res_desc, ResourceState::rs_resource_state_depth_write, nullptr, L"depth_buffer"); // TODO: state?
     DSVdesc depth_desc; // TODO: seems like shit?
     m_depth_stencil->Create_DSV(depth_desc);
     SRVdesc srv_desc;
@@ -58,7 +60,7 @@ void SwapChain::OnInit(const WindowHandler& window_hndl, uint32_t width, uint32_
 	for (uint32_t i = 0; i < imageCount; ++i)
 	{
 		std::vector<IGpuResource*> rts{ m_renderTargets[i].get() };
-		gBackend->CreateFrameBuffer(rts, nullptr, tt_postprocessing);
+        gBackend->CreateFrameBuffer(rts, nullptr, ITechniques::TecnhinueType::tt_post_processing);
 	}
 }
 
@@ -148,4 +150,8 @@ VkFormat SwapChain::GetSwapchainFormat() const{
 			return formats[i].format;
 
 	return formats[0].format;
+}
+
+SwapChain::~SwapChain() {
+
 }

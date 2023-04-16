@@ -9,7 +9,6 @@
 class ICommandQueue;
 class IGpuResource;
 class AppConsole;
-struct ID3D12Device2;
 
 
 class ImguiHelper : public IImguiHelper {
@@ -31,8 +30,6 @@ public:
 private:
 	void CreateQuadTexture(uint32_t width, uint32_t height, ResourceFormat formats, uint32_t texture_nums);
 
-	//Dx12
-	ComPtr<ID3D12Device2> m_device;
 	std::unique_ptr<IDynamicGpuHeap> m_gpu_visible_heap;
 	std::unique_ptr<ICommandQueue> m_commandQueueGfx;
 	std::array<std::unique_ptr<IGpuResource>, 2> m_rts;

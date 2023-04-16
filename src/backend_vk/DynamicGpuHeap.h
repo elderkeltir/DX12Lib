@@ -1,6 +1,7 @@
 #pragma once 
 
 #include "IDynamicGpuHeap.h"
+#include "ICommandQueue.h"
 #include <vector>
 #include <volk.h>
 
@@ -17,7 +18,7 @@ public:
 
     void StageDesctriptorInTable(uint32_t root_id, uint32_t offset, const std::shared_ptr<IHeapBuffer>& buff_handle);
 private:
-    ICommandQueue::QueueType m_queue_id{-1}; // TODO: gfx=0, compute=1
+    ICommandQueue::QueueType m_queue_id; // TODO: gfx=0, compute=1
     std::vector<VkWriteDescriptorSet> m_cached_writes;
     VkDescriptorSet m_descriptor_set;
     RootSignature* m_root_sig;

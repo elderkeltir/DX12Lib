@@ -142,7 +142,7 @@ void AppConsole::Draw(const char* title)
 		Strtrim(s);
 		if (s[0])
 			ExecCommand(s);
-		strcpy_s(s, 1, "");
+        strncpy(s, "", 1);
 		reclaim_focus = true;
 	}
 

@@ -12,9 +12,9 @@ public:
     bool Create_UAV(std::weak_ptr<IHeapBuffer> buff, const UAVdesc& desc) override;
     bool Create_CBV(std::weak_ptr<IHeapBuffer> buff, const CBVdesc& desc) override;
 
-    CPUdescriptor GetCPUhandle() const override;
-    ResourceDescriptorType GetType() const override;
+    CPUdescriptor GetCPUhandle() const override { return m_cpu_handle; }
+    ResourceDescriptorType GetType() const override { return m_type; }
 private:
     CPUdescriptor m_cpu_handle;
-
+    ResourceDescriptorType m_type;
 };

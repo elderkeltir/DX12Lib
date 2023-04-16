@@ -1,4 +1,16 @@
+# bins
 build/
+
+# IDE
 .vs/
 .vscode/
 .cache/
+
+# CMAKE
+CMakeFiles/
+CTestTestfile.cmake
+*.tcl
+cmake_install.cmake
+Makefile
+CMakeLists.txt.user
+CMakeCache.txt

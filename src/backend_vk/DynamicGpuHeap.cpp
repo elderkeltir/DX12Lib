@@ -7,6 +7,7 @@
 #include "ResourceDescriptor.h"
 #include "CommandList.h"
 #include "HeapBuffer.h"
+#include "Techniques.h"
 
 extern VkBackend* gBackend;
 
@@ -18,12 +19,12 @@ void DynamicGpuHeap::CacheRootSignature(const IRootSignature* root_sig, uint32_t
     m_tech_id = tech_id;
     RootSignature* root_signature = (RootSignature*)root_sig;
     m_root_sig = root_signature;
-    const VkDescriptorSetLayoutCreateInfo* root_sig_layout = root_signature->GetLayoutInfo();
+    const std::vector<VkDescriptorSetLayoutBinding>& root_sig_layout = root_signature->GetBindings();
     VkDescriptorSetLayout desc_set_layout = root_signature->GetLayout();
     
     // Create desc set
     VkDevice device = gBackend->GetDevice()->GetNativeObject();
-    VkDescriptorPool pool = ((DescriptorHeapCollection*)gBackend->GetDescriptorHeapCollection())->GetPool(gBackend->GetCurrentBackBufferIndex(), m_queue_id);
+    VkDescriptorPool pool = ((DescriptorHeapCollection*)gBackend->GetDescriptorHeapCollection())->GetPool(gBackend->GetCurrentBackBufferIndex(), (uint32_t)m_queue_id);
 
 	VkDescriptorSetAllocateInfo allocInfo{ VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO };
 	allocInfo.descriptorPool = pool;
@@ -32,19 +33,19 @@ void DynamicGpuHeap::CacheRootSignature(const IRootSignature* root_sig, uint32_t
 	VK_CHECK(vkAllocateDescriptorSets(device, &allocInfo, &m_descriptor_set));
 
     // cache layout
-    m_cached_writes.resize(root_sig_layout->bindingCount);
+    m_cached_writes.resize(root_sig_layout.size());
     uint32_t sampler_id = 0;
-    for (uint32_t i = 0; i < root_sig_layout->bindingCount; i++) {
-        assert(root_sig_layout->pBindings[i].descriptorCount == 1);
+    for (uint32_t i = 0; i < root_sig_layout.size(); i++) {
+        assert(root_sig_layout[i].descriptorCount == 1);
         m_cached_writes[i].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
         m_cached_writes[i].dstSet = m_descriptor_set;
-        m_cached_writes[i].dstBinding = root_sig_layout->pBindings[i].binding;
+        m_cached_writes[i].dstBinding = root_sig_layout[i].binding;
         m_cached_writes[i].dstArrayElement = 0;
-        m_cached_writes[i].descriptorCount = root_sig_layout->pBindings[i].descriptorCount;
-        m_cached_writes[i].descriptorType = root_sig_layout->pBindings[i].descriptorType;
-        m_cached_writes[i].descriptorType = root_sig_layout->pBindings[i].descriptorType;
+        m_cached_writes[i].descriptorCount = root_sig_layout[i].descriptorCount;
+        m_cached_writes[i].descriptorType = root_sig_layout[i].descriptorType;
+        m_cached_writes[i].descriptorType = root_sig_layout[i].descriptorType;
         if (m_cached_writes[i].descriptorType == VK_DESCRIPTOR_TYPE_SAMPLER) {
-            VkSampler sampler = Techniques::GetSamplerById(sampler_id); // TODO: implement this
+            VkSampler sampler = gBackend->GetSamplerById(sampler_id); // TODO: implement this
             VkDescriptorImageInfo imageInfo{};
 			imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 			imageInfo.sampler = sampler;
@@ -93,13 +94,13 @@ void DynamicGpuHeap::ReserveDescriptor(CPUdescriptor& cpu_descriptor, GPUdescrip
     assert(false);
 }
 
-void DynamicGpuHeap::CommitRootSignature(ICommandList* command_list, bool gfx = true) {
+void DynamicGpuHeap::CommitRootSignature(ICommandList* command_list, bool gfx) {
     // update descriptors
     VkDevice device = gBackend->GetDevice()->GetNativeObject();
     vkUpdateDescriptorSets(device, m_cached_writes.size(), m_cached_writes.data(), 0, nullptr);
 
     CommandList* cmd_list = (CommandList*)command_list;
-    VkPipelineLayout pipline_layout = gBackend->GetTechniqueById(m_tech_id)->GetLayout(); // TODO: implement this
+    VkPipelineLayout pipline_layout = ((Techniques::TechniqueVk*)gBackend->GetTechniqueById(m_tech_id))->pipeline_layout;
     vkCmdBindDescriptorSets(cmd_list->GetNativeObject(), gfx ? VK_PIPELINE_BIND_POINT_GRAPHICS : VK_PIPELINE_BIND_POINT_COMPUTE, pipline_layout, 0, 1, &m_descriptor_set, 0, nullptr);
 }
 

@@ -51,25 +51,25 @@ add_executable(${PROJECT_NAME}  WIN32 main.cpp
 else()
 add_executable(${PROJECT_NAME}   main.cpp
     LinApplication.cpp
-    # FileManager.cpp
-    # Frontend.cpp
-    # RenderModel.cpp
-    # ResourceManager.cpp
-    # Transformations.cpp
-    # Level.cpp
-    # FreeCamera.cpp
-    # LevelEntity.cpp
-    # ConstantBufferManager.cpp
-    # RenderQuad.cpp
-    # RenderObject.cpp
-    # GpuDataManager.cpp
-    # MaterialManager.cpp
-    # RenderMesh.cpp
-    # SkyBox.cpp
-    # SSAO.cpp
-    # Plane.cpp
-    # Sun.cpp
-    # Reflections.cpp
+    FileManager.cpp
+    Frontend.cpp
+    RenderModel.cpp
+    ResourceManager.cpp
+    Transformations.cpp
+    Level.cpp
+    FreeCamera.cpp
+    LevelEntity.cpp
+    ConstantBufferManager.cpp
+    RenderQuad.cpp
+    RenderObject.cpp
+    GpuDataManager.cpp
+    MaterialManager.cpp
+    RenderMesh.cpp
+    SkyBox.cpp
+    SSAO.cpp
+    Plane.cpp
+    Sun.cpp
+    Reflections.cpp
 )
 endif()
 

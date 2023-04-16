@@ -1,12 +1,16 @@
 #include "TextureLoader.h"
-#include "dx12_helper.h"
+#include "vk_helper.h"
 #include "defines.h"
-#include "DxBackend.h"
-#include "DxDevice.h"
+#include "VkBackend.h"
+#include "VkDevice.h"
 #include "IGpuResource.h"
 #include "ICommandList.h"
+#include "HeapBuffer.h"
 
-extern DxBackend* gBackend;
+#define STB_IMAGE_IMPLEMENTATION
+#include <stb_image.h> // TODO: move loading image to another class. probably after vfs implementation?
+
+extern VkBackend* gBackend;
 
 ITextureLoader* CreateTextureLoader(const std::filesystem::path &root_dir) {
 	return new TextureLoader(root_dir);
@@ -19,7 +23,7 @@ TextureLoader::TextureLoader(const std::filesystem::path& root_dir)
 
 void TextureLoader::OnInit()
 {
-	ThrowIfFailed(CoInitializeEx(nullptr, COINITBASE_MULTITHREADED));
+	
 }
 
 ITextureLoader::TextureData* TextureLoader::LoadTextureOnCPU(const std::wstring& name)
@@ -27,31 +31,36 @@ ITextureLoader::TextureData* TextureLoader::LoadTextureOnCPU(const std::wstring&
 	std::filesystem::path related_path(name);
 	const std::wstring filename = related_path.filename().wstring();
 
-	const auto it = std::find_if(m_load_textures.begin(), m_load_textures.end(), [&filename](TextureDataDx& texture) { return (texture.name == filename); });
+	const auto it = std::find_if(m_load_textures.begin(), m_load_textures.end(), [&filename](TextureDataVk& texture) { return (texture.name == filename); });
 	if (it != m_load_textures.end()) {
 		return &(*it);
 	}
 	else {
-		TextureDataDx* texture = &m_load_textures[m_load_textures.push_back()];
+		
+		TextureDataVk* texture = &m_load_textures[m_load_textures.push_back()];
 		texture->name = filename;
 		std::filesystem::path full_path((m_texture_dir / filename));
-		assert(std::filesystem::exists(full_path));
 
 		if (full_path.extension() == ".dds" || full_path.extension() == ".DDS") {
-			ThrowIfFailed(DirectX::LoadFromDDSFile(full_path.wstring().c_str(), DirectX::DDS_FLAGS_NONE, &texture->meta_data, texture->scratch_image));
-		}
-		else if (full_path.extension() == ".hdr" || full_path.extension() == ".HDR") {
-			ThrowIfFailed(DirectX::LoadFromHDRFile(full_path.wstring().c_str(), &texture->meta_data, texture->scratch_image));
-		}
-		else if (full_path.extension() == ".tga" || full_path.extension() == ".TGA") {
-			ThrowIfFailed(DirectX::LoadFromTGAFile(full_path.wstring().c_str(), &texture->meta_data, texture->scratch_image));
+			assert(false); // TODO: write own DDS loader later - https://www.reddit.com/r/vulkan/comments/85yo3d/image_libraries_for_vulkan_projects/
 		}
 		else {
-			ThrowIfFailed(DirectX::LoadFromWICFile(full_path.wstring().c_str(), DirectX::WIC_FLAGS_NONE, &texture->meta_data, texture->scratch_image));
-		}
-
-		if (texture->meta_data.format != DXGI_FORMAT_R8_UNORM) {
-			texture->meta_data.format = DirectX::MakeSRGB(texture->meta_data.format);
+			assert(std::filesystem::exists(full_path));
+			
+			const char* file_path_full = full_path.string().c_str();
+			int w, h, comp;
+			assert(stbi_info(file_path_full, &w, &h, &comp));
+			const bool is_16_bits_per_channel = stbi_is_16_bit(file_path_full);
+			stbi_uc* pixels = stbi_load(file_path_full, &w, &h, &comp, STBI_rgb_alpha);
+			assert(pixels);
+			const uint32_t bytes_pp = (is_16_bits_per_channel ? 8 : 4);
+			
+			texture->size = w * h * bytes_pp;
+			texture->channels = comp;
+			texture->height = h;
+			texture->width = w;
+			texture->pixels = pixels;
+			texture->clear_cb = stbi_image_free;
 		}
 
 		return (TextureData*)texture;
@@ -60,57 +69,29 @@ ITextureLoader::TextureData* TextureLoader::LoadTextureOnCPU(const std::wstring&
 
 void TextureLoader::LoadTextureOnGPU(ICommandList* command_list, IGpuResource* res, ITextureLoader::TextureData* tex_data)
 {
-	TextureLoader::TextureDataDx* tex_data_dx = (TextureLoader::TextureDataDx*)tex_data;
-	SRVdesc::SRVdimensionType srv_dim = SRVdesc::SRVdimensionType::srv_dt_texture2d;
+	TextureLoader::TextureDataVk* tex_data_vk = (TextureLoader::TextureDataVk*)tex_data;
+
+	ResourceFormat format = ResourceFormat::rf_unknown;
+	if (tex_data_vk->channels == 4 && (tex_data_vk->size / (tex_data_vk->width * tex_data_vk->height)) == 4){
+		format = ResourceFormat::rf_b8g8r8a8_unorm_srgb;
+	}
+	else {
+		assert(false); // TODO: add when needed
+	}
+
 	ResourceDesc tex_desc;
-
-	switch (tex_data_dx->meta_data.dimension)
-	{
-	case DirectX::TEX_DIMENSION_TEXTURE1D:
-		tex_desc = ResourceDesc::tex_1d((ResourceFormat)tex_data_dx->meta_data.format, static_cast<UINT64>(tex_data_dx->meta_data.width), static_cast<UINT16>(tex_data_dx->meta_data.arraySize));
-		srv_dim = SRVdesc::SRVdimensionType::srv_dt_texture1d;
-		break;
-	case DirectX::TEX_DIMENSION_TEXTURE2D:
-		tex_desc = ResourceDesc::tex_2d((ResourceFormat)tex_data_dx->meta_data.format, static_cast<UINT64>(tex_data_dx->meta_data.width), static_cast<UINT>(tex_data_dx->meta_data.height), static_cast<UINT16>(tex_data_dx->meta_data.arraySize));
-		srv_dim = (tex_data_dx->meta_data.arraySize > 1) ? SRVdesc::SRVdimensionType::srv_dt_texturecube : SRVdesc::SRVdimensionType::srv_dt_texture2d;
-		break;
-	case DirectX::TEX_DIMENSION_TEXTURE3D:
-		srv_dim = SRVdesc::SRVdimensionType::srv_dt_texture3d;
-		tex_desc = ResourceDesc::tex_3d((ResourceFormat)tex_data_dx->meta_data.format, static_cast<UINT64>(tex_data_dx->meta_data.width), static_cast<UINT>(tex_data_dx->meta_data.height), static_cast<UINT16>(tex_data_dx->meta_data.depth));
-		break;
-	default:
-		throw std::exception("Invalid texture dimension.");
-		break;
-	}
-
-	res->CreateTexture(HeapType::ht_default, tex_desc, ResourceState::rs_resource_state_copy_dest, nullptr, std::wstring(tex_data_dx->name).append(L"model_srv_").c_str());
-
-	const uint32_t image_count = (uint32_t)tex_data_dx->scratch_image.GetImageCount();
-	std::vector<SubresourceData> subresources(image_count);
-	const DirectX::Image* pImages = tex_data_dx->scratch_image.GetImages();
-	for (uint32_t i = 0; i < (uint32_t)image_count; ++i) {
-		auto& subresource = subresources[i];
-		subresource.row_pitch = pImages[i].rowPitch;
-		subresource.slice_pitch = pImages[i].slicePitch;
-		subresource.data = pImages[i].pixels;
-	}
-	res->LoadBuffer(command_list, 0, (uint32_t)subresources.size(), subresources.data());
+	tex_desc.format = format;
+	tex_desc.width = tex_data_vk->width;
+	tex_desc.height = tex_data_vk->height;
+	res->CreateTexture(HeapType::ht_default, tex_desc, ResourceState::rs_resource_state_copy_dest, nullptr, std::wstring(tex_data->name).append(L"model_srv_").c_str());
+	SubresourceData sub_res;
+	sub_res.width = tex_data_vk->width;
+	sub_res.height = tex_data_vk->height;
+	sub_res.data = tex_data_vk->pixels;
+	sub_res.slice_pitch = tex_data_vk->size;
+	res->LoadBuffer(command_list, 0, 1, &sub_res);
 	command_list->ResourceBarrier(*res, ResourceState::rs_resource_state_pixel_shader_resource);
-
-	SRVdesc srv_desc = {};
-
-	srv_desc.format = (ResourceFormat)tex_data_dx->meta_data.format; // TODO: remove when load text moved etc.
-	srv_desc.dimension = srv_dim;
-	if (srv_dim == SRVdesc::SRVdimensionType::srv_dt_texture2d) {
-		srv_desc.texture2d.most_detailed_mip = 0;
-		srv_desc.texture2d.mip_levels = (UINT)tex_data_dx->meta_data.mipLevels;
-		srv_desc.texture2d.res_min_lod_clamp = 0.0f;
-	}
-	else if (srv_dim == SRVdesc::SRVdimensionType::srv_dt_texturecube) {
-		srv_desc.texture_cube.most_detailed_mip = 0;
-		srv_desc.texture_cube.mip_levels = (UINT)tex_data_dx->meta_data.mipLevels;
-		srv_desc.texture_cube.res_min_lod_clamp = 0.0f;
-	}
-
-	res->Create_SRV(srv_desc);
+	
+	SRVdesc des;
+	res->Create_SRV(des);
 }

@@ -2,154 +2,112 @@
 
 #ifndef WIN32
 
-// hack just to connect Vulkan and test it works, temporary!
-#define VULKAN_HACK_TEST
-#ifdef VULKAN_HACK_TEST
-#include <vulkan/vulkan.h>
+#include "Frontend.h"
+#include <unistd.h>
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 #include <cassert>
 #include <iostream>
 
-#define VK_CHECK(call) \
-	do { \
-		VkResult result = call; \
-		assert(result == VK_SUCCESS); \
-	} while(0)
 
-VkInstance createInstance() {
-	VkApplicationInfo appinfo{ VK_STRUCTURE_TYPE_APPLICATION_INFO };
-	appinfo.apiVersion = VK_API_VERSION_1_1; // TODO: check supported versions
-	VkInstanceCreateInfo createInfo{ VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO };
-	createInfo.pApplicationInfo = &appinfo;
-
-#ifdef _DEBUG
-	const char* debugLayers[] =
-	{
-		"VK_LAYER_KHRONOS_validation",
-	};
-
-	createInfo.ppEnabledLayerNames = debugLayers;
-	createInfo.enabledLayerCount = sizeof(debugLayers) / sizeof(debugLayers[0]);
+#ifndef MAX_PATH
+#define MAX_PATH 256
 #endif
 
-    uint32_t glfwExtensionsNum = 0;
-	const char ** glfwxtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionsNum);
-    std::vector<const char*> extensions(glfwExtensionsNum + 1);
-    for (size_t i = 0u; i < glfwExtensionsNum; i++){
-        extensions[i] = glfwxtensions[i];
+Frontend::KeyboardButton CastKey(int key) {
+    Frontend::KeyboardButton btn{ Frontend::KeyboardButton::kb_none };
+    switch (key) {
+    case GLFW_KEY_W:
+        btn = Frontend::KeyboardButton::kb_w;
+        break;
+    case GLFW_KEY_A:
+        btn = Frontend::KeyboardButton::kb_a;
+        break;
+    case GLFW_KEY_S:
+        btn = Frontend::KeyboardButton::kb_s;
+        break;
+    case GLFW_KEY_D:
+        btn = Frontend::KeyboardButton::kb_d;
+        break;
+//    case VK_OEM_3:
+//        btn = Frontend::KeyboardButton::kb_tilda;
+//        break;
+    default:
+        break;
     }
-	extensions[glfwExtensionsNum] = VK_EXT_DEBUG_UTILS_EXTENSION_NAME;
 
-	createInfo.ppEnabledExtensionNames = extensions.data();
-	createInfo.enabledExtensionCount = extensions.size();
-
-	VkInstance instance = 0;
-	VK_CHECK(vkCreateInstance(&createInfo, nullptr, &instance));
-
-	return instance;
+    return btn;
 }
 
-VkPhysicalDevice pickPhysDevice(VkPhysicalDevice * devices, uint32_t num) {
 
-	VkPhysicalDeviceProperties physicalDevProps;
-	for (uint32_t i = 0; i < num; i++) {
-		vkGetPhysicalDeviceProperties(devices[i], &physicalDevProps);
-
-		if (physicalDevProps.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU) {
-			return devices[i];
-		}
-	}
-	assert(false);
-	return devices[0];
-}
-
-VkDevice createDevice(VkPhysicalDevice physDevice, uint32_t * familyIdx) {
-	*familyIdx = 0; // TODO comupe from queue properties
-	float queueProperties[] = { 0.f };
-	VkDeviceQueueCreateInfo queueCreateInfo = { VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO };
-	queueCreateInfo.queueFamilyIndex = *familyIdx;
-	queueCreateInfo.queueCount = 1;
-	queueCreateInfo.pQueuePriorities = queueProperties;
-
-	VkDevice device = 0;
-	VkDeviceCreateInfo deviceCreateInfo = { VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO };
-	deviceCreateInfo.queueCreateInfoCount = 1;
-	deviceCreateInfo.pQueueCreateInfos = &queueCreateInfo;
-
-	const char* extensions[] =
-	{
-		VK_KHR_SWAPCHAIN_EXTENSION_NAME,
-	};
-
-	deviceCreateInfo.ppEnabledExtensionNames = extensions;
-	deviceCreateInfo.enabledExtensionCount = sizeof(extensions) / sizeof(extensions[0]);
-
-	VK_CHECK(vkCreateDevice(physDevice, &deviceCreateInfo, 0, &device));
-
-	return device;
-}
-
-VkSurfaceKHR createSurface(VkInstance instance, GLFWwindow* window) {
-
-	VkSurfaceKHR khr_surface = 0;
-    VK_CHECK(glfwCreateWindowSurface(instance, window, NULL, &khr_surface));
-
-    return khr_surface;
-}
-
-VkSwapchainKHR createSwapchain(VkDevice device, VkSurfaceKHR surface, uint32_t familyIndex, uint32_t width, uint32_t height)
+void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
-	VkSwapchainCreateInfoKHR createInfo = { VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR };
-	createInfo.surface = surface;
-	createInfo.preTransform = VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR;
-	createInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
-	createInfo.minImageCount = 2;
-	createInfo.imageFormat = VK_FORMAT_R8G8B8A8_UNORM;
-	createInfo.imageColorSpace = VK_COLORSPACE_SRGB_NONLINEAR_KHR;
-	createInfo.imageExtent.width = 1280;
-	createInfo.imageExtent.height = 720;
-	createInfo.imageArrayLayers = 1;
-	createInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
-	createInfo.queueFamilyIndexCount = 1;
-	createInfo.pQueueFamilyIndices = &familyIndex;
-	createInfo.presentMode = VK_PRESENT_MODE_FIFO_KHR;
-	VkSwapchainKHR swapchain = 0;
+    Frontend * frontend = (Frontend*)glfwGetWindowUserPointer(window);
 
-	VK_CHECK(vkCreateSwapchainKHR(device, &createInfo, 0, &swapchain));
+    if(!frontend)
+        return;
 
-	return swapchain;
+
+    if (key == GLFW_KEY_W){
+        if (action == GLFW_PRESS)
+            frontend->OnKeyDown(CastKey(key));
+        else if (action == GLFW_RELEASE)
+            frontend->OnKeyUp(CastKey(key));
+    }
+    if (key == GLFW_KEY_S){
+        if (action == GLFW_PRESS)
+            frontend->OnKeyDown(CastKey(key));
+        else if (action == GLFW_RELEASE)
+            frontend->OnKeyUp(CastKey(key));
+    }
+    if (key == GLFW_KEY_D){
+        if (action == GLFW_PRESS)
+            frontend->OnKeyDown(CastKey(key));
+        else if (action == GLFW_RELEASE)
+            frontend->OnKeyUp(CastKey(key));
+    }
+    if (key == GLFW_KEY_A){
+        if (action == GLFW_PRESS)
+            frontend->OnKeyDown(CastKey(key));
+        else if (action == GLFW_RELEASE)
+            frontend->OnKeyUp(CastKey(key));
+    }
+}
+bool firstMouse = true; // TODO: rewrite all this code later. I'm in hurry now QQ
+static void cursor_position_callback(GLFWwindow* window, double xpos, double ypos)
+{
+    Frontend * frontend = (Frontend*)glfwGetWindowUserPointer(window);
+    if(!frontend)
+        return;
+
+    Frontend::MouseButton btn{ Frontend::MouseButton::m_undefined };
+    if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS) {
+        btn = Frontend::MouseButton::mb_right;
+    }
+    else if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
+        btn = Frontend::MouseButton::mb_left;
+    }
+    else if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_MIDDLE) == GLFW_PRESS) {
+        btn = Frontend::MouseButton::mb_middle;
+    }
+
+    frontend->OnMouseMoved(btn, xpos, ypos);
 }
 
-VkSemaphore createSemaphore(VkDevice device)
-{
-	VkSemaphoreCreateInfo createInfo = { VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO };
 
-	VkSemaphore semaphore = 0;
-	VK_CHECK(vkCreateSemaphore(device, &createInfo, 0, &semaphore));
+VkSurfaceKHR CreateSurface(VkInstance instance, GLFWwindow* window) {
+    VkSurfaceKHR surf;
+    glfwCreateWindowSurface(instance, window, NULL, &surf);
 
-	return semaphore;
+    return surf;
 }
 
-VkCommandPool createCommandPool(VkDevice &device, uint32_t familyIdx)
-{
-	VkCommandPool cmdPool = 0;
+LinApplication::~LinApplication() {
 
-	VkCommandPoolCreateInfo createInfo = { VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO };
-	createInfo.flags = VK_COMMAND_POOL_CREATE_TRANSIENT_BIT;
-	createInfo.queueFamilyIndex = familyIdx;
-
-	VK_CHECK(vkCreateCommandPool(device, &createInfo, NULL, &cmdPool));
-
-	return cmdPool;
-}   
-
-#endif // VULKAN_HACK_TEST
+}
 
 int LinApplication::Run() {
     // Window
-
-
 	assert(glfwInit());
 
     glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
@@ -157,99 +115,52 @@ int LinApplication::Run() {
 
 	GLFWwindow* window = glfwCreateWindow(1280, 720, "DX12LibApp", NULL, NULL);
 
-	// Vulkan
-	VkInstance instance = createInstance();
-	assert(instance);
-	
-	VkPhysicalDevice physicalDevices[16];
-	uint32_t physDevNum = sizeof(physicalDevices) / sizeof(physicalDevices[0]);
-	VK_CHECK(vkEnumeratePhysicalDevices(instance, &physDevNum, physicalDevices));
+    // Initialize the sample. OnInit is defined in each child-implementation of DXApp.
+    WindowHandler w_hndl;
+    w_hndl.ptr = (uint64_t)&window;
 
-	VkPhysicalDevice physDevice = pickPhysDevice(physicalDevices, physDevNum);
+    uint32_t glfwExtensionsNum = 0;
+    const char ** glfwxtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionsNum);
+    std::vector<const char*> extensions(glfwExtensionsNum);
+    for (size_t i = 0u; i < glfwExtensionsNum; i++){
+        extensions[i] = glfwxtensions[i];
+    }
+    w_hndl.extensions = extensions;
 
-	uint32_t familyIdx = 0;
-	VkDevice device = createDevice(physDevice, &familyIdx);
-
-	VkSurfaceKHR surface = createSurface(instance, window);
-	VkSwapchainKHR swapchain = createSwapchain(device, surface, familyIdx, 1280, 720);
-	
-	VkSemaphore acquireSemaphore = createSemaphore(device);
-	
-	VkSemaphore releaseSemaphore = createSemaphore(device);
-	
-	VkQueue queue = 0;
-	vkGetDeviceQueue(device, familyIdx, 0, &queue);
-
-	VkImage swapchainImages[16]; // SHORTCUT: seriously?
-	uint32_t swapchainImageCount = sizeof(swapchainImages) / sizeof(swapchainImages[0]);
-	VK_CHECK(vkGetSwapchainImagesKHR(device, swapchain, &swapchainImageCount, swapchainImages));
-
-	VkCommandPool cmdPool = createCommandPool(device, familyIdx);
+    w_hndl.callback = (void*)&CreateSurface;
 
 
-	VkCommandBuffer cmdBuffer;
-	VkCommandBufferAllocateInfo allocateInfo = { VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO };
-	allocateInfo.commandPool = cmdPool;
-	allocateInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-	allocateInfo.commandBufferCount = 1;
-	vkAllocateCommandBuffers(device, &allocateInfo, &cmdBuffer);
+    std::filesystem::path root_dir;
 
-	// GLFW
+    // find absolute path
+    char buff[MAX_PATH];
+    ssize_t len = ::readlink("/proc/self/exe", buff, sizeof(buff)-1);
+    if (len != -1) {
+      buff[len] = '\0';
+      std::filesystem::path p = std::filesystem::path(buff);
+      root_dir = p.parent_path().parent_path().parent_path();
+
+    }
+
+    // Frontend
+    m_frontend->OnInit(w_hndl, root_dir);
+
+
+    // GLFW
+    glfwSetWindowUserPointer(window, m_frontend.get());
+
+    glfwSetKeyCallback(window, key_callback);
+    glfwSetCursorPosCallback(window, cursor_position_callback);
+
 
 	while (!glfwWindowShouldClose(window)) {
 		glfwPollEvents();
 		
-		uint32_t imageIndex = 0;
-		VK_CHECK(vkAcquireNextImageKHR(device, swapchain, ~0ull, acquireSemaphore, VK_NULL_HANDLE, &imageIndex));
 
-		VK_CHECK(vkResetCommandPool(device, cmdPool, 0));
-
-		VkCommandBufferBeginInfo beginInfo = { VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO };
-		beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
-		VK_CHECK(vkBeginCommandBuffer(cmdBuffer, &beginInfo));
-		
-		VkImageSubresourceRange range = {};
-		range.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-		range.levelCount = 1;
-		range.layerCount = 1;
-
-		VkClearColorValue color = { 1, 1, 0, 1 };
-
-		vkCmdClearColorImage(cmdBuffer, swapchainImages[imageIndex], VK_IMAGE_LAYOUT_GENERAL, &color, 1, &range);
-
-		VK_CHECK(vkEndCommandBuffer(cmdBuffer));
-
-		VkPipelineStageFlags submitStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-
-		VkSubmitInfo submitInfo = { VK_STRUCTURE_TYPE_SUBMIT_INFO };
-		submitInfo.waitSemaphoreCount = 1;
-		submitInfo.pWaitSemaphores = &acquireSemaphore;
-		submitInfo.pWaitDstStageMask = &submitStageMask;
-		submitInfo.commandBufferCount = 1;
-		submitInfo.pCommandBuffers = &cmdBuffer;
-		submitInfo.signalSemaphoreCount = 1;
-		submitInfo.pSignalSemaphores = &releaseSemaphore;
-
-		vkQueueSubmit(queue, 1, &submitInfo, VK_NULL_HANDLE);
-
-		VkPresentInfoKHR presentInfo = { VK_STRUCTURE_TYPE_PRESENT_INFO_KHR };
-		presentInfo.waitSemaphoreCount = 1;
-		presentInfo.pWaitSemaphores = &releaseSemaphore;
-		presentInfo.swapchainCount = 1;
-		presentInfo.pSwapchains = &swapchain;
-		presentInfo.pImageIndices = &imageIndex;
-
-		VK_CHECK(vkQueuePresentKHR(queue, &presentInfo));
-		vkDeviceWaitIdle(device);
 	}
 
 	glfwDestroyWindow(window);
 	glfwTerminate();
-
-	vkDestroySurfaceKHR(instance, surface, 0);
-	vkDestroyDevice(device, 0);
-	vkDestroyInstance(instance, 0);
-	
 
 	return 0;
 }
@@ -257,7 +168,8 @@ int LinApplication::Run() {
 LinApplication::LinApplication(uint32_t width, uint32_t height, const std::wstring& window_name) :
     m_width(width),
     m_height(height),
-    m_window_name(window_name)
+    m_window_name(window_name),
+    m_frontend(new Frontend(width, height, window_name))
 {
 
 }

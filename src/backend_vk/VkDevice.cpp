@@ -43,7 +43,7 @@ VkPhysicalDevice VkDeviceW::PickPhysicalDevice(const std::vector<VkPhysicalDevic
 		}
 		{
 			uint32_t familyIndex = TestFamilQueueyIndex(physicalDevices[i], VK_QUEUE_COMPUTE_BIT);
-			if (familyIndex != VK_QUEUE_FAMILY_IGNORED)
+			if (familyIndex != VK_QUEUE_FAMILY_IGNORED && familyIndex != m_family_idx_gfx)
 			{
 				computeSupported = true;
                 m_family_idx_compute = familyIndex;
@@ -113,7 +113,7 @@ void VkDeviceW::CreateDevice(){
 	VK_CHECK(vkCreateDevice(m_phys_device, &createInfo, 0, &m_device));
 }
 
-uint32_t VkDeviceW::TestFamilQueueyIndex(VkPhysicalDevice phys_device, uint8_t queueFlags, uint8_t queueNotFlags) const {
+uint32_t VkDeviceW::TestFamilQueueyIndex(VkPhysicalDevice phys_device, uint8_t queueFlags) const {
 	uint32_t queueCount = 0;
 	vkGetPhysicalDeviceQueueFamilyProperties(phys_device, &queueCount, 0);
 
@@ -122,7 +122,7 @@ uint32_t VkDeviceW::TestFamilQueueyIndex(VkPhysicalDevice phys_device, uint8_t q
 	uint32_t fallback_queue_family = VK_QUEUE_FAMILY_IGNORED;
 
 	for (uint32_t i = 0; i < queueCount; ++i){
-		if ((queues[i].queueFlags & queueFlags) && !(queues[i].queueFlags & queueNotFlags))
+        if ((queues[i].queueFlags & queueFlags))
 			return i;
 
 		if (queues[i].queueFlags & queueFlags){

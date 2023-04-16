@@ -7,20 +7,21 @@
 
 class RootSignature : public IRootSignature {
 public:
-class BindPointConverter {
-public:
-    uint32_t Convert(uint32_t root_id, uint32_t offset = 0) const {
-        const std::vector<uint32_t>& table = m_data[root_id];
-        assert(table.size() > offset);
+    class BindPointConverter {
+    public:
+        uint32_t Convert(uint32_t root_id, uint32_t offset = 0) const {
+            const std::vector<uint32_t>& table = m_data[root_id];
+            assert(table.size() > offset);
 
-        return table[offset];
-    }
-    std::vector<std::vector<uint32_t>> & GetData() {
-        return m_data;
-    }
-private:
-    std::vector<std::vector<uint32_t>> m_data;
-};
+            return table[offset];
+        }
+        std::vector<std::vector<uint32_t>> & GetData() {
+            return m_data;
+        }
+    private:
+        std::vector<std::vector<uint32_t>> m_data;
+    };
+public:
     uint32_t GetRSId() const override {
         return m_id;
     }
@@ -28,9 +29,8 @@ private:
         m_id = id;
     }
 
-    void StageLayout(VkDescriptorSetLayoutCreateInfo layout);
-    const VkDescriptorSetLayoutCreateInfo * GetLayoutInfo() const {
-        return &m_layout_info;
+    const std::vector<VkDescriptorSetLayoutBinding>& GetBindings() const {
+        return m_layout_bindings;
     }
 
     VkDescriptorSetLayout GetLayout() {
@@ -43,14 +43,10 @@ private:
     BindPointConverter& GetConverter() {
         return m_converter;
     }
+    void Init(const std::vector<VkDescriptorSetLayoutBinding> layout_bindings, VkDescriptorSetLayout desc_set_layout);
 private:
-struct VkDescriptorSetLayoutCreateInfoWrapper : public VkDescriptorSetLayoutCreateInfo {
-    ~VkDescriptorSetLayoutCreateInfoWrapper() {
-        delete[] pBindings;
-    }
-};
-    uint32_t m_id{-1};
-    VkDescriptorSetLayoutCreateInfo m_layout_info;
+    uint32_t m_id{uint32_t(-1)};
+    std::vector<VkDescriptorSetLayoutBinding> m_layout_bindings;
     VkDescriptorSetLayout m_desc_set_layout;
     BindPointConverter m_converter;
 };

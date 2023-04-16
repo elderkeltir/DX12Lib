@@ -5,6 +5,64 @@
 #include "CommandQueue.h"
 #include "DynamicGpuHeap.h"
 
+void ConvertResourceState(ResourceState from, VkImageLayout &layout, VkAccessFlags &access_mask) {
+    switch(from) {
+
+
+    case rs_resource_state_index_buffer:
+        access_mask = VK_ACCESS_INDEX_READ_BIT;
+        break;
+    case rs_resource_state_render_target:
+        layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+        access_mask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+        break;
+    case rs_resource_state_unordered_access:
+    case rs_resource_state_depth_write:
+        layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+        access_mask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+        break;
+    case rs_resource_state_depth_read:
+        layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
+        access_mask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT;
+        break;
+    case rs_resource_state_non_pixel_shader_resource:
+        layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+        access_mask = VK_ACCESS_SHADER_READ_BIT;
+        break;
+    case rs_resource_state_pixel_shader_resource:
+        layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+        access_mask = VK_ACCESS_SHADER_READ_BIT;
+        break;
+    case rs_resource_state_stream_out:
+    case rs_resource_state_indirect_argument:
+    case rs_resource_state_copy_dest:
+        layout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+        access_mask = VK_ACCESS_TRANSFER_WRITE_BIT;
+        break;
+    case rs_resource_state_copy_source:
+        layout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+        access_mask = VK_ACCESS_TRANSFER_READ_BIT;
+        break;
+    case rs_resource_state_common:
+    case rs_resource_state_vertex_and_constant_buffer:
+    case rs_resource_state_resolve_dest:
+    case rs_resource_state_resolve_source:
+    case rs_resource_state_raytracing_acceleration_structure:
+    case rs_resource_state_shading_rate_source:
+    case rs_resource_state_generic_read:
+    case rs_resource_state_all_shader_resource:
+    case rs_resource_state_video_decode_read:
+    case rs_resource_state_video_decode_write:
+    case rs_resource_state_video_process_read:
+    case rs_resource_state_video_process_write:
+    case rs_resource_state_video_encode_read:
+    case rs_resource_state_video_encode_write:
+        assert(false);
+        break;
+    }
+}
+
+
 VkIndexType CastIndexType(ResourceFormat format) {
     switch(format){
         case ResourceFormat::rf_r16_uint: return VK_INDEX_TYPE_UINT16;
@@ -72,16 +130,6 @@ void CommandList::SetRenderTargets(const std::vector<IGpuResource*>& resources, 
         m_current_renderpass = nullptr;
     }
 
-    VkClearColorValue color = { 48.f / 255.f, 10.f / 255.f, 36.f / 255.f, 1 };
-	std::vector<VkClearValue> clearValues(resources.size());
-    for (uint32_t i = 0; i < resources.size(); i++){
-	    clearValues[i].color = { color };
-    }
-    if (depth_stencil_descriptor) {
-        clearValues.push_back(VkClearValue());
-        clearValues.back().depthStencil = { 1.0f, 0 };
-    }
-
     GpuResource *  rt = (GpuResource*) ( !resources.empty() ? resources.front() : depth_stencil_descriptor);
 
 	VkRenderPassBeginInfo passBeginInfo = { VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO };
@@ -89,27 +137,52 @@ void CommandList::SetRenderTargets(const std::vector<IGpuResource*>& resources, 
 	passBeginInfo.framebuffer = rt->GetFrameBuffer();
 	passBeginInfo.renderArea.extent.width = rt->GetResourceDesc().width;
 	passBeginInfo.renderArea.extent.height = rt->GetResourceDesc().height;
-	passBeginInfo.clearValueCount = clearValues.size();
-	passBeginInfo.pClearValues = clearValues.data();
 
 	vkCmdBeginRenderPass(m_command_list, &passBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
     m_current_renderpass = rt->GetRenderPass();
 }
 
 void CommandList::ClearRenderTargetView(IGpuResource* res, const float color[4], uint32_t num_rects, const RectScissors* rect) {
-    assert(false); // TODO: might be necessary vkCmdBeginRenderPass OR vkCmdClearColorImage()
+    VkClearColorValue clearColor = {0.0f, 0.0f, 0.0f, 1.0f};
+
+    // create a VkImageSubresourceRange to specify the image subresource to be cleared
+    VkImageSubresourceRange subresourceRange = {};
+    subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+    subresourceRange.baseMipLevel = 0;
+    subresourceRange.levelCount = 1;
+    subresourceRange.baseArrayLayer = 0;
+    subresourceRange.layerCount = 1;
+
+    if (auto buf = res->GetBuffer().lock()) {
+        HeapBuffer* buff = (HeapBuffer*)buf.get();
+        vkCmdClearColorImage(m_command_list, buff->GetImageInfo().image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, &clearColor, 1, &subresourceRange);
+    }
 }
 
 void CommandList::ClearRenderTargetView(IGpuResource& res, const float color[4], uint32_t num_rects, const RectScissors* rect) {
-    assert(false); // TODO: might be necessary vkCmdBeginRenderPass
+    ClearRenderTargetView(&res, color, num_rects, rect);
 }
 
 void CommandList::ClearDepthStencilView(IGpuResource* res, ClearFlagsDsv clear_flags, float depth, uint8_t stencil, uint32_t num_rects, const RectScissors* rects) {
-    assert(false); // TODO: maybe vkCmdClearColorImage()
+    VkClearDepthStencilValue clearValue = {};
+    clearValue.depth = depth; // set depth value to 1.0
+    clearValue.stencil = stencil; // set stencil value to 0
+
+    VkImageSubresourceRange subresourceRange = {};
+    subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT; // clear both depth and stencil aspects
+    subresourceRange.baseMipLevel = 0; // start at base mip level
+    subresourceRange.levelCount = 1; // clear only one mip level
+    subresourceRange.baseArrayLayer = 0; // start at base array layer
+    subresourceRange.layerCount = 1; // clear only one array layer
+
+    if (auto buf = res->GetBuffer().lock()) {
+        HeapBuffer* buff = (HeapBuffer*)buf.get();
+        vkCmdClearDepthStencilImage(m_command_list, buff->GetImageInfo().image, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, &clearValue, 1, &subresourceRange);
+    }
 }
 
 void CommandList::ClearDepthStencilView(IGpuResource& res, ClearFlagsDsv clear_flags, float depth, uint8_t stencil, uint32_t num_rects, const RectScissors* rects) {
-    assert(false); // TODO: maybe vkCmdClearColorImage()
+    ClearDepthStencilView(&res, clear_flags, depth, stencil, num_rects, rects);
 }
 
 void CommandList::Dispatch(uint32_t thread_group_count_x, uint32_t thread_group_count_y, uint32_t thread_group_count_z) {
@@ -121,15 +194,64 @@ void CommandList::SetGraphicsRootShaderResourceView(uint32_t root_parameter_inde
 }
 
 void CommandList::ResourceBarrier(std::shared_ptr<IGpuResource>& res, uint32_t to) {
-    return; // TODO: there is no any kekw
+    ResourceBarrier(*res, to);
 }
 
 void CommandList::ResourceBarrier(IGpuResource& res, uint32_t to) {
-    return; // TODO: there is no any kekw
+    if (auto buf = res.GetBuffer().lock()) {
+        HeapBuffer* buff = (HeapBuffer*)buf.get();
+
+        if (buff->GetVkType() == HeapBuffer::BufferResourceType::rt_texture) {
+            VkImageMemoryBarrier barrier = {};
+            ConvertResourceState(ResourceState(to), barrier.newLayout, barrier.dstAccessMask);
+            ConvertResourceState(ResourceState(res.GetState()), barrier.oldLayout, barrier.srcAccessMask);
+            barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+            barrier.image = buff->GetImageInfo().image; // VkImage object
+            barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT; // Or VK_IMAGE_ASPECT_DEPTH_BIT for depth/stencil images
+            barrier.subresourceRange.baseMipLevel = 0;
+            barrier.subresourceRange.levelCount = VK_REMAINING_MIP_LEVELS;
+            barrier.subresourceRange.baseArrayLayer = 0;
+            barrier.subresourceRange.layerCount = VK_REMAINING_ARRAY_LAYERS;
+
+            vkCmdPipelineBarrier(
+                m_command_list,
+                VK_PIPELINE_STAGE_TRANSFER_BIT,
+                VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, // Or other shader stages
+                0,
+                0, nullptr,
+                0, nullptr,
+                1, &barrier);
+        }
+        else {
+            VkBufferMemoryBarrier bufferBarrier = {};
+            VkImageLayout lay;
+            ConvertResourceState(ResourceState(to), lay, bufferBarrier.dstAccessMask);
+            ConvertResourceState(ResourceState(res.GetState()), lay, bufferBarrier.srcAccessMask);
+            bufferBarrier.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER;
+            bufferBarrier.pNext = nullptr;
+            bufferBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+            bufferBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+            bufferBarrier.buffer = buff->GetBufferInfo().buffer;
+            bufferBarrier.offset = 0;
+            bufferBarrier.size = VK_WHOLE_SIZE;
+
+            vkCmdPipelineBarrier(
+                m_command_list,
+                VK_PIPELINE_STAGE_TRANSFER_BIT,
+                VK_PIPELINE_STAGE_VERTEX_SHADER_BIT,
+                0,
+                0, nullptr,
+                1, &bufferBarrier,
+                0, nullptr);
+        }
+        res.UpdateState(ResourceState(to));
+    }
 }
 
 void CommandList::ResourceBarrier(std::vector<std::shared_ptr<IGpuResource>>& res, uint32_t to) {
-    return; // TODO: there is no any kekw
+    for (uint32_t i = 0; i < res.size(); i++) {
+        ResourceBarrier(res[i], to);
+    }
 }
 
 void CommandList::SetPSO(uint32_t id) {

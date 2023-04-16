@@ -100,6 +100,14 @@ ImageMemAllocation VkMemoryHelper::AllocateImage(uint32_t width, uint32_t height
     return img_mem_alloc;
 }
 
+void VkMemoryHelper::Deallocate(BufferMemAllocation &alloc) {
+    vmaDestroyBuffer(m_allocator, alloc.buffer, (VmaAllocation)alloc.user_data);
+}
+
+void VkMemoryHelper::Deallocate(ImageMemAllocation &alloc) {
+    vmaDestroyImage(m_allocator, alloc.image, (VmaAllocation)alloc.user_data);
+}
+
 void* VkMemoryHelper::Map(const MemAllocation& allocation) {
     VmaAllocation allocation_native = (VmaAllocation)allocation.user_data;
     void* mappedData{nullptr};
@@ -112,4 +120,8 @@ void* VkMemoryHelper::Map(const MemAllocation& allocation) {
 void VkMemoryHelper::Unmap(const MemAllocation& allocation) {
     VmaAllocation allocation_native = (VmaAllocation)allocation.user_data;
     vmaUnmapMemory(m_allocator, allocation_native);
+}
+
+VkMemoryHelper::~VkMemoryHelper() {
+    vmaDestroyAllocator(m_allocator);
 }

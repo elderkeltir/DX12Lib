@@ -1,7 +1,7 @@
 #include "ImguiHelper.h"
-#include <directx/d3dx12.h>
 #include <vector>
 #include "imgui.h"
+#include <volk.h>
 #include "backends/imgui_impl_glfw.h"
 #include "backends/imgui_impl_vulkan.h"
 
@@ -9,20 +9,20 @@
 #include "CommandQueue.h"
 #include "IGpuResource.h"
 #include "ResourceDescriptor.h"
-#include "DxBackend.h"
+#include "VkBackend.h"
 #include "Console.h"
 #include "DynamicGpuHeap.h"
 #include "Logger.h"
 #include "CommandList.h"
-#include "DxDevice.h"
+#include "VkDevice.h"
 
-extern DxBackend* gBackend;
+extern VkBackend* gBackend;
 
 // Forward declare message handler from imgui_impl_win32.cpp
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 static void AddToConsoleLogCallback(const std::string& line) {
-	gBackend->GetUiHelper()->AddToConsoleLog(line);
+    gBackend->GetUI()->AddToConsoleLog(line);
 }
 
 void ImguiHelper::CreateQuadTexture(uint32_t width, uint32_t height, ResourceFormat formats, uint32_t texture_nums) {

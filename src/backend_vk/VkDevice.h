@@ -6,7 +6,7 @@
 class VkDeviceW {
 public:
     void Init(VkInstance instance);
-    uint32_t TestFamilQueueyIndex(VkPhysicalDevice phys_device, uint8_t queueFlags, uint8_t queueNotFlags) const;
+    uint32_t TestFamilQueueyIndex(VkPhysicalDevice phys_device, uint8_t queueFlags) const;
     VkDevice GetNativeObject() { 
         return m_device;
     }

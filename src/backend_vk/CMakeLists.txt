@@ -24,6 +24,7 @@ include_directories(${PROJECT_SOURCE_DIR})
 include_directories(${PROJECT_SOURCE_DIR}/../backend_interface)
 include_directories(${THIRD_PARTY_DIR}/imgui)
 include_directories(${THIRD_PARTY_DIR}/volk)
+include_directories(${THIRD_PARTY_DIR}/stb)
 include_directories(${THIRD_PARTY_DIR}/VulkanMemoryAllocator/include)
 
 add_library(${PROJECT_NAME} SHARED
@@ -52,9 +53,10 @@ add_library(${PROJECT_NAME} SHARED
     SwapChain.cpp
     ShaderManager.cpp
     TextureLoader.cpp
-    ImguiHelper.cpp
+#    ImguiHelper.cpp
     RootSignature.cpp
     DynamicGpuHeap.cpp
+    Techniques.cpp
 )
 
 find_package(PkgConfig REQUIRED)

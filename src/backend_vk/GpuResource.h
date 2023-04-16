@@ -2,6 +2,8 @@
 
 #include "IGpuResource.h"
 
+#include <volk.h>
+
 class GpuResource : public IGpuResource {
 public:
     ~GpuResource();

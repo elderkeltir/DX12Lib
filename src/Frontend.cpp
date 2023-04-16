@@ -181,6 +181,9 @@ void Frontend::OnKeyDown(KeyboardButton key) {
 	case KeyboardButton::kb_tilda:
 		m_backend->GetUI()->ShowConsole();
 		break;
+    default:
+        assert(false);
+        break;
 	}
 }
 
@@ -204,6 +207,9 @@ void Frontend::OnKeyUp(KeyboardButton key) {
 	case KeyboardButton::kb_d:
 		m_camera_movement.camera_movement_state &= (~m_camera_movement.cm_right);
 		break;
+    default:
+        assert(false);
+        break;
 	}
 }
 
@@ -320,7 +326,7 @@ void Frontend::RenderLevel(ICommandList* command_list) {
 	std::vector<ResourceFormat> formats = { ResourceFormat::rf_r16g16b16a16_float, ResourceFormat::rf_r16g16b16a16_float, ResourceFormat::rf_r16g16b16a16_float, ResourceFormat::rf_r16g16b16a16_float };
 	bool create_fb = !m_deferred_shading_quad->CreateQuadTexture(m_width, m_height, formats, m_backend->GetFrameCount(), 0, L"m_deferred_shading_quad_");
 	if (create_fb){
-		m_deferred_shading_quad->CreateFrameBuffer(GetDepthBuffer(), tt_gbuffer);
+        m_deferred_shading_quad->CreateFrameBuffer(GetDepthBuffer(), ITechniques::tt_gbuffer);
 	}
 	{
 		std::vector<std::shared_ptr<IGpuResource>>& rts = m_deferred_shading_quad->GetRts(FrameId());
@@ -407,9 +413,8 @@ void Frontend::RenderForwardQuad(ICommandList* command_list) {
 		std::vector<ResourceFormat> formats = { ResourceFormat::rf_r16g16b16a16_float };
 		bool create_fb = !m_forward_quad->CreateQuadTexture(m_width, m_height, formats, m_backend->GetFrameCount(), 0, L"m_forward_quad_");
 		if (create_fb){
-			m_forward_quad->CreateFrameBuffer(GetDepthBuffer(), tt_water);
+            m_forward_quad->CreateFrameBuffer(GetDepthBuffer(), ITechniques::tt_water);
 		}
-	}
 	}
 
 	if (std::shared_ptr<IGpuResource> rt = m_forward_quad->GetRt(FrameId()).lock()) {
@@ -447,7 +452,7 @@ void Frontend::RenderDeferredShadingQuad(ICommandList* command_list) {
 		std::vector<ResourceFormat> formats = { ResourceFormat::rf_r16g16b16a16_float };
 		bool create_fb = !m_post_process_quad->CreateQuadTexture(m_width, m_height, formats, m_backend->GetFrameCount(), 0, L"m_post_process_quad_");
 		if (create_fb){
-			m_post_process_quad->CreateFrameBuffer(nullptr, tt_deferred_shading);
+            m_post_process_quad->CreateFrameBuffer(nullptr, ITechniques::tt_deferred_shading);
 		}
 		if (std::shared_ptr<IGpuResource> rt = m_post_process_quad->GetRt(FrameId()).lock()) {
 			command_list->ResourceBarrier(rt, ResourceState::rs_resource_state_render_target);

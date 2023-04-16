@@ -1,5 +1,8 @@
 #pragma once
 
+#include <cstdint>
+#include <vector>
+
 enum ResourceState {
     rs_resource_state_common = 0,
     rs_resource_state_vertex_and_constant_buffer = 0x1,
@@ -402,6 +405,10 @@ struct SubresourceData {
     const void* data;
     uint64_t row_pitch;
     uint64_t slice_pitch;
+#ifndef WIN32
+    uint32_t width;
+    uint32_t height;
+#endif // WIN32
 };
 
 enum class CommandListType {
@@ -483,6 +490,10 @@ struct CPUdescriptor {
 
 struct WindowHandler {
     uint64_t ptr;
+#ifndef WIN3
+    std::vector<const char*> extensions;
+    void* callback;
+#endif // !WIN32
 };
 
 struct ImguiWindowData {

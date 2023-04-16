@@ -39,7 +39,7 @@ public:
     }
 
 private:
-    uint32_t TestFamilQueueyIndex(uint8_t queueFlags, uint8_t queueNotFlags);
+    uint32_t TestFamilQueueyIndex(uint8_t queueFlags);
     
     uint32_t m_active_cl{0};
     uint32_t m_command_list_num{ 0 };

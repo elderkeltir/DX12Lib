@@ -1,8 +1,6 @@
 #pragma once
 #include <optional>
 #include <cstdint>
-#include <array>
-#include <vector>
 #include <string>
 #include <directx/d3d12.h>
 #include <wrl.h>

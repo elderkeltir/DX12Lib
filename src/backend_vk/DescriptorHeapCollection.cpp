@@ -43,7 +43,7 @@ DescriptorHeapCollection::~DescriptorHeapCollection() {
 	}
 }
 
-void DescriptorHeapCollection::ReserveRTVhandle(CPUdescriptor& rtvHandle, uint64_t data = 0, bool gpu_only) {
+void DescriptorHeapCollection::ReserveRTVhandle(CPUdescriptor& rtvHandle, uint64_t data, bool gpu_only) {
 	const ImageMemAllocation* const img_data = (const ImageMemAllocation* const)data;
 
 	VkDevice device = gBackend->GetDevice()->GetNativeObject();
@@ -61,7 +61,7 @@ void DescriptorHeapCollection::ReserveRTVhandle(CPUdescriptor& rtvHandle, uint64
 	rtvHandle.ptr = (uint64_t)view;
 }
 
-void DescriptorHeapCollection::ReserveDSVhandle(CPUdescriptor& dsvHandle, uint64_t data = 0, bool gpu_only) {
+void DescriptorHeapCollection::ReserveDSVhandle(CPUdescriptor& dsvHandle, uint64_t data, bool gpu_only) {
 	const ImageMemAllocation* const img_data = (const ImageMemAllocation* const)data;
 
 	VkDevice device = gBackend->GetDevice()->GetNativeObject();
@@ -82,11 +82,11 @@ void DescriptorHeapCollection::ReserveDSVhandle(CPUdescriptor& dsvHandle, uint64
 	dsvHandle.ptr = (uint64_t)view;
 }
 
-void DescriptorHeapCollection::ReserveCBVhandle(CPUdescriptor& cbvHandle, uint64_t data = 0, bool gpu_only) {
+void DescriptorHeapCollection::ReserveCBVhandle(CPUdescriptor& cbvHandle, uint64_t data, bool gpu_only) {
 	return; // TODO: there is no need to bufferview here
 }
 
-void DescriptorHeapCollection::ReserveSRVhandle(CPUdescriptor& srvHandle, uint64_t data = 0, bool gpu_only) {
+void DescriptorHeapCollection::ReserveSRVhandle(CPUdescriptor& srvHandle, uint64_t data, bool gpu_only) {
 	const ImageMemAllocation* const img_data = (const ImageMemAllocation* const)data;
 
 	VkDevice device = gBackend->GetDevice()->GetNativeObject();
@@ -104,7 +104,7 @@ void DescriptorHeapCollection::ReserveSRVhandle(CPUdescriptor& srvHandle, uint64
 	srvHandle.ptr = (uint64_t)view;
 }
 
-void DescriptorHeapCollection::ReserveUAVhandle(CPUdescriptor& uavHandle, uint64_t data = 0, bool gpu_only) {
+void DescriptorHeapCollection::ReserveUAVhandle(CPUdescriptor& uavHandle, uint64_t data, bool gpu_only) {
 	const ImageMemAllocation* const img_data = (const ImageMemAllocation* const)data;
 
 	VkDevice device = gBackend->GetDevice()->GetNativeObject();
