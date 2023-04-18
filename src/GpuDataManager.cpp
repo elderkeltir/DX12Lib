@@ -16,7 +16,8 @@ void GpuDataManager::DeallocateVertexBuffer(uint64_t start, uint32_t size) {
 void GpuDataManager::Initialize()
 {
     m_vertex_buffer_res.reset(CreateGpuResource());
-    m_vertex_buffer_res->CreateBuffer(HeapType::ht_default, vertex_storage_size, ResourceState::rs_resource_state_all_shader_resource, std::wstring(L"vertex_buffer"));
+    HeapType h_type = HeapType(HeapType::ht_default | HeapType::ht_buff_srv_buffer);
+    m_vertex_buffer_res->CreateBuffer(h_type, vertex_storage_size, ResourceState::rs_resource_state_all_shader_resource, std::wstring(L"vertex_buffer"));
     SRVdesc desc;
     desc.format = ResourceFormat::rf_r8_uint;
     desc.dimension = SRVdesc::SRVdimensionType::srv_dt_buffer;

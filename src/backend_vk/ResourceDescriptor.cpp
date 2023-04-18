@@ -13,6 +13,15 @@ const ImageMemAllocation& GetImageData(std::weak_ptr<IHeapBuffer> buff) {
     }
 }
 
+const BufferMemAllocation& GetBufferData(std::weak_ptr<IHeapBuffer> buff) {
+    if (std::shared_ptr<IHeapBuffer> buffer = buff.lock()){
+        HeapBuffer* buff_native = (HeapBuffer*)buffer.get();
+        assert(buff_native->GetVkType() == HeapBuffer::BufferResourceType::rt_buffer);
+        
+        return buff_native->GetBufferInfo();
+    }
+}
+
 bool ResourceDescriptor::Create_RTV(std::weak_ptr<IHeapBuffer> buff) {
     const ImageMemAllocation& img_data = GetImageData(buff);
 
@@ -42,8 +51,11 @@ bool ResourceDescriptor::Create_SRV(std::weak_ptr<IHeapBuffer> buff, const SRVde
             }
         }
         else {
+            const BufferMemAllocation& buff_data = GetBufferData(buff);
             assert(buff_native->GetVkType() == HeapBuffer::BufferResourceType::rt_buffer);
-            m_cpu_handle.ptr = (uint64_t)&buff_native->GetBufferInfo();
+            if (IDescriptorHeapCollection* descriptorHeapCollection = gBackend->GetDescriptorHeapCollection()){
+                descriptorHeapCollection->ReserveSRVhandle(m_cpu_handle, (uint64_t)&buff_data);
+            }
         }
     }
     return true;

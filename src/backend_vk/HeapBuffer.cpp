@@ -11,13 +11,17 @@ VkImageUsageFlags CastHeapTypeImage(HeapType type){
         usage |= VK_IMAGE_USAGE_SAMPLED_BIT;
     if (type & HeapType::ht_image_depth_stencil_attachment)
         usage |= VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
+    if (type & HeapType::ht_image_storage)
+        usage |= VK_IMAGE_USAGE_STORAGE_BIT;
+    if (type & HeapType::ht_image_color_attach)
+        usage |= VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 
     return usage;
 }
 
 VkBufferUsageFlags CastHeapTypeBuffer(HeapType type){
     VkBufferUsageFlags usage{0};
-    if (type & HeapType::ht_transfer_src)
+    if (type & HeapType::ht_buff_transfer_src)
         usage |= VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
     if (type & HeapType::ht_buff_transfer_dst)
         usage |= VK_BUFFER_USAGE_TRANSFER_DST_BIT;
@@ -25,20 +29,22 @@ VkBufferUsageFlags CastHeapTypeBuffer(HeapType type){
         usage |= VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
     if (type & HeapType::ht_buff_index_buffer)
         usage |= VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
-    if (type & HeapType::ht_buff_vertex_buffer)
-        usage |= VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
+    if (type & HeapType::ht_buff_srv_buffer)
+        usage |= VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT;
 
     return usage;
 }
 
 VkImageAspectFlags CatsAspectFlags(HeapType type) {
-    VkImageAspectFlags aspect_bits;
+    VkImageAspectFlags aspect_bits(VK_IMAGE_ASPECT_NONE);
     if (type & HeapType::ht_aspect_color_bit)
         aspect_bits |= VK_IMAGE_ASPECT_COLOR_BIT;
     if (type & HeapType::ht_aspect_depth_bit)
         aspect_bits |= VK_IMAGE_ASPECT_DEPTH_BIT;
     if (type & HeapType::ht_aspect_stencil_bit)
         aspect_bits |= VK_IMAGE_ASPECT_STENCIL_BIT;
+        
+    return aspect_bits;
 }
 
 void HeapBuffer::Create(HeapType type, uint32_t bufferSize, ResourceState initial_state, std::optional<std::wstring> dbg_name) {

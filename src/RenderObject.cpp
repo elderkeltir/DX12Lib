@@ -13,7 +13,8 @@ RenderObject::~RenderObject() {
 void RenderObject::LoadIndexDataOnGpu(ICommandList* command_list){
     if (m_dirty & db_index && m_mesh->GetIndicesNum()){
         m_IndexBuffer.reset(CreateGpuResource());
-        m_IndexBuffer->CreateBuffer(HeapType::ht_default, (m_mesh->GetIndicesNum() * sizeof(uint16_t)), ResourceState::rs_resource_state_copy_dest, std::wstring(L"index_buffer").append(m_name));
+        HeapType h_type = HeapType(HeapType::ht_default | HeapType::ht_buff_index_buffer);
+        m_IndexBuffer->CreateBuffer(h_type, (m_mesh->GetIndicesNum() * sizeof(uint16_t)), ResourceState::rs_resource_state_copy_dest, std::wstring(L"index_buffer").append(m_name));
         m_IndexBuffer->LoadBuffer(command_list, m_mesh->GetIndicesNum(), sizeof(uint16_t), m_mesh->GetIndicesData());
         command_list->ResourceBarrier(*m_IndexBuffer, ResourceState::rs_resource_state_index_buffer);
         m_IndexBuffer->Create_Index_View(ResourceFormat::rf_r16_uint, (m_mesh->GetIndicesNum() * sizeof(uint16_t)));

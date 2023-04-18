@@ -31,8 +31,9 @@ void SSAO::Initialize(uint32_t width, uint32_t height, std::optional<std::wstrin
 				res_state = ResourceState::rs_resource_state_pixel_shader_resource;
 			}
 
+			HeapType h_type = HeapType(HeapType::ht_default | HeapType::ht_image_storage | HeapType::ht_image_sampled | HeapType::ht_aspect_color_bit);
 			ResourceDesc res_desc = ResourceDesc::tex_2d(ResourceFormat::rf_r8_unorm, width, height, 1, 0, 1, 0, ResourceDesc::ResourceFlags::rf_allow_unordered_access);
-			res->CreateTexture(HeapType::ht_default, res_desc, res_state, nullptr, dbg_name.value_or(L"quad_tex_").append(std::to_wstring(i).append(L"-")).append(std::to_wstring(i)));
+			res->CreateTexture(h_type, res_desc, res_state, nullptr, dbg_name.value_or(L"quad_tex_").append(std::to_wstring(i).append(L"-")).append(std::to_wstring(i)));
 
 			SRVdesc srv_desc = {};
 			srv_desc.format = ResourceFormat::rf_r8_unorm;
@@ -50,7 +51,8 @@ void SSAO::Initialize(uint32_t width, uint32_t height, std::optional<std::wstrin
 		}
 
 		uint32_t cb_size = calc_cb_size(sizeof(SsaoConstants));
-		m_ssao_cb->CreateBuffer(HeapType::ht_default, cb_size, ResourceState::rs_resource_state_vertex_and_constant_buffer, std::wstring(L"ssao_const_buffer"));
+		HeapType h_type = HeapType(HeapType::ht_default | HeapType::ht_buff_uniform_buffer);
+		m_ssao_cb->CreateBuffer(h_type, cb_size, ResourceState::rs_resource_state_vertex_and_constant_buffer, std::wstring(L"ssao_const_buffer"));
 		CBVdesc desc;
 		desc.size_in_bytes = cb_size;
 		m_ssao_cb->Create_CBV(desc);

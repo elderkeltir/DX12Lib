@@ -12,7 +12,14 @@ public:
     VkSemaphore &GetSemaphore() {
         return m_semaphore;
     }
+    bool WasSignaled() const {
+        return  m_signaled;
+    }
+    bool SetSignaled(bool sig) {
+        m_signaled = sig;
+    }
 private:
     VkFence m_fence;
     VkSemaphore m_semaphore;
+    bool m_signaled {false};
 };

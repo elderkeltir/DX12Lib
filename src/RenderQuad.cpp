@@ -37,10 +37,13 @@ bool RenderQuad::CreateQuadTexture(uint32_t width, uint32_t height, const std::v
 
                 uint32_t res_flags = ResourceDesc::ResourceFlags::rf_allow_render_target;
 
-                if (uavs << m)
+                HeapType h_type = HeapType(HeapType::ht_default | HeapType::ht_image_sampled | HeapType::ht_image_color_attach);
+                if (uavs << m) {
                     res_flags |= ResourceDesc::ResourceFlags::rf_allow_unordered_access;
+                    h_type = HeapType(h_type | HeapType::ht_image_storage);
+                }
                 ResourceDesc res_desc = ResourceDesc::tex_2d(formats[m], width, height, 1, 0, 1, 0, (ResourceDesc::ResourceFlags)res_flags);
-                res->CreateTexture(HeapType::ht_default, res_desc, ResourceState::rs_resource_state_pixel_shader_resource, nullptr, dbg_name.value_or(L"quad_tex_").append(std::to_wstring(n).append(L"-")).append(std::to_wstring(m)));
+                res->CreateTexture(h_type, res_desc, ResourceState::rs_resource_state_pixel_shader_resource, nullptr, dbg_name.value_or(L"quad_tex_").append(std::to_wstring(n).append(L"-")).append(std::to_wstring(m)));
                 res->CreateRTV();
 
                 SRVdesc srv_desc = {};

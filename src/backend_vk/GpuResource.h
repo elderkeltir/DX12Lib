@@ -51,6 +51,8 @@ public:
         return m_res_desc;
     }
 
+    void InitBuffer();
+
 private:
     void ResetViews();
     std::shared_ptr<IHeapBuffer> m_buffer;

@@ -5,6 +5,7 @@
 #include "GpuResource.h"
 #include "IResourceDescriptor.h"
 #include "SwapChain.h"
+#include "VkMemoryHelper.h"
 #include "vk_helper.h"
 #include "Techniques.h"
 //#include "ImguiHelper.h"
@@ -33,7 +34,7 @@ void DestroyBackend() {
 
 void VkBackend::CreateInstance(const std::vector<const char*> &extensions) {
     VkApplicationInfo appinfo{ VK_STRUCTURE_TYPE_APPLICATION_INFO };
-    appinfo.apiVersion = VK_API_VERSION_1_1; // TODO: check supported versions
+    appinfo.apiVersion = VK_API_VERSION_1_3; // TODO: check supported versions
     VkInstanceCreateInfo createInfo{ VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO };
     createInfo.pApplicationInfo = &appinfo;
 
@@ -49,6 +50,7 @@ void VkBackend::CreateInstance(const std::vector<const char*> &extensions) {
 
     std::vector<const char*> extensions_vk = extensions;
     extensions_vk.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+    extensions_vk.push_back(VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME);
 
     createInfo.ppEnabledExtensionNames = extensions_vk.data();
     createInfo.enabledExtensionCount = extensions_vk.size();
@@ -78,6 +80,14 @@ void VkBackend::OnInit(const WindowHandler& window_hndl, uint32_t width, uint32_
     m_descriptor_heap_collection.reset(new DescriptorHeapCollection);
     m_descriptor_heap_collection->Initialize();
 
+    m_memory_helper.reset(new VkMemoryHelper);
+    m_memory_helper->Init();
+
+    m_root_dir = path;
+    m_shader_mgr.reset(new ShaderManager);
+    m_techniques.reset(new Techniques);
+    m_techniques->OnInit();
+
     // SwapChain
     m_swap_chain.reset(new SwapChain);
     m_swap_chain->OnInit(window_hndl, width, height, FramesCount);
@@ -89,17 +99,18 @@ void VkBackend::OnInit(const WindowHandler& window_hndl, uint32_t width, uint32_
     m_logger.reset(new logger("app.log", logger::log_level::ll_INFO));
 
     m_frameIndex = m_swap_chain->GetCurrentBackBufferIndex();
-    m_root_dir = path;
 
-    m_shader_mgr.reset(new ShaderManager);
-    m_techniques.reset(new Techniques);
-    m_techniques->OnInit();
 
     //m_gui.reset(new ImguiHelper);
     //m_gui->Initialize(FramesCount);
 
     m_interqueue_fence.reset(new Fence);
     m_interqueue_fence->Initialize(0);
+
+    for (uint32_t i = 0; i < 2; i++) {
+        m_cpu_fences[i].reset(new Fence);
+        m_cpu_fences[i]->Initialize(0);
+    }
 }
 
 uint32_t VkBackend::GetCurrentBackBufferIndex() const  {
@@ -137,7 +148,7 @@ logger* VkBackend::GetLogger() {
 }
 
 void VkBackend::SyncWithCPU() {
-	m_commandQueueGfx->WaitOnCPU(m_cpu_fences[m_frameIndex]);
+	m_commandQueueGfx->WaitOnCPU(m_cpu_fences[m_frameIndex].get());
 }
 
 void VkBackend::SyncWithGpu(ICommandQueue::QueueType from, ICommandQueue::QueueType to) {
@@ -225,7 +236,7 @@ void VkBackend::CreateFrameBuffer(std::vector<IGpuResource*> &rts, IGpuResource 
 	}
 
 	if (depth) {
-		if (std::shared_ptr<IResourceDescriptor> rtv = depth->GetRTV().lock()){
+		if (std::shared_ptr<IResourceDescriptor> rtv = depth->GetDSV().lock()){
 			attachments[size - 1] = (VkImageView)rtv->GetCPUhandle().ptr;
         }
 	}

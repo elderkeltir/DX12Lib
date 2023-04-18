@@ -3,6 +3,8 @@
 #include "VkDevice.h"
 #include "ShaderManager.h"
 
+#include <iostream> // TODO: remove
+
 extern VkBackend* gBackend;
 
 VkSampler CreateSampler(VkFilter mag, VkFilter min, VkSamplerAddressMode u, VkSamplerAddressMode v, VkSamplerAddressMode w, VkBool32 anisotropy = VK_FALSE) {
@@ -68,11 +70,10 @@ Techniques::RenderPass CreateRenderPass(const std::vector<VkFormat> &formats, bo
         attachments[i].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
         attachments[i].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
         attachments[i].initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-        attachments[i].finalLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+        attachments[i].finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
     }
 
     if (depth) {
-        i++;
         attachments[i].format = VK_FORMAT_D32_SFLOAT;
         attachments[i].samples = VK_SAMPLE_COUNT_1_BIT;
         attachments[i].loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
@@ -80,7 +81,7 @@ Techniques::RenderPass CreateRenderPass(const std::vector<VkFormat> &formats, bo
         attachments[i].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
         attachments[i].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
         attachments[i].initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-        attachments[i].finalLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+        attachments[i].finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
     }
 
     std::vector<VkAttachmentReference> colorAttachments(formats.size());
@@ -93,9 +94,8 @@ Techniques::RenderPass CreateRenderPass(const std::vector<VkFormat> &formats, bo
     subpass.colorAttachmentCount = colorAttachments.size();
     subpass.pColorAttachments = colorAttachments.data();
 
+    VkAttachmentReference depthAttachmentRef = { i, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL  };
     if (depth) {
-        VkAttachmentReference depthAttachmentRef = { ++i, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL  };
-
         subpass.pDepthStencilAttachment = &depthAttachmentRef;
     }
     else {
@@ -116,6 +116,7 @@ Techniques::RenderPass CreateRenderPass(const std::vector<VkFormat> &formats, bo
 
     rpass.depth = depth;
     rpass.rpass = renderPass;
+    rpass.formats = formats;
 
     return rpass;
 }
@@ -241,7 +242,7 @@ void Techniques::CreateRootSignature_4(RootSignature* root_sign, std::optional<s
 
 static Techniques::TechniqueVk CreateTechnique_0(RootSignature& root_sign, const Techniques::RenderPass& rp, std::optional<std::wstring> dbg_name = std::nullopt){
     VkDevice device = gBackend->GetDevice()->GetNativeObject();
-
+    std::cout<<"lolkeke" << std::endl;
     // Tech
     Techniques::TechniqueVk tech;
     tech.vs = L"g_buffer_vs.hlsl";
@@ -334,18 +335,20 @@ static Techniques::TechniqueVk CreateTechnique_0(RootSignature& root_sign, const
     }
 
     // blend
-    VkPipelineColorBlendAttachmentState colorAttachmentState = {};
-	colorAttachmentState.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
-	colorAttachmentState.blendEnable = VK_FALSE;
+    std::vector<VkPipelineColorBlendAttachmentState> colorAttachmentState(rp.formats.size());
+    for (uint32_t i = 0; i < colorAttachmentState.size(); i++) {
+        colorAttachmentState[i].colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
+        colorAttachmentState[i].blendEnable = VK_FALSE;
+    }
 
 	VkPipelineColorBlendStateCreateInfo colorBlendState = { VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO };
-	colorBlendState.attachmentCount = 1;
+	colorBlendState.attachmentCount = rp.formats.size();
 	colorBlendState.logicOpEnable = VK_FALSE;
-	colorBlendState.pAttachments = &colorAttachmentState;
+	colorBlendState.pAttachments = colorAttachmentState.data();
 	createInfo.pColorBlendState = &colorBlendState;
 
     // dynamic?
-    VkDynamicState dynamicStates[] = { VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR };
+    VkDynamicState dynamicStates[] = { VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR, VK_DYNAMIC_STATE_VERTEX_INPUT_EXT };
 
 	VkPipelineDynamicStateCreateInfo dynamicState = { VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO };
 	dynamicState.dynamicStateCount = sizeof(dynamicStates) / sizeof(dynamicStates[0]);
@@ -357,6 +360,7 @@ static Techniques::TechniqueVk CreateTechnique_0(RootSignature& root_sign, const
 
     // pipeline
     VkPipeline pipeline = 0;
+    
 	VK_CHECK(vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &createInfo, 0, &pipeline));
 
     tech.pipeline_layout = layout;
@@ -466,7 +470,7 @@ static Techniques::TechniqueVk CreateTechnique_1(RootSignature& root_sign, const
 	colorAttachmentState.blendEnable = VK_FALSE;
 
 	VkPipelineColorBlendStateCreateInfo colorBlendState = { VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO };
-	colorBlendState.attachmentCount = 1;
+	colorBlendState.attachmentCount = rp.formats.size();
 	colorBlendState.logicOpEnable = VK_FALSE;
 	colorBlendState.pAttachments = &colorAttachmentState;
 	createInfo.pColorBlendState = &colorBlendState;
@@ -593,7 +597,7 @@ static Techniques::TechniqueVk CreateTechnique_2(RootSignature& root_sign, const
 	colorAttachmentState.blendEnable = VK_FALSE;
 
 	VkPipelineColorBlendStateCreateInfo colorBlendState = { VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO };
-	colorBlendState.attachmentCount = 1;
+	colorBlendState.attachmentCount = rp.formats.size();
 	colorBlendState.logicOpEnable = VK_FALSE;
 	colorBlendState.pAttachments = &colorAttachmentState;
 	createInfo.pColorBlendState = &colorBlendState;
@@ -720,7 +724,7 @@ static Techniques::TechniqueVk CreateTechnique_3(RootSignature& root_sign, const
 	colorAttachmentState.blendEnable = VK_FALSE;
 
 	VkPipelineColorBlendStateCreateInfo colorBlendState = { VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO };
-	colorBlendState.attachmentCount = 1;
+	colorBlendState.attachmentCount = rp.formats.size();
 	colorBlendState.logicOpEnable = VK_FALSE;
 	colorBlendState.pAttachments = &colorAttachmentState;
 	createInfo.pColorBlendState = &colorBlendState;
@@ -847,7 +851,7 @@ static Techniques::TechniqueVk CreateTechnique_4(RootSignature& root_sign, const
 	colorAttachmentState.blendEnable = VK_FALSE;
 
 	VkPipelineColorBlendStateCreateInfo colorBlendState = { VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO };
-	colorBlendState.attachmentCount = 1;
+	colorBlendState.attachmentCount = rp.formats.size();
 	colorBlendState.logicOpEnable = VK_FALSE;
 	colorBlendState.pAttachments = &colorAttachmentState;
 	createInfo.pColorBlendState = &colorBlendState;
@@ -1078,7 +1082,7 @@ static Techniques::TechniqueVk CreateTechnique_7(RootSignature& root_sign, const
 	colorAttachmentState.blendEnable = VK_FALSE;
 
 	VkPipelineColorBlendStateCreateInfo colorBlendState = { VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO };
-	colorBlendState.attachmentCount = 1;
+	colorBlendState.attachmentCount = rp.formats.size();
 	colorBlendState.logicOpEnable = VK_FALSE;
 	colorBlendState.pAttachments = &colorAttachmentState;
 	createInfo.pColorBlendState = &colorBlendState;
@@ -1205,7 +1209,7 @@ static Techniques::TechniqueVk CreateTechnique_8(RootSignature& root_sign, const
 	colorAttachmentState.blendEnable = VK_FALSE;
 
 	VkPipelineColorBlendStateCreateInfo colorBlendState = { VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO };
-	colorBlendState.attachmentCount = 1;
+	colorBlendState.attachmentCount = rp.formats.size();
 	colorBlendState.logicOpEnable = VK_FALSE;
 	colorBlendState.pAttachments = &colorAttachmentState;
 	createInfo.pColorBlendState = &colorBlendState;
@@ -1255,16 +1259,12 @@ static Techniques::TechniqueVk CreateTechnique_9(RootSignature& root_sign, const
     VkGraphicsPipelineCreateInfo createInfo = { VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO };
 
     // shaders
-	VkPipelineShaderStageCreateInfo stages[2] = {};
+	VkPipelineShaderStageCreateInfo stages[1] = {};
 	stages[0].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
 	stages[0].stage = VK_SHADER_STAGE_VERTEX_BIT;
 	stages[0].pName = "main";
-	stages[1].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-	stages[1].stage = VK_SHADER_STAGE_FRAGMENT_BIT;
-	stages[1].pName = "main";
     if (ShaderManager* shader_mgr = gBackend->GetShaderManager()){
         ShaderManager::ShaderBlob* vs_blob = shader_mgr->Load(tech.vs, L"main", ShaderManager::ShaderType::st_vertex);
-        ShaderManager::ShaderBlob* ps_blob = shader_mgr->Load(tech.ps, L"main", ShaderManager::ShaderType::st_pixel);
         
         {
             VkShaderModuleCreateInfo createInfo = { VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO };
@@ -1275,16 +1275,6 @@ static Techniques::TechniqueVk CreateTechnique_9(RootSignature& root_sign, const
             VK_CHECK(vkCreateShaderModule(device, &createInfo, 0, &shaderModule));
 
             stages[0].module = shaderModule;
-        }
-        {
-            VkShaderModuleCreateInfo createInfo = { VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO };
-            createInfo.codeSize = ps_blob->size;
-            createInfo.pCode = reinterpret_cast<const uint32_t*>(ps_blob->data.data());
-
-            VkShaderModule shaderModule = 0;
-            VK_CHECK(vkCreateShaderModule(device, &createInfo, 0, &shaderModule));
-
-            stages[1].module = shaderModule;
         }
     }
 
@@ -1332,7 +1322,7 @@ static Techniques::TechniqueVk CreateTechnique_9(RootSignature& root_sign, const
 	colorAttachmentState.blendEnable = VK_FALSE;
 
 	VkPipelineColorBlendStateCreateInfo colorBlendState = { VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO };
-	colorBlendState.attachmentCount = 1;
+	colorBlendState.attachmentCount = rp.formats.size();
 	colorBlendState.logicOpEnable = VK_FALSE;
 	colorBlendState.pAttachments = &colorAttachmentState;
 	createInfo.pColorBlendState = &colorBlendState;
@@ -1449,7 +1439,7 @@ void Techniques::OnInit(std::optional<std::wstring> dbg_name){
         std::vector<VkFormat> formats = { VK_FORMAT_R16G16B16A16_SFLOAT, VK_FORMAT_R16G16B16A16_SFLOAT, VK_FORMAT_R16G16B16A16_SFLOAT, VK_FORMAT_R16G16B16A16_SFLOAT };
         id = m_render_passes.push_back(CreateRenderPass(formats, true)); // gbuffer
         m_render_passes[id].id = id;
-        formats = { VK_FORMAT_R8G8B8A8_UNORM };
+        formats = { VK_FORMAT_B8G8R8A8_UNORM };
         id = m_render_passes.push_back(CreateRenderPass(formats, false)); // pp
         m_render_passes[id].id = id;
         formats = { VK_FORMAT_R16G16B16A16_SFLOAT };

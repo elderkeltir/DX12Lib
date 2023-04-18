@@ -117,7 +117,7 @@ int LinApplication::Run() {
 
     // Initialize the sample. OnInit is defined in each child-implementation of DXApp.
     WindowHandler w_hndl;
-    w_hndl.ptr = (uint64_t)&window;
+    w_hndl.ptr = (uint64_t)window;
 
     uint32_t glfwExtensionsNum = 0;
     const char ** glfwxtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionsNum);
@@ -156,7 +156,8 @@ int LinApplication::Run() {
 	while (!glfwWindowShouldClose(window)) {
 		glfwPollEvents();
 		
-
+        m_frontend->OnUpdate();
+        m_frontend->OnRender();
 	}
 
 	glfwDestroyWindow(window);

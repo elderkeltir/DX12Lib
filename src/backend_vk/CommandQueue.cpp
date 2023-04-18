@@ -77,6 +77,7 @@ void CommandQueue::OnDestroy() {
 
 void CommandQueue::Signal(IFence* fence, bool on_cpu) {
 	Fence* fence_vk = (Fence*)fence;
+	assert(!fence_vk->WasSignaled());
 	if (on_cpu){
 		// Submit a command buffer to the GPU
 		VkSubmitInfo submitInfo = {};
@@ -95,26 +96,34 @@ void CommandQueue::Signal(IFence* fence, bool on_cpu) {
 		submitInfo1.pSignalSemaphores = &(fence_vk->GetSemaphore());
 		vkQueueSubmit(m_queue, 1, &submitInfo1, VK_NULL_HANDLE);
 	}
+
+	fence_vk->SetSignaled(true);
 }
 
 void CommandQueue::WaitOnCPU(IFence* fence) {
 	Fence* fence_vk = (Fence*)fence;
-	VkDevice device = gBackend->GetDevice()->GetNativeObject();
-	vkWaitForFences(device, 1, &fence_vk->GetFence(), VK_TRUE, UINT64_MAX);
-	vkResetFences(device, 1, &fence_vk->GetFence());
+	if (fence_vk->WasSignaled()){
+		VkDevice device = gBackend->GetDevice()->GetNativeObject();
+		vkWaitForFences(device, 1, &fence_vk->GetFence(), VK_TRUE, UINT64_MAX);
+		vkResetFences(device, 1, &fence_vk->GetFence());
+		fence_vk->SetSignaled(false);
+	}
 }
 
 void CommandQueue::WaitOnGPU(IFence* fence) {
 	Fence* fence_vk = (Fence*)fence;
 	// Submit command buffer to Queue2 and wait on S2 before starting
-	VkSubmitInfo submitInfo2 = {};
-	submitInfo2.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-	submitInfo2.commandBufferCount = 1;
-	submitInfo2.pCommandBuffers = &m_cmd_list_gpu_sync;
-	submitInfo2.waitSemaphoreCount = 1;
-	submitInfo2.pWaitSemaphores = &fence_vk->GetSemaphore();
-	submitInfo2.pWaitDstStageMask = nullptr; // TODO: ????
-	vkQueueSubmit(m_queue, 1, &submitInfo2, VK_NULL_HANDLE);
+	if (fence_vk->WasSignaled()) {
+		VkSubmitInfo submitInfo2 = {};
+		submitInfo2.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+		submitInfo2.commandBufferCount = 1;
+		submitInfo2.pCommandBuffers = &m_cmd_list_gpu_sync;
+		submitInfo2.waitSemaphoreCount = 1;
+		submitInfo2.pWaitSemaphores = &fence_vk->GetSemaphore();
+		submitInfo2.pWaitDstStageMask = nullptr; // TODO: ????
+		vkQueueSubmit(m_queue, 1, &submitInfo2, VK_NULL_HANDLE);
+		fence_vk->SetSignaled(false);
+	}
 }
 
 uint32_t CommandQueue::Signal() {

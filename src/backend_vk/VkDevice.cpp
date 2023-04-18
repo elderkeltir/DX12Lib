@@ -1,6 +1,7 @@
 #include "VkDevice.h"
 #include "vk_helper.h"
 #include "VkBackend.h"
+#include <vulkan/vulkan_core.h>
 
 extern VkBackend* gBackend;
 
@@ -42,7 +43,7 @@ VkPhysicalDevice VkDeviceW::PickPhysicalDevice(const std::vector<VkPhysicalDevic
 			}
 		}
 		{
-			uint32_t familyIndex = TestFamilQueueyIndex(physicalDevices[i], VK_QUEUE_COMPUTE_BIT);
+			uint32_t familyIndex = TestFamilQueueyIndex(physicalDevices[i], VK_QUEUE_COMPUTE_BIT, VK_QUEUE_GRAPHICS_BIT);
 			if (familyIndex != VK_QUEUE_FAMILY_IGNORED && familyIndex != m_family_idx_gfx)
 			{
 				computeSupported = true;
@@ -91,6 +92,10 @@ void VkDeviceW::CreateDevice(){
 	const char* extensions[] =
 	{
 		VK_KHR_SWAPCHAIN_EXTENSION_NAME,
+		VK_KHR_DEDICATED_ALLOCATION_EXTENSION_NAME,
+		VK_KHR_GET_MEMORY_REQUIREMENTS_2_EXTENSION_NAME,
+		VK_KHR_BIND_MEMORY_2_EXTENSION_NAME,
+		VK_EXT_VERTEX_INPUT_DYNAMIC_STATE_EXTENSION_NAME
 	#ifdef VK_USE_PLATFORM_METAL_EXT
 		VK_KHR_PORTABILITY_SUBSET_EXTENSION_NAME,
 	#endif
@@ -100,6 +105,10 @@ void VkDeviceW::CreateDevice(){
 	VkDeviceCreateInfo createInfo = { VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO };
 	createInfo.queueCreateInfoCount = queueCreateInfos.size();
 	createInfo.pQueueCreateInfos = queueCreateInfos.data();
+
+	VkPhysicalDeviceVertexInputDynamicStateFeaturesEXT ext_struct {VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VERTEX_INPUT_DYNAMIC_STATE_FEATURES_EXT };
+	ext_struct.vertexInputDynamicState = VK_TRUE;
+	createInfo.pNext = &ext_struct;
 
 	createInfo.ppEnabledExtensionNames = extensions;
 	createInfo.enabledExtensionCount = sizeof(extensions) / sizeof(extensions[0]);
@@ -113,7 +122,7 @@ void VkDeviceW::CreateDevice(){
 	VK_CHECK(vkCreateDevice(m_phys_device, &createInfo, 0, &m_device));
 }
 
-uint32_t VkDeviceW::TestFamilQueueyIndex(VkPhysicalDevice phys_device, uint8_t queueFlags) const {
+uint32_t VkDeviceW::TestFamilQueueyIndex(VkPhysicalDevice phys_device, uint8_t queueFlags, uint8_t queueNotFlags /*VkQueueFlagBits*/) const {
 	uint32_t queueCount = 0;
 	vkGetPhysicalDeviceQueueFamilyProperties(phys_device, &queueCount, 0);
 
@@ -122,7 +131,7 @@ uint32_t VkDeviceW::TestFamilQueueyIndex(VkPhysicalDevice phys_device, uint8_t q
 	uint32_t fallback_queue_family = VK_QUEUE_FAMILY_IGNORED;
 
 	for (uint32_t i = 0; i < queueCount; ++i){
-        if ((queues[i].queueFlags & queueFlags))
+        if ((queues[i].queueFlags & queueFlags) && !(queues[i].queueFlags & queueNotFlags))
 			return i;
 
 		if (queues[i].queueFlags & queueFlags){

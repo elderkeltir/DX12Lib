@@ -25,8 +25,8 @@ void Sun::Initialize(ICommandList* command_list)
 			depthOptimizedClearValue.depth_tencil.depth = 1.0f;
 			depthOptimizedClearValue.depth_tencil.stencil = 0;
 			ResourceDesc res_desc = ResourceDesc::tex_2d(ResourceFormat::rf_d32_float, (uint64_t)width, (uint32_t)height, 1, 0, 1, 0, ResourceDesc::rf_allow_depth_stencil);
-
-			m_shadow_map[i]->CreateTexture(HeapType::ht_default, res_desc, ResourceState::rs_resource_state_depth_read, &depthOptimizedClearValue, L"sun_shadow_map");
+			HeapType h_type = HeapType(HeapType::ht_default | HeapType::ht_image_sampled | HeapType::ht_image_depth_stencil_attachment | HeapType::ht_aspect_depth_bit);
+			m_shadow_map[i]->CreateTexture(h_type, res_desc, ResourceState::rs_resource_state_depth_read, &depthOptimizedClearValue, L"sun_shadow_map");
 
 			DSVdesc depthStencilDesc = {};
 			depthStencilDesc.format = ResourceFormat::rf_d32_float;

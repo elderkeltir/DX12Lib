@@ -5,6 +5,7 @@
 #include "ICommandList.h"
 #include "IHeapBuffer.h"
 #include "Frontend.h"
+#include "defines.h"
 
 extern Frontend* gFrontend;
 
@@ -13,7 +14,8 @@ void ConstantBufferManager::OnInit() {
 	for (uint32_t i = 0; i < 2; i++) {
         m_scene_cbs[i].reset(CreateGpuResource());
         IGpuResource& m_scene_cb = *m_scene_cbs[i];
-		m_scene_cb.CreateBuffer(HeapType::ht_upload, calc_cb_size(sizeof(SceneCB)), ResourceState::rs_resource_state_generic_read, L"Scene_cb");
+        HeapType h_type = HeapType(HeapType::ht_upload | HeapType::ht_buff_uniform_buffer);
+		m_scene_cb.CreateBuffer(h_type, calc_cb_size(sizeof(SceneCB)), ResourceState::rs_resource_state_generic_read, L"Scene_cb");
 		CBVdesc desc;
 		desc.size_in_bytes = calc_cb_size(sizeof(SceneCB));
 		m_scene_cb.Create_CBV(desc);

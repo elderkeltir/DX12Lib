@@ -3,6 +3,7 @@
 #include "VkDevice.h"
 #include "vk_helper.h"
 
+#include <volk.h>
 #define VMA_IMPLEMENTATION
 #define VMA_STATIC_VULKAN_FUNCTIONS 0
 #define VMA_DYNAMIC_VULKAN_FUNCTIONS 0
@@ -20,6 +21,30 @@ void VkMemoryHelper::Init()
     VmaVulkanFunctions vulkanFunctions = {};
     vulkanFunctions.vkGetInstanceProcAddr = vkGetInstanceProcAddr;
     vulkanFunctions.vkGetDeviceProcAddr = vkGetDeviceProcAddr;
+    vulkanFunctions.vkAllocateMemory = vkAllocateMemory;
+    vulkanFunctions.vkBindBufferMemory = vkBindBufferMemory;
+    vulkanFunctions.vkBindImageMemory = vkBindImageMemory;
+    vulkanFunctions.vkCreateBuffer = vkCreateBuffer;
+    vulkanFunctions.vkCreateImage = vkCreateImage;
+    vulkanFunctions.vkDestroyBuffer = vkDestroyBuffer;
+    vulkanFunctions.vkDestroyImage = vkDestroyImage;
+    vulkanFunctions.vkFlushMappedMemoryRanges = vkFlushMappedMemoryRanges;
+    vulkanFunctions.vkFreeMemory = vkFreeMemory;
+    vulkanFunctions.vkGetBufferMemoryRequirements = vkGetBufferMemoryRequirements;
+    vulkanFunctions.vkGetImageMemoryRequirements = vkGetImageMemoryRequirements;
+    vulkanFunctions.vkGetPhysicalDeviceMemoryProperties = vkGetPhysicalDeviceMemoryProperties;
+    vulkanFunctions.vkGetPhysicalDeviceProperties = vkGetPhysicalDeviceProperties;
+    vulkanFunctions.vkInvalidateMappedMemoryRanges = vkInvalidateMappedMemoryRanges;
+    vulkanFunctions.vkMapMemory = vkMapMemory;
+    vulkanFunctions.vkUnmapMemory = vkUnmapMemory;
+    vulkanFunctions.vkCmdCopyBuffer = vkCmdCopyBuffer;
+    vulkanFunctions.vkGetBufferMemoryRequirements2KHR = vkGetBufferMemoryRequirements2KHR;
+    vulkanFunctions.vkGetImageMemoryRequirements2KHR = vkGetImageMemoryRequirements2KHR;
+    vulkanFunctions.vkBindBufferMemory2KHR = vkBindBufferMemory2KHR;
+    vulkanFunctions.vkBindImageMemory2KHR = vkBindImageMemory2KHR;
+    vulkanFunctions.vkGetPhysicalDeviceMemoryProperties2KHR = vkGetPhysicalDeviceMemoryProperties2KHR;
+    vulkanFunctions.vkGetDeviceBufferMemoryRequirements = vkGetDeviceBufferMemoryRequirements;
+    vulkanFunctions.vkGetDeviceImageMemoryRequirements = vkGetDeviceImageMemoryRequirements;
 
     VmaAllocatorCreateInfo allocatorCreateInfo = {};
     allocatorCreateInfo.vulkanApiVersion = VK_API_VERSION_1_3;
@@ -41,6 +66,10 @@ BufferMemAllocation VkMemoryHelper::AllocateBuffer(uint32_t size, VkBufferUsageF
     VmaAllocationCreateInfo allocInfo = {};
     allocInfo.usage = VMA_MEMORY_USAGE_AUTO;
 
+    if (usage == VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT) {
+        allocInfo.flags = VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT | VMA_ALLOCATION_CREATE_MAPPED_BIT;
+    }
+
     VkBuffer buffer;
     VmaAllocation allocation;
     vmaCreateBuffer(m_allocator, &bufferInfo, &allocInfo, &buffer, &allocation, nullptr);
@@ -58,6 +87,7 @@ BufferMemAllocation VkMemoryHelper::AllocateBuffer(uint32_t size, VkBufferUsageF
     buffer_mem_alloc.buffer = buffer;
     buffer_mem_alloc.size = alloc_info.size;
     buffer_mem_alloc.offset = alloc_info.offset;
+    buffer_mem_alloc.is_image = false;
 
     return buffer_mem_alloc;
 }
@@ -96,6 +126,7 @@ ImageMemAllocation VkMemoryHelper::AllocateImage(uint32_t width, uint32_t height
     img_mem_alloc.image = image;
     img_mem_alloc.format = format;
     img_mem_alloc.aspect = aspect;
+    img_mem_alloc.is_image = true;
 
     return img_mem_alloc;
 }

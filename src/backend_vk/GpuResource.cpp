@@ -75,3 +75,7 @@ void GpuResource::ResetViews(){
     m_srv.reset();
     m_index_view.reset();
 }
+
+void GpuResource::InitBuffer() {
+    m_buffer = std::make_shared<HeapBuffer>();
+}

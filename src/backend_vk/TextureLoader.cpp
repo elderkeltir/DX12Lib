@@ -47,11 +47,12 @@ ITextureLoader::TextureData* TextureLoader::LoadTextureOnCPU(const std::wstring&
 		else {
 			assert(std::filesystem::exists(full_path));
 			
-			const char* file_path_full = full_path.string().c_str();
+			std::string file_path_full = full_path.string();
+
 			int w, h, comp;
-			assert(stbi_info(file_path_full, &w, &h, &comp));
-			const bool is_16_bits_per_channel = stbi_is_16_bit(file_path_full);
-			stbi_uc* pixels = stbi_load(file_path_full, &w, &h, &comp, STBI_rgb_alpha);
+			assert(stbi_info(file_path_full.c_str(), &w, &h, &comp));
+			const bool is_16_bits_per_channel = stbi_is_16_bit(file_path_full.c_str());
+			stbi_uc* pixels = stbi_load(file_path_full.c_str(), &w, &h, &comp, STBI_rgb_alpha);
 			assert(pixels);
 			const uint32_t bytes_pp = (is_16_bits_per_channel ? 8 : 4);
 			
@@ -83,7 +84,8 @@ void TextureLoader::LoadTextureOnGPU(ICommandList* command_list, IGpuResource* r
 	tex_desc.format = format;
 	tex_desc.width = tex_data_vk->width;
 	tex_desc.height = tex_data_vk->height;
-	res->CreateTexture(HeapType::ht_default, tex_desc, ResourceState::rs_resource_state_copy_dest, nullptr, std::wstring(tex_data->name).append(L"model_srv_").c_str());
+	HeapType h_type = HeapType(HeapType::ht_default | HeapType::ht_image_sampled | HeapType::ht_aspect_color_bit);
+	res->CreateTexture(h_type, tex_desc, ResourceState::rs_resource_state_copy_dest, nullptr, std::wstring(tex_data->name).append(L"model_srv_").c_str());
 	SubresourceData sub_res;
 	sub_res.width = tex_data_vk->width;
 	sub_res.height = tex_data_vk->height;

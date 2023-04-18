@@ -90,7 +90,7 @@ private:
 	std::shared_ptr<ICommandQueue> m_commandQueueGfx;
 	std::shared_ptr<ICommandQueue> m_commandQueueCompute;
 
-	std::array<IFence*, FramesCount> m_cpu_fences;
+	std::array<std::unique_ptr<IFence>, FramesCount> m_cpu_fences;
 	std::unique_ptr<IFence> m_interqueue_fence;
 
 	std::unique_ptr<logger> m_logger;

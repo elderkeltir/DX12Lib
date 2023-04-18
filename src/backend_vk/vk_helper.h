@@ -3,6 +3,7 @@
 #include <volk.h>
 #include <string>
 #include <cassert>
+#include <vulkan/vulkan_core.h>
 #include "defines.h"
 
 #ifdef _DEBUG
@@ -25,6 +26,7 @@ inline void SetName(VkDevice device, uint64_t hndl, VkObjectType type, const std
 
 struct MemAllocation {
     uint64_t user_data{0};
+    bool is_image;
 };
 struct ImageMemAllocation : public MemAllocation {
     VkImage image;
@@ -43,6 +45,10 @@ inline VkFormat ConvertResourceFormat(ResourceFormat format)
     switch (format)
     {
         case ResourceFormat::rf_r32g32b32a32_float: return VK_FORMAT_R32G32B32A32_SFLOAT;
+        case ResourceFormat::rf_d32_float: return VK_FORMAT_D32_SFLOAT;
+        case ResourceFormat::rf_r8_unorm: return VK_FORMAT_R8_UNORM;
+        case ResourceFormat::rf_r16g16b16a16_float: return VK_FORMAT_R16G16B16A16_SFLOAT;
+
         default: return VK_FORMAT_UNDEFINED;
     }
 }

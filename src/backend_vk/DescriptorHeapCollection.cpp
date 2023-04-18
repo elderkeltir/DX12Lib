@@ -3,6 +3,7 @@
 #include "VkDevice.h"
 #include "ResourceDescriptor.h"
 #include "vk_helper.h"
+#include <vulkan/vulkan_core.h>
 
 extern VkBackend* gBackend;
 
@@ -30,8 +31,8 @@ void DescriptorHeapCollection::Initialize(std::optional<std::wstring> dbg_name) 
 	for (uint32_t i = 0; i < frame_num * 2; i++){
 		vkCreateDescriptorPool(device, &poolInfo, nullptr, &m_pool_cpu[i]);
 
-		poolInfo.flags = VK_DESCRIPTOR_POOL_CREATE_HOST_ONLY_BIT_EXT; // TODO: most likely will not use this one?
-		vkCreateDescriptorPool(device, &poolInfo, nullptr, &m_pool_gpu[i]);
+		//poolInfo.flags = VK_DESCRIPTOR_POOL_CREATE_HOST_ONLY_BIT_EXT; // TODO: most likely will not use this one?
+		//vkCreateDescriptorPool(device, &poolInfo, nullptr, &m_pool_gpu[i]);
 	}
 }
 
@@ -87,21 +88,36 @@ void DescriptorHeapCollection::ReserveCBVhandle(CPUdescriptor& cbvHandle, uint64
 }
 
 void DescriptorHeapCollection::ReserveSRVhandle(CPUdescriptor& srvHandle, uint64_t data, bool gpu_only) {
-	const ImageMemAllocation* const img_data = (const ImageMemAllocation* const)data;
-
 	VkDevice device = gBackend->GetDevice()->GetNativeObject();
-	VkImageViewCreateInfo createInfo = { VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO };
-	createInfo.image = img_data->image;
-	createInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-	createInfo.format = img_data->format;
-	createInfo.subresourceRange.aspectMask = img_data->aspect;
-	createInfo.subresourceRange.levelCount = 1;
-	createInfo.subresourceRange.layerCount = 1;
+	const MemAllocation* const alloc_data = (const MemAllocation* const)data;
+	if (alloc_data->is_image) {
+		const ImageMemAllocation* const img_data = (const ImageMemAllocation* const)data;
+		
+		VkImageViewCreateInfo createInfo = { VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO };
+		createInfo.image = img_data->image;
+		createInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+		createInfo.format = img_data->format;
+		createInfo.subresourceRange.aspectMask = img_data->aspect;
+		createInfo.subresourceRange.levelCount = 1;
+		createInfo.subresourceRange.layerCount = 1;
 
-	VkImageView view = 0;
-	VK_CHECK(vkCreateImageView(device, &createInfo, 0, &view));
+		VkImageView view = 0;
+		VK_CHECK(vkCreateImageView(device, &createInfo, 0, &view));
+		srvHandle.ptr = (uint64_t)view;
+	}
+	else {
+		const BufferMemAllocation* const buf_data = (const BufferMemAllocation* const)data;
 
-	srvHandle.ptr = (uint64_t)view;
+		VkBufferViewCreateInfo createInfo = {VK_STRUCTURE_TYPE_BUFFER_VIEW_CREATE_INFO };
+		createInfo.buffer = buf_data->buffer;
+		createInfo.format = VK_FORMAT_R8_UINT; // the format of the data
+		createInfo.offset = buf_data->offset; // the offset in bytes from the start of the buffer
+		createInfo.range = buf_data->size; // the size of the buffer
+
+		VkBufferView bufferView = VK_NULL_HANDLE;
+		VkResult result = vkCreateBufferView(device, &createInfo, nullptr, &bufferView);
+		srvHandle.ptr = (uint64_t)bufferView;
+	}
 }
 
 void DescriptorHeapCollection::ReserveUAVhandle(CPUdescriptor& uavHandle, uint64_t data, bool gpu_only) {

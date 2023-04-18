@@ -16,6 +16,7 @@ public:
     };
     struct RenderPass {
         VkRenderPass rpass;
+        std::vector<VkFormat> formats;
         uint32_t id;
         bool depth;
     };

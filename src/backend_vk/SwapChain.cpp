@@ -10,6 +10,8 @@ extern VkBackend* gBackend;
 class GLFWwindow;
 
 void SwapChain::OnInit(const WindowHandler& window_hndl, uint32_t width, uint32_t height, uint32_t frame_count) {
+	m_width = width;
+	m_height = height;
     VkDevice device = gBackend->GetDevice()->GetNativeObject();
     VkPhysicalDevice physical_device = gBackend->GetDevice()->GetPhysicalDevice();
 
@@ -21,7 +23,7 @@ void SwapChain::OnInit(const WindowHandler& window_hndl, uint32_t width, uint32_
     VkImageAspectFlags aspect = VK_IMAGE_ASPECT_COLOR_BIT;
     VkImageAspectFlags depth_aspect = VK_IMAGE_ASPECT_DEPTH_BIT;
 
-    CreateSwapChain(VkFormat::VK_FORMAT_R8G8B8A8_UNORM);
+    CreateSwapChain(format);
 	assert(m_swap_chain);
 
     uint32_t imageCount{0};
@@ -34,6 +36,7 @@ void SwapChain::OnInit(const WindowHandler& window_hndl, uint32_t width, uint32_
 	for (uint32_t i = 0; i < imageCount; ++i)
 	{
         std::unique_ptr<IGpuResource> rt(new GpuResource);
+		((GpuResource*)rt.get())->InitBuffer();
         if (std::shared_ptr<IHeapBuffer> buf = rt->GetBuffer().lock()){
             HeapBuffer* buffer = (HeapBuffer*) buf.get();
             buffer->SetImage(images[i], format, aspect);
@@ -45,7 +48,7 @@ void SwapChain::OnInit(const WindowHandler& window_hndl, uint32_t width, uint32_
 
 	// depth buffer
     m_depth_stencil.reset(new GpuResource);
-    HeapType h_type; // TODO: fill in
+    HeapType h_type = (HeapType)(HeapType::ht_default | HeapType::ht_image_depth_stencil_attachment | ht_aspect_depth_bit); // TODO: fill in
     ResourceDesc res_desc;
     res_desc.format = ResourceFormat::rf_d32_float;
     res_desc.width = width;
@@ -133,7 +136,6 @@ VkSurfaceCapabilitiesKHR SwapChain::GetSurfaceCapabilities() const {
 
 VkFormat SwapChain::GetSwapchainFormat() const{
     VkPhysicalDevice physical_device = gBackend->GetDevice()->GetPhysicalDevice();
-    assert(false); // TODO: cast vk format into mine, 'cause below code expects mine format type!
 
 	uint32_t formatCount = 0;
 	VK_CHECK(vkGetPhysicalDeviceSurfaceFormatsKHR(physical_device, m_surface, &formatCount, 0));

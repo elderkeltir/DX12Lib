@@ -16,8 +16,9 @@ void Reflections::Initialize()
 			m_reflection_map[i].reset(CreateGpuResource());
 			auto& res = *m_reflection_map[i];
 
+			HeapType h_type = HeapType(HeapType::ht_default | HeapType::ht_image_storage | HeapType::ht_image_sampled | HeapType::ht_aspect_color_bit);
 			ResourceDesc res_desc = ResourceDesc::tex_2d(ResourceFormat::rf_r16g16b16a16_float, width, height, 1, 0, 1, 0, ResourceDesc::ResourceFlags::rf_allow_unordered_access);
-			res.CreateTexture(HeapType::ht_default, res_desc, ResourceState::rs_resource_state_pixel_shader_resource, nullptr, std::optional<std::wstring>().value_or(L"reflection_map").append(std::to_wstring(i).append(L"-")).append(std::to_wstring(i)));
+			res.CreateTexture(h_type, res_desc, ResourceState::rs_resource_state_pixel_shader_resource, nullptr, std::optional<std::wstring>().value_or(L"reflection_map").append(std::to_wstring(i).append(L"-")).append(std::to_wstring(i)));
 
 			SRVdesc srv_desc = {};
 			srv_desc.format = ResourceFormat::rf_r16g16b16a16_float;

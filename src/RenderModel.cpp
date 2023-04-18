@@ -238,7 +238,8 @@ void RenderModel::LoadConstantData(ICommandList* command_list){
     if (m_dirty & db_rt_cbv){
         m_constant_buffer.reset(CreateGpuResource());
         uint32_t cb_size = calc_cb_size(sizeof(ConstantBufferManager::ModelCB));
-        m_constant_buffer->CreateBuffer(HeapType::ht_upload, cb_size, ResourceState::rs_resource_state_generic_read, std::wstring(L"models_cbv_").append(m_name));
+        HeapType h_type = HeapType(HeapType::ht_upload | HeapType::ht_buff_uniform_buffer);
+        m_constant_buffer->CreateBuffer(h_type, cb_size, ResourceState::rs_resource_state_generic_read, std::wstring(L"models_cbv_").append(m_name));
         CBVdesc desc;
         desc.size_in_bytes = cb_size;
         m_constant_buffer->Create_CBV(desc);

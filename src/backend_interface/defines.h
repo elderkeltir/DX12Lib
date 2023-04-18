@@ -177,17 +177,19 @@ enum HeapType : uint32_t {
     ht_upload                               = 1 << 2,
     ht_readback                             = 1 << 3,
     ht_custom                               = 1 << 4,
-    ht_transfer_src                         = 1 << 5,
+    ht_buff_transfer_src                    = 1 << 5,
     ht_buff_transfer_dst                    = 1 << 6,
     ht_buff_uniform_buffer                  = 1 << 7,
     ht_buff_index_buffer                    = 1 << 8,
-    ht_buff_vertex_buffer                   = 1 << 9,
+    ht_buff_srv_buffer                      = 1 << 9,
     ht_image_sampled                        = 1 << 10,
     ht_image_depth_stencil_attachment       = 1 << 11,
+    ht_image_storage                        = 1 << 12,
+    ht_image_color_attach                   = 1 << 13,
 
     ht_aspect_color_bit                     = 1 << 24,
     ht_aspect_depth_bit                     = 1 << 25,
-    ht_aspect_stencil_bit                   = 1 << 26,
+    ht_aspect_stencil_bit                   = 1 << 26
 };
 
 struct ResourceViewDesc {
