@@ -3,6 +3,7 @@
 #include <string>
 #include <filesystem>
 #include <vector>
+#include <algorithm>
 #include "simple_object_pool.h"
 
 class ShaderManager {

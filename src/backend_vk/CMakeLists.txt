@@ -8,8 +8,11 @@ ADD_DEFINITIONS(-D_DEBUG)
 
 add_definitions(-DVK_USE_PLATFORM_XCB_KHR)
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -D_DEBUG")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++ -Wno-nullability-completeness")
 set(VOLK_STATIC_DEFINES VK_USE_PLATFORM_XLIB_KHR)
+
+find_package(PkgConfig REQUIRED)
+find_package(Vulkan REQUIRED)
 
 # VARs
 set(CMAKE_BUILD_PARALLEL_LEVEL 16)
@@ -35,8 +38,8 @@ add_library(${PROJECT_NAME} SHARED
     ${THIRD_PARTY_IMGUI_DIR}/imgui_draw.cpp
     ${THIRD_PARTY_IMGUI_DIR}/imgui_tables.cpp
     ${THIRD_PARTY_IMGUI_DIR}/imgui_widgets.cpp
-    ${THIRD_PARTY_IMGUI_DIR}/backends/imgui_impl_vulkan.cpp
-    ${THIRD_PARTY_IMGUI_DIR}/backends/imgui_impl_glfw.cpp
+    #${THIRD_PARTY_IMGUI_DIR}/backends/imgui_impl_vulkan.cpp
+    #${THIRD_PARTY_IMGUI_DIR}/backends/imgui_impl_glfw.cpp
     #
     VkBackend.cpp
     CommandList.cpp
@@ -48,8 +51,8 @@ add_library(${PROJECT_NAME} SHARED
     ResourceDescriptor.cpp
     DescriptorHeapCollection.cpp
     GpuResource.cpp
-    Console.cpp
-    ConsoleCommands.cpp
+    #Console.cpp
+    #ConsoleCommands.cpp
     SwapChain.cpp
     ShaderManager.cpp
     TextureLoader.cpp
@@ -59,8 +62,7 @@ add_library(${PROJECT_NAME} SHARED
     Techniques.cpp
 )
 
-find_package(PkgConfig REQUIRED)
-find_package(Vulkan REQUIRED)
+
 target_link_libraries(${PROJECT_NAME} Vulkan::Vulkan)
 
 target_link_libraries(${PROJECT_NAME} dl)

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <volk.h>
+#include <optional>
 // forward declaration for VMA
 VK_DEFINE_HANDLE(VmaAllocator)
 

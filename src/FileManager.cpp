@@ -181,7 +181,7 @@ void FileManager::InitializeModel(const aiScene* scene, const aiNode* rootNode, 
 				r_mesh->SetIndices(std::move(indices));
 
 				// texture coords
-				if (mesh->mTextureCoords)
+				if (*mesh->mTextureCoords)
 				{
 					std::vector<DirectX::XMFLOAT2> textCoords_(mesh->mNumVertices);
 

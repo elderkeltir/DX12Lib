@@ -3,6 +3,7 @@
 #include "ICommandQueue.h"
 #include <vector>
 #include <memory>
+#include <array>
 #include <volk.h>
 
 class IFence;

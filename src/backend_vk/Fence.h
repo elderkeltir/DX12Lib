@@ -15,7 +15,7 @@ public:
     bool WasSignaled() const {
         return  m_signaled;
     }
-    bool SetSignaled(bool sig) {
+    void SetSignaled(bool sig) {
         m_signaled = sig;
     }
 private:

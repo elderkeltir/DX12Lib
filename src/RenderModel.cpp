@@ -111,6 +111,8 @@ void RenderModel::LoadTextures(ICommandList* command_list){
 					res = m_roughness_tex.get();
 				}
 				break;
+            default:
+                assert(false);
         }
 
         if (res && m_dirty & flag){
@@ -220,6 +222,8 @@ void RenderModel::SetTexture(ITextureLoader::TextureData * texture_data, Texture
         case TextureType::RoughTexture:
             m_dirty |= db_rough_tx;
             break;
+        default:
+            assert(false);
     }
 }
 

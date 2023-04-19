@@ -5,21 +5,22 @@
 extern VkBackend* gBackend;
 
 const ImageMemAllocation& GetImageData(std::weak_ptr<IHeapBuffer> buff) {
+    HeapBuffer* buff_native = nullptr;
     if (std::shared_ptr<IHeapBuffer> buffer = buff.lock()){
-        HeapBuffer* buff_native = (HeapBuffer*)buffer.get();
+        buff_native = (HeapBuffer*)buffer.get();
         assert(buff_native->GetVkType() == HeapBuffer::BufferResourceType::rt_texture);
-        
-        return buff_native->GetImageInfo();
     }
+
+    return buff_native->GetImageInfo();
 }
 
 const BufferMemAllocation& GetBufferData(std::weak_ptr<IHeapBuffer> buff) {
+    HeapBuffer* buff_native = nullptr;
     if (std::shared_ptr<IHeapBuffer> buffer = buff.lock()){
-        HeapBuffer* buff_native = (HeapBuffer*)buffer.get();
+        buff_native = (HeapBuffer*)buffer.get();
         assert(buff_native->GetVkType() == HeapBuffer::BufferResourceType::rt_buffer);
-        
-        return buff_native->GetBufferInfo();
     }
+    return buff_native->GetBufferInfo();
 }
 
 bool ResourceDescriptor::Create_RTV(std::weak_ptr<IHeapBuffer> buff) {

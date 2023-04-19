@@ -2,6 +2,7 @@
 #include "VkMemoryHelper.h"
 #include "VkBackend.h"
 #include "CommandList.h"
+#include <cstring> // memcpy?
 
 extern VkBackend *gBackend;
 
@@ -70,7 +71,7 @@ void HeapBuffer::Load(ICommandList* command_list, uint32_t numElements, uint32_t
     BufferMemAllocation buffer_allocation = gBackend->GetMemoryHelper()->AllocateBuffer(buff_size, usage, L"src_buffer");
     void* data = gBackend->GetMemoryHelper()->Map(buffer_allocation);
 
-    memcpy(data, bufferData, buff_size);
+    std::memcpy(data, bufferData, buff_size);
     gBackend->GetMemoryHelper()->Unmap(buffer_allocation);
 
     VkCommandBuffer cmd_list = ((CommandList*)command_list)->GetNativeObject();
@@ -91,7 +92,7 @@ void HeapBuffer::Load(ICommandList* command_list, uint32_t firstSubresource, uin
     BufferMemAllocation buffer_allocation = gBackend->GetMemoryHelper()->AllocateBuffer(buff_size, usage, L"src_buffer");
     void* data = gBackend->GetMemoryHelper()->Map(buffer_allocation);
 
-    memcpy(data, subresourceData->data, buff_size);
+    std::memcpy(data, subresourceData->data, buff_size);
     gBackend->GetMemoryHelper()->Unmap(buffer_allocation);
 
     VkCommandBuffer cmd_list = ((CommandList*)command_list)->GetNativeObject();

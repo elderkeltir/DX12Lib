@@ -87,11 +87,11 @@ else()
 target_link_libraries(${PROJECT_NAME} backend_vk)
 endif()
 
-target_include_directories(${PROJECT_NAME}  PUBLIC ${THIRD_PARTY_DIR}/rapidjson/include)
-target_include_directories(${PROJECT_NAME}  PUBLIC ${PROJECT_SOURCE_DIR}/backend_interface)
-target_include_directories(${PROJECT_NAME}  PUBLIC ${THIRD_PARTY_DIR}/assimp/include)
-target_include_directories(${PROJECT_NAME}  PUBLIC ${CMAKE_BINARY_DIR}/thirdParty/assimp/include)
-target_include_directories(${PROJECT_NAME}  PUBLIC ${THIRD_PARTY_DIR}/DirectXMath/Inc)
+target_include_directories(${PROJECT_NAME}  PRIVATE ${THIRD_PARTY_DIR}/rapidjson/include)
+target_include_directories(${PROJECT_NAME}  PRIVATE ${PROJECT_SOURCE_DIR}/backend_interface)
+target_include_directories(${PROJECT_NAME}  PRIVATE ${THIRD_PARTY_DIR}/assimp/include)
+target_include_directories(${PROJECT_NAME}  PRIVATE ${CMAKE_BINARY_DIR}/thirdParty/assimp/include)
+target_include_directories(${PROJECT_NAME}  PRIVATE ${THIRD_PARTY_DIR}/DirectXMath/Inc)
 
 target_link_libraries(${PROJECT_NAME} assimp)
 

@@ -128,6 +128,7 @@ void CommandQueue::WaitOnGPU(IFence* fence) {
 
 uint32_t CommandQueue::Signal() {
 	Signal(m_fence.get(), true);
+	return 0;
 }
 
 void CommandQueue::WaitOnCPU(uint32_t fence_value) {

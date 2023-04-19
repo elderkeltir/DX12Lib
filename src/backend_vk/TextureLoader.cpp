@@ -6,7 +6,7 @@
 #include "IGpuResource.h"
 #include "ICommandList.h"
 #include "HeapBuffer.h"
-
+#include <algorithm>
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h> // TODO: move loading image to another class. probably after vfs implementation?
 

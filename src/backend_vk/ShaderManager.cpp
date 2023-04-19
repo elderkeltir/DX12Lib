@@ -69,7 +69,7 @@ ShaderManager::ShaderBlob* ShaderManager::Load(const std::wstring& name, const s
 	}
 
 	// Re-Compile
-	std::string dxc_fullpath("/home/ami/Code/DirectXShaderCompiler/build/bin/dxc"); // TODO: move to config?
+	std::string dxc_fullpath = (m_shader_source_dir.parent_path().parent_path() / "DirectXShaderCompiler" / "build" / "bin" / "dxc").string();
 	std::stringstream command;
 	command << dxc_fullpath << " -T " << targets[target] << " -E main " << full_path_hlsl.string() << " -Fo " << full_path_bin.string() << " -spirv -fspv-target-env=vulkan1.3 -fvk-use-dx-layout";
 	assert(!std::system(command.str().c_str()));

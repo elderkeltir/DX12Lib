@@ -215,7 +215,7 @@ bool VkBackend::PassImguiWndProc(const ImguiWindowData& data) {
 //    if(m_gui)
 //        return ((ImguiHelper*)(m_gui.get()))->PassImguiWndProc(data);
 
-//    return false;
+   return false;
 }
 
 bool VkBackend::ShouldClose() {

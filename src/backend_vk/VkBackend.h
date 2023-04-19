@@ -5,6 +5,7 @@
 #include <volk.h>
 #include <memory>
 #include <vector>
+#include <array>
 #include <filesystem>
 
 // TODO: resolve this shit with forward declaration
