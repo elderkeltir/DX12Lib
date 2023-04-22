@@ -46,7 +46,10 @@ inline VkFormat ConvertResourceFormat(ResourceFormat format)
     {
         case ResourceFormat::rf_r32g32b32a32_float: return VK_FORMAT_R32G32B32A32_SFLOAT;
         case ResourceFormat::rf_d32_float: return VK_FORMAT_D32_SFLOAT;
+        case ResourceFormat::rf_r32_float: return VK_FORMAT_R32_SFLOAT;
         case ResourceFormat::rf_r8_unorm: return VK_FORMAT_R8_UNORM;
+        case ResourceFormat::rf_r8g8b8a8_unorm_srgb : return VK_FORMAT_R8G8B8A8_SRGB;
+        case ResourceFormat::rf_b8g8r8a8_unorm_srgb : return VK_FORMAT_B8G8R8A8_SRGB;
         case ResourceFormat::rf_r16g16b16a16_float: return VK_FORMAT_R16G16B16A16_SFLOAT;
 
         default: return VK_FORMAT_UNDEFINED;

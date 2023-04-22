@@ -74,7 +74,13 @@ void TextureLoader::LoadTextureOnGPU(ICommandList* command_list, IGpuResource* r
 
 	ResourceFormat format = ResourceFormat::rf_unknown;
 	if (tex_data_vk->channels == 4 && (tex_data_vk->size / (tex_data_vk->width * tex_data_vk->height)) == 4){
-		format = ResourceFormat::rf_b8g8r8a8_unorm_srgb;
+		format = ResourceFormat::rf_r8g8b8a8_unorm_srgb;
+	}
+	else if (tex_data_vk->channels == 3 && (tex_data_vk->size / (tex_data_vk->width * tex_data_vk->height)) == 4) {
+		format = ResourceFormat::rf_r8g8b8a8_unorm_srgb;
+	}
+	else if (tex_data_vk->channels == 1 && (tex_data_vk->size / (tex_data_vk->width * tex_data_vk->height)) == 4) {
+		format = ResourceFormat::rf_r32_float;
 	}
 	else {
 		assert(false); // TODO: add when needed

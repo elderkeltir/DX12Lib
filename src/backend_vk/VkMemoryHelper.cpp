@@ -66,7 +66,7 @@ BufferMemAllocation VkMemoryHelper::AllocateBuffer(uint32_t size, VkBufferUsageF
     VmaAllocationCreateInfo allocInfo = {};
     allocInfo.usage = VMA_MEMORY_USAGE_AUTO;
 
-    if (usage == VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT) {
+    if (usage == VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT || usage == VK_BUFFER_USAGE_TRANSFER_SRC_BIT) {
         allocInfo.flags = VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT | VMA_ALLOCATION_CREATE_MAPPED_BIT;
     }
 
