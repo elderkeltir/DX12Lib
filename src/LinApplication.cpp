@@ -1,9 +1,15 @@
 #include "LinApplication.h"
 
 #ifndef WIN32
-
+//#define FreeBSD
 #include "Frontend.h"
+#ifndef __FreeBSD__
 #include <unistd.h>
+#else
+#include <sys/types.h>
+#include <sys/sysctl.h>
+#include <cstddef>
+#endif
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 #include <cassert>
@@ -133,6 +139,7 @@ int LinApplication::Run() {
     std::filesystem::path root_dir;
 
     // find absolute path
+    #ifndef __FreeBSD__
     char buff[MAX_PATH];
     ssize_t len = ::readlink("/proc/self/exe", buff, sizeof(buff)-1);
     if (len != -1) {
@@ -141,8 +148,15 @@ int LinApplication::Run() {
       root_dir = p.parent_path().parent_path().parent_path();
 
     }
-
-    // Frontend
+    #else
+    int mib[4] = {CTL_KERN, KERN_PROC, KERN_PROC_PATHNAME, -1};
+    char buff[MAX_PATH];
+    size_t cb = sizeof(buff);
+    sysctl(mib, 4, buff, &cb, NULL, 0);
+    std::filesystem::path p = std::filesystem::path(buff);
+    root_dir = p.parent_path().parent_path().parent_path();
+    #endif
+// Frontend
     m_frontend->OnInit(w_hndl, root_dir);
 
 

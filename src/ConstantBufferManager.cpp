@@ -228,7 +228,6 @@ void ConstantBufferManager::CommitCB(ICommandList* command_list, ConstantBuffers
 }
 
 void ConstantBufferManager::SyncCpuDataToCB(ICommandList* command_list, IGpuResource* res, void* cpu_data, uint32_t size, BindingId bind_point, bool gfx) {
-    ICommandQueue* queue = command_list->GetQueue();
     if (gfx) {
         command_list->ResourceBarrier(*res, ResourceState::rs_resource_state_copy_dest);
     }
@@ -242,11 +241,9 @@ void ConstantBufferManager::SyncCpuDataToCB(ICommandList* command_list, IGpuReso
 	}
 
     if (gfx) {
-        ICommandQueue* queue = gFrontend->GetGfxQueue();
         command_list->ResourceBarrier(*res, ResourceState::rs_resource_state_vertex_and_constant_buffer);
     }
     else {
-        ICommandQueue* queue = gFrontend->GetComputeQueue();
 	    command_list->ResourceBarrier(*res, ResourceState::rs_resource_state_vertex_and_constant_buffer);
     }
 
