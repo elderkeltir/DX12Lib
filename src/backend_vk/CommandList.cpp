@@ -1,9 +1,13 @@
 #include "CommandList.h"
+#include "Techniques.h"
 #include "vk_helper.h"
 #include "GpuResource.h"
 #include "HeapBuffer.h"
 #include "CommandQueue.h"
 #include "DynamicGpuHeap.h"
+#include "VkBackend.h"
+
+extern VkBackend * gBackend;
 
 void ConvertResourceState(ResourceState from, VkImageLayout &layout, VkAccessFlags &access_mask) {
     switch(from) {
@@ -255,5 +259,5 @@ void CommandList::ResourceBarrier(std::vector<std::shared_ptr<IGpuResource>>& re
 }
 
 void CommandList::SetPSO(uint32_t id) {
-    assert(false);
+    vkCmdBindPipeline(m_command_list, VK_PIPELINE_BIND_POINT_GRAPHICS, ((Techniques::TechniqueVk*)(gBackend->GetTechniqueById(id)))->pipeline);
 }

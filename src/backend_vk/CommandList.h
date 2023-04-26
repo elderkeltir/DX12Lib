@@ -50,6 +50,7 @@ private:
     VkCommandBuffer m_command_list;
 	ICommandQueue* m_queue{ nullptr };
 	VkRenderPass m_current_renderpass {nullptr};
+	VkFramebuffer m_current_frame_buffer{nullptr};
 
 	uint32_t m_pso{ uint32_t(-1) };
 	uint32_t m_root_sign{ uint32_t(-1) };

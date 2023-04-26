@@ -10,6 +10,7 @@ public:
     class BindPointConverter {
     public:
         uint32_t Convert(uint32_t root_id, uint32_t offset = 0) const {
+            assert(m_data.size() > root_id);
             const std::vector<uint32_t>& table = m_data[root_id];
             assert(table.size() > offset);
 
