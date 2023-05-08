@@ -20,6 +20,8 @@ public:
 private:
     ICommandQueue::QueueType m_queue_id; // TODO: gfx=0, compute=1
     std::vector<VkWriteDescriptorSet> m_cached_writes;
+    std::vector<std::vector<VkDescriptorBufferInfo>> m_cached_writes_buffers;
+    std::vector<std::vector<VkDescriptorImageInfo>> m_cached_writes_images;
     VkDescriptorSet m_descriptor_set;
     RootSignature* m_root_sig;
     uint32_t m_tech_id;

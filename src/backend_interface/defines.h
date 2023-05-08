@@ -566,3 +566,8 @@ enum TextureTableOffset {
     tto_refl_world_poses = 3,
     tto_refl_uav = 0,
 };
+namespace vk_hlsl_bindings {
+    const uint32_t cbv_offset = 10;
+    const uint32_t srv_offset = 20;
+    const uint32_t uav_offset = 30;
+}

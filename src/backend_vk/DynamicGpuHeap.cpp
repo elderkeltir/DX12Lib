@@ -8,6 +8,7 @@
 #include "CommandList.h"
 #include "HeapBuffer.h"
 #include "Techniques.h"
+#include <vulkan/vulkan_core.h>
 
 extern VkBackend* gBackend;
 
@@ -42,7 +43,6 @@ void DynamicGpuHeap::CacheRootSignature(const IRootSignature* root_sig, uint32_t
         m_cached_writes[i].dstArrayElement = 0;
         m_cached_writes[i].descriptorCount = root_sig_layout[i].descriptorCount;
         m_cached_writes[i].descriptorType = root_sig_layout[i].descriptorType;
-        m_cached_writes[i].descriptorType = root_sig_layout[i].descriptorType;
         if (m_cached_writes[i].descriptorType == VK_DESCRIPTOR_TYPE_SAMPLER) {
             VkSampler sampler = gBackend->GetSamplerById(sampler_id); // TODO: implement this
             VkDescriptorImageInfo imageInfo{};
@@ -53,6 +53,19 @@ void DynamicGpuHeap::CacheRootSignature(const IRootSignature* root_sig, uint32_t
 
             sampler_id++;
         }
+        else if(m_cached_writes[i].descriptorType == VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE || m_cached_writes[i].descriptorType == VK_DESCRIPTOR_TYPE_STORAGE_IMAGE) {
+            if(m_cached_writes_images.size() != root_sig_layout[i].descriptorCount)
+                m_cached_writes_images.resize(root_sig_layout[i].descriptorCount);
+
+            m_cached_writes_images[i].resize(root_sig_layout[i].descriptorCount);
+            m_cached_writes[i].pImageInfo = m_cached_writes_images[i].data();
+        }
+        else if(m_cached_writes[i].descriptorType == VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER || m_cached_writes[i].descriptorType == VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC) {
+            if(m_cached_writes_buffers.size() != root_sig_layout[i].descriptorCount)
+                m_cached_writes_buffers.resize(root_sig_layout[i].descriptorCount);
+            m_cached_writes_buffers[i].resize(root_sig_layout[i].descriptorCount);
+            m_cached_writes[i].pBufferInfo = m_cached_writes_buffers[i].data();
+        }
     }
 }
 
@@ -61,16 +74,18 @@ void DynamicGpuHeap::StageDesctriptorInTable(uint32_t root_id, uint32_t offset, 
 
     // Find descriptor using bind_point
     uint32_t idx = 0;
+    uint32_t set_idx = 0;
     for (; idx < m_cached_writes.size(); idx++) {
         IResourceDescriptor::ResourceDescriptorType type = desc_handle->GetType();
-        uint32_t bind_point = m_root_sig->GetConverter().Convert(type, offset);
-
-        if (m_cached_writes[idx].dstBinding == bind_point) {
-            break;
+        uint32_t bind_point = m_root_sig->Convert(type, offset);
+        for(; set_idx < m_cached_writes[idx].descriptorCount; set_idx++) {
+            if (m_cached_writes[idx].dstBinding + set_idx == bind_point) {
+                break;
+            }
         }
     }
 
-    assert(idx < m_cached_writes.size());
+    assert(idx < m_cached_writes.size() && set_idx < m_cached_writes[idx].descriptorCount);
 
     if (m_cached_writes[idx].descriptorType == VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER || m_cached_writes[idx].descriptorType == VK_DESCRIPTOR_TYPE_STORAGE_BUFFER) {
         BufferMemAllocation* buff_data = (BufferMemAllocation*)res_hndl->GetCPUhandle().ptr;
@@ -79,7 +94,7 @@ void DynamicGpuHeap::StageDesctriptorInTable(uint32_t root_id, uint32_t offset, 
 		bufferInfo.offset = buff_data->offset;
 		bufferInfo.range = buff_data->size;
 
-        m_cached_writes[idx].pBufferInfo = &bufferInfo;
+        m_cached_writes_buffers[idx][set_idx] = bufferInfo;
     }
     else if (m_cached_writes[idx].descriptorType == VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE || m_cached_writes[idx].descriptorType == VK_DESCRIPTOR_TYPE_STORAGE_IMAGE) {
         VkImageView image_view = (VkImageView)res_hndl->GetCPUhandle().ptr;
@@ -87,7 +102,7 @@ void DynamicGpuHeap::StageDesctriptorInTable(uint32_t root_id, uint32_t offset, 
         // TODO: check for UAV
         imageInfo.imageLayout = (m_cached_writes[idx].descriptorType == VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE ? VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL : VK_IMAGE_LAYOUT_GENERAL);
         imageInfo.imageView = image_view;
-        m_cached_writes[idx].pImageInfo = &imageInfo;
+        m_cached_writes_images[idx][set_idx] = imageInfo;
     }
     else {
         assert(false);
@@ -119,7 +134,7 @@ void DynamicGpuHeap::StageDescriptorInTable(uint32_t root_id, uint32_t offset, c
     // Find descriptor using bind_point
     uint32_t idx = 0;
     for (; idx < m_cached_writes.size(); idx++) {
-        uint32_t bind_point = m_root_sig->GetConverter().Convert(IResourceDescriptor::ResourceDescriptorType::rdt_cbv, offset);
+        uint32_t bind_point = m_root_sig->Convert(IResourceDescriptor::ResourceDescriptorType::rdt_cbv, offset);
         if (m_cached_writes[idx].dstBinding == bind_point) {
             break;
         }
