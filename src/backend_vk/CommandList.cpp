@@ -11,60 +11,65 @@ extern VkBackend * gBackend;
 
 void ConvertResourceState(ResourceState from, VkImageLayout &layout, VkAccessFlags &access_mask) {
     switch(from) {
-
-
-    case rs_resource_state_index_buffer:
-        access_mask = VK_ACCESS_INDEX_READ_BIT;
-        break;
-    case rs_resource_state_render_target:
-        layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-        access_mask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-        break;
-    case rs_resource_state_unordered_access:
-    case rs_resource_state_depth_write:
-        layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-        access_mask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
-        break;
-    case rs_resource_state_depth_read:
-        layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
-        access_mask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT;
-        break;
-    case rs_resource_state_non_pixel_shader_resource:
-        layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-        access_mask = VK_ACCESS_SHADER_READ_BIT;
-        break;
-    case rs_resource_state_pixel_shader_resource:
-        layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-        access_mask = VK_ACCESS_SHADER_READ_BIT;
-        break;
-    case rs_resource_state_stream_out:
-    case rs_resource_state_indirect_argument:
-    case rs_resource_state_copy_dest:
-        layout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
-        access_mask = VK_ACCESS_TRANSFER_WRITE_BIT;
-        break;
-    case rs_resource_state_copy_source:
-        layout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
-        access_mask = VK_ACCESS_TRANSFER_READ_BIT;
-        break;
-    case rs_resource_state_common:
-    case rs_resource_state_vertex_and_constant_buffer:
-    case rs_resource_state_resolve_dest:
-    case rs_resource_state_resolve_source:
-    case rs_resource_state_raytracing_acceleration_structure:
-    case rs_resource_state_shading_rate_source:
-    case rs_resource_state_generic_read:
-    case rs_resource_state_all_shader_resource:
-    case rs_resource_state_video_decode_read:
-    case rs_resource_state_video_decode_write:
-    case rs_resource_state_video_process_read:
-    case rs_resource_state_video_process_write:
-    case rs_resource_state_video_encode_read:
-    case rs_resource_state_video_encode_write:
-        assert(false);
-        break;
+        case rs_resource_state_index_buffer:
+            access_mask = VK_ACCESS_INDEX_READ_BIT;
+            break;
+        case rs_resource_state_render_target:
+            layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+            access_mask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+            break;
+        case rs_resource_state_unordered_access:
+        case rs_resource_state_depth_write:
+            layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+            access_mask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+            break;
+        case rs_resource_state_depth_read:
+            layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
+            access_mask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT;
+            break;
+        case rs_resource_state_non_pixel_shader_resource:
+            layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+            access_mask = VK_ACCESS_SHADER_READ_BIT;
+            break;
+        case rs_resource_state_pixel_shader_resource:
+            layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+            access_mask = VK_ACCESS_SHADER_READ_BIT;
+            break;
+        case rs_resource_state_stream_out:
+        case rs_resource_state_indirect_argument:
+        case rs_resource_state_copy_dest:
+            layout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+            access_mask = VK_ACCESS_TRANSFER_WRITE_BIT;
+            break;
+        case rs_resource_state_copy_source:
+            layout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+            access_mask = VK_ACCESS_TRANSFER_READ_BIT;
+            break;
+        case rs_resource_state_all_shader_resource:
+            layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+            access_mask = VK_ACCESS_SHADER_READ_BIT;
+            break;
+        case rs_resource_state_vertex_and_constant_buffer:
+            access_mask = VK_ACCESS_UNIFORM_READ_BIT;
+            break;
+        case rs_resource_state_common:
+        case rs_resource_state_resolve_dest:
+        case rs_resource_state_resolve_source:
+        case rs_resource_state_raytracing_acceleration_structure:
+        case rs_resource_state_shading_rate_source:
+        case rs_resource_state_generic_read:
+        case rs_resource_state_video_decode_read:
+        case rs_resource_state_video_decode_write:
+        case rs_resource_state_video_process_read:
+        case rs_resource_state_video_process_write:
+        case rs_resource_state_video_encode_read:
+        case rs_resource_state_video_encode_write:
+            assert(false);
+            break;
     }
 }
+
+
 
 
 VkIndexType CastIndexType(ResourceFormat format) {
@@ -99,11 +104,11 @@ void CommandList::SetComputeRootDescriptorTable(uint32_t root_parameter_index, G
 }
 
 void CommandList::SetGraphicsRootConstantBufferView(uint32_t root_parameter_index, const std::shared_ptr<IHeapBuffer>& buff) {
-    ((DynamicGpuHeap&)m_queue->GetGpuHeap()).StageDesctriptorInTable(root_parameter_index, 0, buff);
+    ((DynamicGpuHeap&)m_queue->GetGpuHeap()).StageDescriptorInTable(root_parameter_index, 0, buff);
 }
 
 void CommandList::SetComputeRootConstantBufferView(uint32_t root_parameter_index, const std::shared_ptr<IHeapBuffer>& buff) {
-    ((DynamicGpuHeap&)m_queue->GetGpuHeap()).StageDesctriptorInTable(root_parameter_index, 0, buff);
+    ((DynamicGpuHeap&)m_queue->GetGpuHeap()).StageDescriptorInTable(root_parameter_index, 0, buff);
 }
 
 void CommandList::SetIndexBuffer(const IndexVufferView* view) {
@@ -194,7 +199,7 @@ void CommandList::Dispatch(uint32_t thread_group_count_x, uint32_t thread_group_
 }
 
 void CommandList::SetGraphicsRootShaderResourceView(uint32_t root_parameter_index, const std::shared_ptr<IHeapBuffer>& buff) {
-    ((DynamicGpuHeap&)m_queue->GetGpuHeap()).StageDesctriptorInTable(root_parameter_index, 0, buff);
+    ((DynamicGpuHeap&)m_queue->GetGpuHeap()).StageDescriptorInTable(root_parameter_index, 0, buff);
 }
 
 void CommandList::ResourceBarrier(std::shared_ptr<IGpuResource>& res, uint32_t to) {

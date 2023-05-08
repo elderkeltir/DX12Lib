@@ -3,24 +3,34 @@
 #include "IRootSignature.h"
 #include <vector>
 #include <volk.h>
-#include "vk_helper.h"
+#include "IResourceDescriptor.h"
 
 class RootSignature : public IRootSignature {
 public:
     class BindPointConverter {
     public:
-        uint32_t Convert(uint32_t root_id, uint32_t offset = 0) const {
-            assert(m_data.size() > root_id);
-            const std::vector<uint32_t>& table = m_data[root_id];
-            assert(table.size() > offset);
+        uint32_t Convert(IResourceDescriptor::ResourceDescriptorType type, uint32_t offset = 0) const {
+            uint32_t bind_point = offset;
+            switch(type) {
+                case IResourceDescriptor::ResourceDescriptorType::rdt_cbv:
+                    bind_point += cbv_offset;
+                    break;
+                case IResourceDescriptor::ResourceDescriptorType::rdt_srv:
+                    bind_point += srv_offset;
+                    break;
+                case IResourceDescriptor::ResourceDescriptorType::rdt_uav:
+                    bind_point += uav_offset;
+                    break;
+                default:
+                    break;
+            }
 
-            return table[offset];
-        }
-        std::vector<std::vector<uint32_t>> & GetData() {
-            return m_data;
+            return bind_point;
         }
     private:
-        std::vector<std::vector<uint32_t>> m_data;
+        const uint32_t cbv_offset = 10;
+        const uint32_t srv_offset = 20;
+        const uint32_t uav_offset = 30;
     };
 public:
     uint32_t GetRSId() const override {

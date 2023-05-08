@@ -63,7 +63,8 @@ void DynamicGpuHeap::StageDesctriptorInTable(uint32_t root_id, uint32_t offset, 
     // Find descriptor using bind_point
     uint32_t idx = 0;
     for (; idx < m_cached_writes.size(); idx++) {
-        uint32_t bind_point = m_root_sig->GetConverter().Convert(root_id, offset);
+        IResourceDescriptor::ResourceDescriptorType type = desc_handle->GetType();
+        uint32_t bind_point = m_root_sig->GetConverter().Convert(type, offset);
         if (m_cached_writes[idx].dstBinding == bind_point) {
             break;
         }
@@ -111,11 +112,11 @@ void DynamicGpuHeap::Reset() {
     m_tech_id = uint32_t(-1);
 }
 
-void DynamicGpuHeap::StageDesctriptorInTable(uint32_t root_id, uint32_t offset, const std::shared_ptr<IHeapBuffer>& buff_handle) {
+void DynamicGpuHeap::StageDescriptorInTable(uint32_t root_id, uint32_t offset, const std::shared_ptr<IHeapBuffer>& buff_handle) {
     // Find descriptor using bind_point
     uint32_t idx = 0;
     for (; idx < m_cached_writes.size(); idx++) {
-        uint32_t bind_point = m_root_sig->GetConverter().Convert(root_id, offset);
+        uint32_t bind_point = m_root_sig->GetConverter().Convert(IResourceDescriptor::ResourceDescriptorType::rdt_cbv, offset);
         if (m_cached_writes[idx].dstBinding == bind_point) {
             break;
         }
