@@ -37,12 +37,28 @@ VkSampler CreateSampler(VkFilter mag, VkFilter min, VkSamplerAddressMode u, VkSa
 
     return sampler;
 }
-
+uint32_t ConvertBinding(VkDescriptorType type, uint32_t binding) {
+    switch (type) {
+        case VK_DESCRIPTOR_TYPE_SAMPLER:
+            return binding;
+        case VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER:
+            return binding + 10;
+        case VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE:
+        case VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC:
+            return binding + 20;
+        case VK_DESCRIPTOR_TYPE_STORAGE_IMAGE:
+            return binding + 30;
+        default:
+            assert(false);
+            return binding;
+    }
+}
 VkDescriptorSetLayoutBinding CreateSetbinding(VkDescriptorType type, uint32_t binding, uint32_t count, VkShaderStageFlags shader_vis) {
 	VkDescriptorSetLayoutBinding ubo_layout_binding{};
-    ubo_layout_binding.binding = binding;
+    uint32_t shader_binding = ConvertBinding(type, binding);
+    ubo_layout_binding.binding = shader_binding;
     ubo_layout_binding.descriptorType = type;
-    ubo_layout_binding.descriptorCount = 1;
+    ubo_layout_binding.descriptorCount = count;
 	ubo_layout_binding.stageFlags = shader_vis;
 	ubo_layout_binding.pImmutableSamplers = nullptr;
 

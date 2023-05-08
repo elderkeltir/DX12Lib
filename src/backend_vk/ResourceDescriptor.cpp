@@ -28,6 +28,7 @@ bool ResourceDescriptor::Create_RTV(std::weak_ptr<IHeapBuffer> buff) {
 
     if (IDescriptorHeapCollection* descriptorHeapCollection = gBackend->GetDescriptorHeapCollection()){
         descriptorHeapCollection->ReserveRTVhandle(m_cpu_handle, (uint64_t)&img_data);
+        m_type = ResourceDescriptorType::rdt_srv;
     }
     return true;
 }
@@ -37,6 +38,7 @@ bool ResourceDescriptor::Create_DSV(std::weak_ptr<IHeapBuffer> buff, const DSVde
 
     if (IDescriptorHeapCollection* descriptorHeapCollection = gBackend->GetDescriptorHeapCollection()){
         descriptorHeapCollection->ReserveDSVhandle(m_cpu_handle, (uint64_t)&img_data);
+        m_type = ResourceDescriptorType::rdt_dsv;
     }
     return true;
 }
@@ -49,6 +51,7 @@ bool ResourceDescriptor::Create_SRV(std::weak_ptr<IHeapBuffer> buff, const SRVde
 
             if (IDescriptorHeapCollection* descriptorHeapCollection = gBackend->GetDescriptorHeapCollection()){
                 descriptorHeapCollection->ReserveSRVhandle(m_cpu_handle, (uint64_t)&img_data);
+                m_type = ResourceDescriptorType::rdt_srv;
             }
         }
         else {
@@ -56,6 +59,7 @@ bool ResourceDescriptor::Create_SRV(std::weak_ptr<IHeapBuffer> buff, const SRVde
             assert(buff_native->GetVkType() == HeapBuffer::BufferResourceType::rt_buffer);
             if (IDescriptorHeapCollection* descriptorHeapCollection = gBackend->GetDescriptorHeapCollection()){
                 descriptorHeapCollection->ReserveSRVhandle(m_cpu_handle, (uint64_t)&buff_data);
+                m_type = ResourceDescriptorType::rdt_srv;
             }
         }
     }
@@ -67,6 +71,7 @@ bool ResourceDescriptor::Create_UAV(std::weak_ptr<IHeapBuffer> buff, const UAVde
 
     if (IDescriptorHeapCollection* descriptorHeapCollection = gBackend->GetDescriptorHeapCollection()){
         descriptorHeapCollection->ReserveUAVhandle(m_cpu_handle, (uint64_t)&img_data);
+        m_type = ResourceDescriptorType::rdt_uav;
     }
     return true;
 }
@@ -76,6 +81,7 @@ bool ResourceDescriptor::Create_CBV(std::weak_ptr<IHeapBuffer> buff, const CBVde
         HeapBuffer* buff_native = (HeapBuffer*)buffer.get();
         if (buff_native->GetVkType() == HeapBuffer::BufferResourceType::rt_buffer){
             m_cpu_handle.ptr = (uint64_t)&buff_native->GetBufferInfo();
+            m_type = ResourceDescriptorType::rdt_cbv;
         }
     }
     return true;
