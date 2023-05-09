@@ -35,6 +35,8 @@ void DynamicGpuHeap::CacheRootSignature(const IRootSignature* root_sig, uint32_t
 
     // cache layout
     m_cached_writes.resize(root_sig_layout.size());
+    m_cached_writes_buffers.resize(root_sig_layout.size());
+    m_cached_writes_images.resize(root_sig_layout.size());
     uint32_t sampler_id = 0;
     for (uint32_t i = 0; i < root_sig_layout.size(); i++) {
         m_cached_writes[i].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
@@ -54,15 +56,10 @@ void DynamicGpuHeap::CacheRootSignature(const IRootSignature* root_sig, uint32_t
             sampler_id++;
         }
         else if(m_cached_writes[i].descriptorType == VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE || m_cached_writes[i].descriptorType == VK_DESCRIPTOR_TYPE_STORAGE_IMAGE) {
-            if(m_cached_writes_images.size() != root_sig_layout[i].descriptorCount)
-                m_cached_writes_images.resize(root_sig_layout[i].descriptorCount);
-
             m_cached_writes_images[i].resize(root_sig_layout[i].descriptorCount);
             m_cached_writes[i].pImageInfo = m_cached_writes_images[i].data();
         }
         else if(m_cached_writes[i].descriptorType == VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER || m_cached_writes[i].descriptorType == VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC) {
-            if(m_cached_writes_buffers.size() != root_sig_layout[i].descriptorCount)
-                m_cached_writes_buffers.resize(root_sig_layout[i].descriptorCount);
             m_cached_writes_buffers[i].resize(root_sig_layout[i].descriptorCount);
             m_cached_writes[i].pBufferInfo = m_cached_writes_buffers[i].data();
         }
@@ -74,15 +71,19 @@ void DynamicGpuHeap::StageDesctriptorInTable(uint32_t root_id, uint32_t offset, 
 
     // Find descriptor using bind_point
     uint32_t idx = 0;
-    uint32_t set_idx = 0;
+    uint32_t set_idx = uint32_t(-1);
     for (; idx < m_cached_writes.size(); idx++) {
         IResourceDescriptor::ResourceDescriptorType type = desc_handle->GetType();
         uint32_t bind_point = m_root_sig->Convert(type, offset);
-        for(; set_idx < m_cached_writes[idx].descriptorCount; set_idx++) {
-            if (m_cached_writes[idx].dstBinding + set_idx == bind_point) {
-                break;
+        for (uint32_t i = 0; i < m_cached_writes[idx].descriptorCount; i++) {
+            if (m_cached_writes[idx].dstBinding + i == bind_point) {
+              set_idx = i;
+              break;
             }
         }
+
+        if (set_idx != uint32_t(-1))
+            break;
     }
 
     assert(idx < m_cached_writes.size() && set_idx < m_cached_writes[idx].descriptorCount);
