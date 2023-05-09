@@ -899,9 +899,7 @@ static Techniques::TechniqueVk CreateTechnique_5(RootSignature& root_sign, const
 
     // Tech
     Techniques::TechniqueVk tech;
-    tech.vs = L"skybox_vs.hlsl";
-    tech.ps = L"skybox_ps.hlsl";
-    tech.vertex_type = 2;
+    tech.cs = L"ssao_cs.hlsl";
     tech.root_signature = root_sign.GetRSId();
 
     // CreatePipelineLayout
@@ -918,7 +916,7 @@ static Techniques::TechniqueVk CreateTechnique_5(RootSignature& root_sign, const
     shaderStageCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
     shaderStageCreateInfo.stage = VK_SHADER_STAGE_COMPUTE_BIT;
     if (ShaderManager* shader_mgr = gBackend->GetShaderManager()){
-        ShaderManager::ShaderBlob* cs_blob = shader_mgr->Load(tech.vs, L"main", ShaderManager::ShaderType::st_compute);        
+        ShaderManager::ShaderBlob* cs_blob = shader_mgr->Load(tech.cs, L"main", ShaderManager::ShaderType::st_compute);        
         {
             VkShaderModuleCreateInfo createInfo = { VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO };
             createInfo.codeSize = cs_blob->size;
@@ -951,9 +949,7 @@ static Techniques::TechniqueVk CreateTechnique_6(RootSignature& root_sign, const
 
     // Tech
     Techniques::TechniqueVk tech;
-    tech.vs = L"skybox_vs.hlsl";
-    tech.ps = L"skybox_ps.hlsl";
-    tech.vertex_type = 2;
+    tech.cs = L"gaussian_blur_cs.hlsl";
     tech.root_signature = root_sign.GetRSId();
 
     // CreatePipelineLayout
@@ -970,7 +966,7 @@ static Techniques::TechniqueVk CreateTechnique_6(RootSignature& root_sign, const
     shaderStageCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
     shaderStageCreateInfo.stage = VK_SHADER_STAGE_COMPUTE_BIT;
     if (ShaderManager* shader_mgr = gBackend->GetShaderManager()){
-        ShaderManager::ShaderBlob* cs_blob = shader_mgr->Load(tech.vs, L"main", ShaderManager::ShaderType::st_compute);        
+        ShaderManager::ShaderBlob* cs_blob = shader_mgr->Load(tech.cs, L"main", ShaderManager::ShaderType::st_compute);        
         {
             VkShaderModuleCreateInfo createInfo = { VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO };
             createInfo.codeSize = cs_blob->size;
@@ -1370,9 +1366,7 @@ static Techniques::TechniqueVk CreateTechnique_10(RootSignature& root_sign, cons
 
     // Tech
     Techniques::TechniqueVk tech;
-    tech.vs = L"shadow_vs.hlsl";
-    tech.ps = L"";
-    tech.vertex_type = 2;
+    tech.cs = L"refl_cs.hlsl";
     tech.root_signature = root_sign.GetRSId();
 
     // CreatePipelineLayout
@@ -1389,7 +1383,7 @@ static Techniques::TechniqueVk CreateTechnique_10(RootSignature& root_sign, cons
     shaderStageCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
     shaderStageCreateInfo.stage = VK_SHADER_STAGE_COMPUTE_BIT;
     if (ShaderManager* shader_mgr = gBackend->GetShaderManager()){
-        ShaderManager::ShaderBlob* cs_blob = shader_mgr->Load(tech.vs, L"main", ShaderManager::ShaderType::st_compute);        
+        ShaderManager::ShaderBlob* cs_blob = shader_mgr->Load(tech.cs, L"main", ShaderManager::ShaderType::st_compute);        
         {
             VkShaderModuleCreateInfo createInfo = { VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO };
             createInfo.codeSize = cs_blob->size;

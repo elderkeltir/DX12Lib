@@ -16,7 +16,7 @@ else()
 add_definitions(-DVK_USE_PLATFORM_XCB_KHR)
 set(#[[CMAKE_CXX_FLAGS_DEBUG]] "${CMAKE_CXX_FLAGS_DEBUG} -D_DEBUG")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
-include_directories(${THIRD_PARTY_DIR}/glfw/include)
+
 endif()
 
 set(CMAKE_BUILD_PARALLEL_LEVEL 16)
@@ -61,6 +61,12 @@ else()
 add_subdirectory(backend_vk)
 endif()
 
+if (NOT CMAKE_SYSTEM_NAME STREQUAL "Windows")
+find_package(assimp REQUIRED)
+find_package(PkgConfig REQUIRED)
+pkg_search_module(GLFW REQUIRED glfw3)
+endif()
+
 if (CMAKE_SYSTEM_NAME STREQUAL "Windows")
 target_compile_options(${PROJECT_NAME} PUBLIC "/EHsc")
 target_link_options(${PROJECT_NAME} PRIVATE "/entry:WinMainCRTStartup")
@@ -71,9 +77,20 @@ endif()
 
 target_include_directories(${PROJECT_NAME}  PRIVATE ${THIRD_PARTY_DIR}/rapidjson/include)
 target_include_directories(${PROJECT_NAME}  PRIVATE ${PROJECT_SOURCE_DIR}/backend_interface)
-target_include_directories(${PROJECT_NAME}  PRIVATE ${THIRD_PARTY_DIR}/assimp/include)
-target_include_directories(${PROJECT_NAME}  PRIVATE ${CMAKE_BINARY_DIR}/thirdParty/assimp/include)
 target_include_directories(${PROJECT_NAME}  PRIVATE ${THIRD_PARTY_DIR}/DirectXMath/Inc)
+if (NOT CMAKE_SYSTEM_NAME STREQUAL "Windows")
+target_include_directories(${PROJECT_NAME}  PRIVATE ${GLFW_INCLUDE_DIRS})
+target_include_directories(${PROJECT_NAME}  PRIVATE ${ASSIMP_INCLUDE_DIRS})
+endif()
+
+# if (NOT CMAKE_SYSTEM_NAME STREQUAL "Windows")
+
+# target_include_directories(${PROJECT_NAME}  PRIVATE ${THIRD_PARTY_DIR}/assimp/include)
+# target_include_directories(${PROJECT_NAME}  PRIVATE ${CMAKE_BINARY_DIR}/thirdParty/assimp/include)
+
+# else()
+# include_directories(${THIRD_PARTY_DIR}/glfw/include)
+# endif()
 
 if (CMAKE_SYSTEM_NAME STREQUAL "Windows")
 set(ASSIMP_BIN_DIR ${CMAKE_BINARY_DIR}/thirdParty/assimp/bin/)
@@ -91,16 +108,16 @@ COMMAND ${CMAKE_COMMAND} -E copy_if_different
     "${CMAKE_BINARY_DIR}/src/backend_dx12/backend_dx12d.pdb"
     "${CMAKE_BINARY_DIR}/src"
 )
+target_link_libraries(${PROJECT_NAME} assimp)
 else()
-find_package(assimp)
 target_link_libraries(${PROJECT_NAME} dl)
 target_link_libraries(${PROJECT_NAME} pthread)
-target_link_libraries(${PROJECT_NAME} glfw)
-if (CMAKE_SYSTEM_NAME STREQUAL "FreeBSD")
+# target_link_libraries(${PROJECT_NAME} glfw)
+
+
 target_link_libraries(${PROJECT_NAME} ${ASSIMP_LIBRARIES})
-else()
-target_link_libraries(${PROJECT_NAME} assimp)
-endif()
+target_link_libraries(${PROJECT_NAME} ${GLFW_LIBRARIES})
+
 if (NOT CMAKE_SYSTEM_NAME STREQUAL "Windows")
 add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
 COMMAND /bin/bash ${ROOT_FOLDER}/../generate_compile_json.sh
