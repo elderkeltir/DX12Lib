@@ -75,6 +75,9 @@ void CommandQueue::OnInit(QueueType type, uint32_t command_list_num, std::option
         SetName(m_commandAllocator[i], dbg_name.value_or(L"").append(L"_cmd_allocator_" + std::to_wstring((uint32_t)type)).append(std::to_wstring(i)).c_str());
     }
     ThrowIfFailed(device->CreateCommandList(0, cmd_list_type, m_commandAllocator[m_active_cl].Get(), nullptr, IID_PPV_ARGS(&cmd_list->m_command_list)));
+#if defined(USE_NSIGHT_AFTERMATH)
+    cmd_list->SetupNvAfterMath();
+#endif
     SetName(cmd_list->m_command_list, dbg_name.value_or(L"").append(L"_cmd_list_" + std::to_wstring((uint32_t)type)).c_str());
     ThrowIfFailed(cmd_list->m_command_list->Close());
 

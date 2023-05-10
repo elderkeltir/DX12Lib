@@ -8,6 +8,10 @@
 #include <memory>
 #include <wrl.h>
 
+#if defined(USE_NSIGHT_AFTERMATH)
+#include "NsightAftermathGpuCrashTracker.h"
+#endif
+
 using Microsoft::WRL::ComPtr;
 struct IDXGIFactory4;
 struct IDXGIFactory1;
@@ -96,4 +100,13 @@ private:
 	bool m_should_close{ false };
 
 	std::filesystem::path m_root_dir;
+
+#if defined(USE_NSIGHT_AFTERMATH)
+	// App-managed marker functionality
+	UINT64 m_frameCounter{ 0 };
+	GpuCrashTracker::MarkerMap m_markerMap;
+
+	// Nsight Aftermath instrumentation
+	std::unique_ptr<GpuCrashTracker> m_gpuCrashTracker;
+#endif
 };

@@ -10,6 +10,10 @@
 #include "RootSignature.h"
 #include "Techniques.h"
 
+#if defined(USE_NSIGHT_AFTERMATH)
+#include "NsightAftermathHelpers.h"
+#endif
+
 extern DxBackend* gBackend;
 
 #define GetDxHeap(heap) ((HeapBuffer*)heap.get())
@@ -191,3 +195,9 @@ void CommandList::SetRootSign(uint32_t id, bool gfx) {
         m_command_list->SetComputeRootSignature(r.Get());
     }
 }
+
+#if defined(USE_NSIGHT_AFTERMATH)
+void CommandList::SetupNvAfterMath() {
+    AFTERMATH_CHECK_ERROR(GFSDK_Aftermath_DX12_CreateContextHandle(m_command_list.Get(), &m_hAftermathCommandListContext));
+}
+#endif

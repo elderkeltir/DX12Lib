@@ -15,7 +15,7 @@ public:
 	uint32_t GetCurrentBackBufferIndex() const;
 	IGpuResource& GetCurrentBackBuffer();
 	IGpuResource* GetDepthBuffer();
-	void Present();
+	HRESULT Present();
 	void OnResize();
 
 	uint32_t GetHeight() { return m_height; }

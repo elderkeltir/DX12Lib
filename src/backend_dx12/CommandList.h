@@ -6,6 +6,10 @@ using Microsoft::WRL::ComPtr;
 
 #include "IGpuResource.h"
 
+#if defined(USE_NSIGHT_AFTERMATH)
+#include "NsightAftermathHelpers.h"
+#endif
+
 struct ID3D12GraphicsCommandList6;
 class ICommandQueue;
 struct IndexVufferView;
@@ -57,4 +61,14 @@ private:
 	uint32_t m_root_sign{ uint32_t(-1) };
 
 	CommandListType m_type;
+
+#if defined(USE_NSIGHT_AFTERMATH)
+	// Nsight Aftermath instrumentation
+	GFSDK_Aftermath_ContextHandle m_hAftermathCommandListContext{ nullptr };
+	void SetupNvAfterMath();
+public:
+	GFSDK_Aftermath_ContextHandle& GetNvAfterMathHndl() {
+		return m_hAftermathCommandListContext;
+	}
+#endif
 };

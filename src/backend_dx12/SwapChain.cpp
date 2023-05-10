@@ -105,9 +105,9 @@ IGpuResource* SwapChain::GetDepthBuffer()
 	return m_depthStencil.get();
 }
 
-void SwapChain::Present()
+HRESULT SwapChain::Present()
 {
-	m_swapChain->Present(1, 0);
+	return m_swapChain->Present(1, 0);
 }
 
 void SwapChain::OnResize()

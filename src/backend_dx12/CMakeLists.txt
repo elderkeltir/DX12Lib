@@ -14,6 +14,8 @@ ADD_DEFINITIONS(-DUNICODE)
 ADD_DEFINITIONS(-D_DEBUG)
 ADD_DEFINITIONS(-D_WINDOWS)
 # ADD_DEFINITIONS(-DUSE_PIX_DEBUG) # for attaching only
+set(USE_NV_AM 1)
+
 
 # VARs
 set(CMAKE_BUILD_PARALLEL_LEVEL 16)
@@ -32,6 +34,16 @@ include_directories(${THIRD_PARTY_DIR}/DirectXShaderCompiler/inc)
 include_directories(${THIRD_PARTY_DIR}/winpixeventruntime/Include)
 include_directories(${THIRD_PARTY_DIR}/imgui)
 include_directories(${THIRD_PARTY_DIR}/DirectXTex/DirectXTex)
+
+if(DEFINED USE_NV_AM)
+ADD_DEFINITIONS(-DUSE_NSIGHT_AFTERMATH) # for crash handling
+set(NVIDIA_AFTERMATH_DIR $ENV{NSIGHT_AFTERMATH_SDK})
+if(NVIDIA_AFTERMATH_DIR STREQUAL "")
+message(FATAL_ERROR "NSIGHT_AFTERMATH_SDK environment variable isn't defined in the system, CMake will exit." )
+endif()
+include_directories(${NVIDIA_AFTERMATH_DIR}/include)
+endif() 
+
 # message(STATUS "foo include dir: ${THIRD_PARTY_DIR}/assimp/include")
 # include_directories("C:\\code\\DX12Lib\\thirdParty\\assimp\\include")
 
@@ -65,7 +77,10 @@ add_library(${PROJECT_NAME} SHARED
     "DxBackend.cpp"
     "DxDevice.cpp"
     "RootSignature.cpp"
-    "TextureLoader.cpp")
+    "TextureLoader.cpp"
+    "NsightAftermathShaderDatabase.cpp"
+    "NsightAftermathGpuCrashTracker.cpp"
+)
 
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
@@ -78,6 +93,14 @@ target_link_libraries(${PROJECT_NAME} ${THIRD_PARTY_DIR}/winpixeventruntime/bin/
 target_link_libraries(${PROJECT_NAME} DirectX-Guids)
 target_link_libraries(${PROJECT_NAME} DirectXTex)
 
+if(DEFINED USE_NV_AM)
+target_link_libraries(${PROJECT_NAME} ${NVIDIA_AFTERMATH_DIR}/lib/x64/GFSDK_Aftermath_Lib.x64.lib)
+add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+COMMAND ${CMAKE_COMMAND} -E copy_if_different
+    "${NVIDIA_AFTERMATH_DIR}/lib/x64/GFSDK_Aftermath_Lib.x64.dll"
+    "${CMAKE_BINARY_DIR}/src"
+)
+endif()
 
 # Copy thirdparty bins
 set(DXC_BIN_DIR ${THIRD_PARTY_DIR}/DirectXShaderCompiler/bin/x64)
