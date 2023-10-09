@@ -122,12 +122,7 @@ private:
         void* pUserData);
 
     // App-managed marker resolve callback
-    static void ResolveMarkerCallback(
-        const void* pMarker,
-        void* pUserData,
-        void** resolvedMarkerData,
-        uint32_t* markerSize
-    );
+    static void ResolveMarkerCallback(const void* pMarkerData, const uint32_t markerDataSize, void* pUserData, void** ppResolvedMarkerData, uint32_t* pResolvedMarkerDataSize);
 
     // Shader debug information lookup callback.
     static void ShaderDebugInfoLookupCallback(

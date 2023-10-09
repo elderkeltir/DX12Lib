@@ -339,14 +339,10 @@ void GpuCrashTracker::CrashDumpDescriptionCallback(
 }
 
 // Static callback wrapper for OnResolveMarker
-void GpuCrashTracker::ResolveMarkerCallback(
-    const void* pMarker,
-    void* pUserData,
-    void** resolvedMarkerData,
-    uint32_t* markerSize)
+void GpuCrashTracker::ResolveMarkerCallback(const void* pMarkerData, const uint32_t markerDataSize, void* pUserData, void** ppResolvedMarkerData, uint32_t* pResolvedMarkerDataSize)
 {
     GpuCrashTracker* pGpuCrashTracker = reinterpret_cast<GpuCrashTracker*>(pUserData);
-    pGpuCrashTracker->OnResolveMarker(pMarker, resolvedMarkerData, markerSize);
+    pGpuCrashTracker->OnResolveMarker(pMarkerData, ppResolvedMarkerData, pResolvedMarkerDataSize);
 }
 
 // Static callback wrapper for OnShaderDebugInfoLookup
