@@ -15,7 +15,7 @@ class WinApplication
 {
 public:
     WinApplication(uint32_t width, uint32_t height, const std::wstring& window_name);
-    int Run(HINSTANCE hInstance, int nCmdShow); // TODO: rewrite top lvl of the application. unnecessary depends
+    int Run(HINSTANCE hInstance, LPSTR pCmdLine, int nCmdShow); // TODO: rewrite top lvl of the application. unnecessary depends
 
 protected:
     static LRESULT CALLBACK WindowProc(HWND hWnd, uint32_t message, WPARAM wParam, LPARAM lParam);

@@ -151,8 +151,8 @@ void Level::Load(const std::wstring& name) {
         const Value& skybox = d["skybox"];
         const char* skybox_name_8 = skybox["entity"].GetString();
         const std::wstring skybox_name(&skybox_name_8[0], &skybox_name_8[strlen(skybox_name_8)]);
-        //m_skybox_ent.reset(new SkyBox);
-        //m_skybox_ent->Load(skybox_name);
+        m_skybox_ent.reset(new SkyBox);
+        m_skybox_ent->Load(skybox_name);
     }
 
     // Terrain
@@ -204,7 +204,7 @@ void Level::Render(ICommandList* command_list){
         RenderEntity(command_list, ent, is_scene_constants_set);
     }
 
-    //RenderEntity(command_list, *m_skybox_ent, is_scene_constants_set);
+    RenderEntity(command_list, *m_skybox_ent, is_scene_constants_set);
     {
         uint32_t terrain_tech_id = m_terrain->GetTerrainTechId();
         const ITechniques::Technique* tech = gFrontend->GetTechniqueById(terrain_tech_id);
@@ -295,10 +295,10 @@ void Level::RenderWater(ICommandList* command_list)
         
     gfx_queue->GetGpuHeap().CacheRootSignature(gFrontend->GetRootSignById(tech->root_signature));
 
-    // IGpuResource* skybox_tex = m_skybox_ent->GetTexture();
-	// if (std::shared_ptr<IResourceDescriptor> srv = skybox_tex->GetSRV().lock()) {
-	// 	gfx_queue->GetGpuHeap().StageDesctriptorInTable(bi_fwd_tex, tto_fwd_skybox, srv);
-	// }
+    IGpuResource* skybox_tex = m_skybox_ent->GetTexture();
+	if (std::shared_ptr<IResourceDescriptor> srv = skybox_tex->GetSRV().lock()) {
+		gfx_queue->GetGpuHeap().StageDesctriptorInTable(bi_fwd_tex, tto_fwd_skybox, srv);
+	}
     gFrontend->CommitCB(command_list, cb_scene);
     BindLights(command_list);
 

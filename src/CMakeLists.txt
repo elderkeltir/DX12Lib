@@ -22,7 +22,7 @@ endif()
 set(CMAKE_BUILD_PARALLEL_LEVEL 16)
 set(CMAKE_CXX_STANDARD 17) # no need to manually adjust the CXXFLAGS
 set(CMAKE_CXX_STANDARD_REQUIRED on)
-set(ROOT_FOLDER ${PROJECT_SOURCE_DIR})
+set(ROOT_FOLDER ${CMAKE_CURRENT_SOURCE_DIR})
 set(THIRD_PARTY_DIR ${ROOT_FOLDER}/../thirdParty)
 
 set(MY_SOURCE_LIST
@@ -100,12 +100,6 @@ COMMAND ${CMAKE_COMMAND} -E copy_if_different
     "${CMAKE_BINARY_DIR}/src"
 COMMAND ${CMAKE_COMMAND} -E copy_if_different
     "${ASSIMP_BIN_DIR}/assimp-vc143-mtd.pdb"
-    "${CMAKE_BINARY_DIR}/src"
-COMMAND ${CMAKE_COMMAND} -E copy_if_different
-    "${CMAKE_BINARY_DIR}/src/backend_dx12/backend_dx12d.dll"
-    "${CMAKE_BINARY_DIR}/src"
-COMMAND ${CMAKE_COMMAND} -E copy_if_different
-    "${CMAKE_BINARY_DIR}/src/backend_dx12/backend_dx12d.pdb"
     "${CMAKE_BINARY_DIR}/src"
 )
 target_link_libraries(${PROJECT_NAME} assimp)

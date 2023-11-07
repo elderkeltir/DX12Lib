@@ -1,10 +1,6 @@
 cmake_minimum_required(VERSION 3.13.0)
 project(backend_dx12 VERSION 0.1.0)
 
-include(CTest)
-enable_testing()
-
-
 set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 
 ADD_DEFINITIONS(-D_AFXDLL)
@@ -20,18 +16,11 @@ set(CMAKE_BUILD_PARALLEL_LEVEL 16)
 set(CMAKE_MFC_FLAG 2)
 set(CMAKE_CXX_STANDARD 17) # no need to manually adjust the CXXFLAGS
 set(CMAKE_CXX_STANDARD_REQUIRED on)
-set(ROOT_FOLDER ${PROJECT_SOURCE_DIR})
+set(ROOT_FOLDER ${CMAKE_CURRENT_SOURCE_DIR})
 set(THIRD_PARTY_DIR ${ROOT_FOLDER}/../../thirdParty)
 set(THIRD_PARTY_IMGUI_DIR ${THIRD_PARTY_DIR}/imgui)
 
-# include directories
-include_directories(${PROJECT_SOURCE_DIR})
-include_directories(${PROJECT_SOURCE_DIR}/../backend_interface)
-include_directories(${THIRD_PARTY_DIR}/DirectX-Headers/include)
-include_directories(${THIRD_PARTY_DIR}/DirectXShaderCompiler/inc)
-include_directories(${THIRD_PARTY_DIR}/winpixeventruntime/Include)
-include_directories(${THIRD_PARTY_DIR}/imgui)
-include_directories(${THIRD_PARTY_DIR}/DirectXTex/DirectXTex)
+
 # message(STATUS "foo include dir: ${THIRD_PARTY_DIR}/assimp/include")
 # include_directories("C:\\code\\DX12Lib\\thirdParty\\assimp\\include")
 
@@ -65,11 +54,22 @@ add_library(${PROJECT_NAME} SHARED
     "DxBackend.cpp"
     "DxDevice.cpp"
     "RootSignature.cpp"
-    "TextureLoader.cpp")
+    "TextureLoader.cpp"
+    "${PROJECT_SOURCE_DIR}/../backend_interface/ICommandList.h")
+    
+# include directories
+target_include_directories(${PROJECT_NAME} PRIVATE "${PROJECT_SOURCE_DIR}")
+target_include_directories(${PROJECT_NAME} PRIVATE "${PROJECT_SOURCE_DIR}/../backend_interface")
+target_include_directories(${PROJECT_NAME} PRIVATE "${THIRD_PARTY_DIR}/DirectX-Headers/include")
+target_include_directories(${PROJECT_NAME} PRIVATE "${THIRD_PARTY_DIR}/DirectXShaderCompiler/inc")
+target_include_directories(${PROJECT_NAME} PRIVATE "${THIRD_PARTY_DIR}/winpixeventruntime/Include")
+target_include_directories(${PROJECT_NAME} PRIVATE "${THIRD_PARTY_DIR}/imgui")
+target_include_directories(${PROJECT_NAME} PRIVATE "${THIRD_PARTY_DIR}/DirectXTex/DirectXTex")
 
-set(CPACK_PROJECT_NAME ${PROJECT_NAME})
-set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
-include(CPack)
+get_property(dirs1 TARGET ${PROJECT_NAME} PROPERTY INCLUDE_DIRECTORIES)
+foreach(dir ${dirs1})
+  message(STATUS "Interface include directory for my_target: ${dir}")
+endforeach()
 
 target_link_libraries(${PROJECT_NAME} d3d12.lib)
 target_link_libraries(${PROJECT_NAME} dxgi.lib)
@@ -91,5 +91,11 @@ COMMAND ${CMAKE_COMMAND} -E copy_if_different
     "${CMAKE_BINARY_DIR}/src"
 COMMAND ${CMAKE_COMMAND} -E copy_if_different
     "${WPER_BIN_DIR}/WinPixEventRuntime.dll"
+    "${CMAKE_BINARY_DIR}/src"
+COMMAND ${CMAKE_COMMAND} -E copy_if_different
+    "${CMAKE_BINARY_DIR}/src/backend_dx12/backend_dx12d.dll"
+    "${CMAKE_BINARY_DIR}/src"
+COMMAND ${CMAKE_COMMAND} -E copy_if_different
+    "${CMAKE_BINARY_DIR}/src/backend_dx12/backend_dx12d.pdb"
     "${CMAKE_BINARY_DIR}/src"
 )

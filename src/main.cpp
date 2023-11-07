@@ -18,10 +18,10 @@
 #include "WinApplication.h"
 
 _Use_decl_annotations_
-int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
+int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR pCmdLine, int nCmdShow)
 {
     WinApplication app(1280, 720, L"DX12Lib");
-    return app.Run(hInstance, nCmdShow);
+    return app.Run(hInstance, pCmdLine, nCmdShow);
 }
 #else
 #include "LinApplication.h"

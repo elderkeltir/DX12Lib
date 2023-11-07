@@ -9,7 +9,10 @@
 extern DxBackend* gBackend;
 
 void HeapBuffer::Create(HeapType type, uint32_t bufferSize, ResourceState initial_state, std::optional<std::wstring> dbg_name) {
-    D3D12_HEAP_TYPE internal_type{ (D3D12_HEAP_TYPE)type };
+    unsigned long idx = 0;
+    _BitScanForward(&idx, type);
+
+    D3D12_HEAP_TYPE internal_type{ (D3D12_HEAP_TYPE)idx };
 
     ThrowIfFailed(gBackend->GetDevice()->GetNativeObject()->CreateCommittedResource(
         &CD3DX12_HEAP_PROPERTIES(internal_type),
@@ -24,10 +27,14 @@ void HeapBuffer::Create(HeapType type, uint32_t bufferSize, ResourceState initia
 }
 
 void HeapBuffer::CreateTexture(HeapType type, const ResourceDesc &res_desc, ResourceState initial_state, const ClearColor *clear_val, std::optional<std::wstring> dbg_name){
-    D3D12_HEAP_TYPE internal_type{ (D3D12_HEAP_TYPE)type };
+    unsigned long idx = 0;
+    _BitScanForward(&idx, type);
+
+    D3D12_HEAP_TYPE internal_type{ (D3D12_HEAP_TYPE)idx };
 
     CD3DX12_RESOURCE_DESC res_desc_native;
     D3D12_CLEAR_VALUE clear_val_native;
+
 
     {
         res_desc_native.Alignment = res_desc.alignment;

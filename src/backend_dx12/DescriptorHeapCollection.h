@@ -11,7 +11,7 @@ class DescriptorHeapCollection : public IDescriptorHeapCollection {
 public:
     void Initialize(std::optional<std::wstring> dbg_name = std::nullopt) override;
 
-    void ReserveRTVhandle(CCPUdescriptor& rtvHandle, uint64_t data = 0, bool gpu_only = false) override {
+    void ReserveRTVhandle(CPUdescriptor& rtvHandle, uint64_t data = 0, bool gpu_only = false) override {
         CD3DX12_CPU_DESCRIPTOR_HANDLE hndl;
         assert(m_rtv_actual_size < rtvHeap_size);
         hndl = m_rtvHeap->GetCPUDescriptorHandleForHeapStart();
@@ -30,11 +30,11 @@ public:
     }
 
     void ReserveCBVhandle(CPUdescriptor& cbvHandle, uint64_t data = 0, bool gpu_only = false) override {
-        ReserveSRVUAVCBVhandle(uavHandle);
+        ReserveSRVUAVCBVhandle(cbvHandle);
     }
 
     void ReserveSRVhandle(CPUdescriptor& srvHandle, uint64_t data = 0, bool gpu_only = false) override {
-        ReserveSRVUAVCBVhandle(uavHandle);
+        ReserveSRVUAVCBVhandle(srvHandle);
     }
 
     void ReserveUAVhandle(CPUdescriptor& uavHandle, uint64_t data = 0, bool gpu_only = false) override {

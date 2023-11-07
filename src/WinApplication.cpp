@@ -42,7 +42,7 @@ WinApplication::WinApplication(uint32_t width, uint32_t height, const std::wstri
 {
 }
 
-int WinApplication::Run(HINSTANCE hInstance, int nCmdShow)
+int WinApplication::Run(HINSTANCE hInstance, LPSTR pCmdLine, int nCmdShow)
 {
     // Parse the command line parameters
     int argc;
