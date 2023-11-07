@@ -17,14 +17,14 @@
 
 VkBackend* gBackend = nullptr;
 
-IBackend* CreateBackend() {
+IBackend* CreateBackendVk() {
     assert(!gBackend);
 
     gBackend = new VkBackend;
     return (IBackend *)gBackend;
 }
 
-void DestroyBackend() {
+void DestroyBackendVk() {
     assert(gBackend);
     delete gBackend;
     gBackend = nullptr;

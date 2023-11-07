@@ -24,6 +24,9 @@ private:
     void ParseCommandLineArgs(wchar_t* argv[], int argc);
     std::unique_ptr<Frontend> m_frontend;
     HWND m_hwnd;
+
+    bool m_dx12;
+    bool m_vk;
 };
 
 #endif // WIN32

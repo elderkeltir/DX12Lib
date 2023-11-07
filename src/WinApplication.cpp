@@ -38,7 +38,9 @@ Frontend::KeyboardButton CastKey(uint8_t key) {
 
 WinApplication::WinApplication(uint32_t width, uint32_t height, const std::wstring& window_name) :
     m_frontend(std::make_unique<Frontend>(width, height, window_name)),
-    m_hwnd(nullptr)
+    m_hwnd(nullptr),
+    m_dx12(false),
+    m_vk(false)
 {
 }
 
@@ -92,7 +94,10 @@ int WinApplication::Run(HINSTANCE hInstance, LPSTR pCmdLine, int nCmdShow)
         root_dir = p.parent_path().parent_path().parent_path();
     }
 
-    m_frontend->OnInit(w_hndl, root_dir);
+    assert(m_dx12 ^ m_vk);
+    Frontend::BackendType bk_type = m_dx12 ? Frontend::BackendType::bt_dx12 : Frontend::BackendType::bt_vk;
+
+    m_frontend->OnInit(w_hndl, root_dir, bk_type);
 
     ShowWindow(m_hwnd, nCmdShow);
 
@@ -115,17 +120,14 @@ int WinApplication::Run(HINSTANCE hInstance, LPSTR pCmdLine, int nCmdShow)
 }
 
 // Helper function for parsing any supplied command line args.
-void WinApplication::ParseCommandLineArgs(wchar_t* argv[], int argc)
-{
-    //for (int i = 1; i < argc; ++i)
-    //{
-    //    if (_wcsnicmp(argv[i], L"-warp", wcslen(argv[i])) == 0 ||
-    //        _wcsnicmp(argv[i], L"/warp", wcslen(argv[i])) == 0)
-    //    {
-    //        m_useWarpDevice = true;
-    //        m_title = m_title + L" (WARP)";
-    //    }
-    //}
+void WinApplication::ParseCommandLineArgs(wchar_t *argv[], int argc) {
+    for (int i = 1; i < argc; ++i) {
+        if (_wcsnicmp(argv[i], L"-dx12", wcslen(argv[i])) == 0) {
+            m_dx12 = true;
+        } else if (_wcsnicmp(argv[i], L"-vk", wcslen(argv[i])) == 0) {
+            m_vk = true;
+        }
+    }
 }
 
 // Main message handler for the sample.

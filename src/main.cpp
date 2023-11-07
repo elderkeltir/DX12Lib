@@ -8,7 +8,6 @@
 #undef max
 #endif
  
-#ifdef WIN32
 // In order to define a function called CreateWindow, the Windows macro needs to
 // be undefined.
 #if defined(CreateWindow)
@@ -23,11 +22,3 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR pCmdLine, int nCmdShow)
     WinApplication app(1280, 720, L"DX12Lib");
     return app.Run(hInstance, pCmdLine, nCmdShow);
 }
-#else
-#include "LinApplication.h"
-
-int main() {
-    LinApplication app(1280, 720, L"DX12Lib-linux");
-    return app.Run();
-}
-#endif // WIN32

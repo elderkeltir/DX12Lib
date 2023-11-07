@@ -39,11 +39,15 @@ public:
         kb_d,
         kb_tilda
     };
+    enum class BackendType {
+        bt_dx12,
+        bt_vk
+    };
 public:
     Frontend(uint32_t width, uint32_t height, std::wstring name);
     ~Frontend();
 
-    void OnInit(const WindowHandler &hwnd, const std::filesystem::path& root_dir);
+    void OnInit(const WindowHandler &hwnd, const std::filesystem::path& root_dir, BackendType bk_type);
     void OnUpdate();
     void OnRender();
     void OnDestroy();

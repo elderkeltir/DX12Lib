@@ -23,14 +23,14 @@
 
 DxBackend* gBackend = nullptr;
 
-IBackend* CreateBackend() {
+IBackend* CreateBackendDx12() {
 	assert(!gBackend);
 
 	gBackend = new DxBackend;
 	return (IBackend *)gBackend;
 }
 
-void DestroyBackend() {
+void DestroyBackendDx12() {
 	assert(gBackend);
 	delete gBackend;
 	gBackend = nullptr;

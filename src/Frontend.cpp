@@ -38,14 +38,27 @@ Frontend::~Frontend()
 {
 }
 
-void Frontend::OnInit(const WindowHandler& hwnd, const std::filesystem::path &root_dir)
+void Frontend::OnInit(const WindowHandler& hwnd, const std::filesystem::path &root_dir, Frontend::BackendType bk_type)
 {
 	m_start_time = std::chrono::system_clock::now();
 	gFrontend = this;
 
 	// create backend
 	ResourceManager::OnInit(root_dir);
-	m_backend.reset(CreateBackend());
+
+	auto create_backend = [&bk_type] () {
+		if (bk_type == BackendType::bt_dx12) {
+			return CreateBackendDx12();
+		}
+		//else if (bk_type == BackendType::bt_vk) {
+		//	return CreateBackendVk();
+		//}
+
+		assert(false);
+		return (IBackend*)nullptr;
+	};
+
+	m_backend.reset(create_backend());
 	m_backend->OnInit(hwnd, m_width, m_height, root_dir);
 
 	ConstantBufferManager::OnInit();

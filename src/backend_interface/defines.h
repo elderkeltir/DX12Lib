@@ -506,8 +506,10 @@ struct ImguiWindowData {
 };
 
 class IBackend;
-IBackend* CreateBackend();
-void DestroyBackend();
+IBackend* CreateBackendDx12();
+void DestroyBackendDx12();
+IBackend* CreateBackendVk();
+void DestroyBackendVk();
 
 enum BindingId {
     bi_model_cb = 0,
