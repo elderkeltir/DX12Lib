@@ -107,10 +107,12 @@ void HeapBuffer::Load(ICommandList* command_list, uint32_t firstSubresource, uin
 	region.imageSubresource.baseArrayLayer = 0;
 	region.imageSubresource.layerCount = 1;
 
+    SubresourceDataVk* subres_data_vk = (SubresourceDataVk*)subresourceData;
+
 	region.imageOffset = {0, 0, 0};
 	region.imageExtent = {
-		subresourceData->width,
-		subresourceData->height,
+		subres_data_vk->width,
+		subres_data_vk->height,
 		1
 	};
 

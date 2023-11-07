@@ -1,5 +1,3 @@
-#ifdef WIN32
-
 #include "WinApplication.h"
 #include "Frontend.h"
 #include "defines.h"
@@ -209,5 +207,3 @@ LRESULT CALLBACK WinApplication::WindowProc(HWND hWnd, uint32_t message, WPARAM 
     // Handle any messages the switch statement didn't.
     return DefWindowProc(hWnd, message, wParam, lParam);
 }
-
-#endif // WIN32S

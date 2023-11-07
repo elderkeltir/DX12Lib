@@ -407,10 +407,13 @@ struct SubresourceData {
     const void* data;
     uint64_t row_pitch;
     uint64_t slice_pitch;
-#ifndef WIN32
+};
+
+// typedef SubresourceData SubresourceDataDx12;
+
+struct SubresourceDataVk : public SubresourceData {
     uint32_t width;
     uint32_t height;
-#endif // WIN32
 };
 
 enum class CommandListType {
@@ -492,10 +495,9 @@ struct CPUdescriptor {
 
 struct WindowHandler {
     uint64_t ptr;
-#ifndef WIN3
+
     std::vector<const char*> extensions;
     void* callback;
-#endif // !WIN32
 };
 
 struct ImguiWindowData {

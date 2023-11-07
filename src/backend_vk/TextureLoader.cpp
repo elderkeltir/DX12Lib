@@ -92,12 +92,12 @@ void TextureLoader::LoadTextureOnGPU(ICommandList* command_list, IGpuResource* r
 	tex_desc.height = tex_data_vk->height;
 	HeapType h_type = HeapType(HeapType::ht_default | HeapType::ht_image_sampled | HeapType::ht_aspect_color_bit);
 	res->CreateTexture(h_type, tex_desc, ResourceState::rs_resource_state_copy_dest, nullptr, std::wstring(tex_data->name).append(L"model_srv_").c_str());
-	SubresourceData sub_res;
+	SubresourceDataVk sub_res;
 	sub_res.width = tex_data_vk->width;
 	sub_res.height = tex_data_vk->height;
 	sub_res.data = tex_data_vk->pixels;
 	sub_res.slice_pitch = tex_data_vk->size;
-	res->LoadBuffer(command_list, 0, 1, &sub_res);
+	res->LoadBuffer(command_list, 0, 1, (SubresourceData*)&sub_res);
 	command_list->ResourceBarrier(*res, ResourceState::rs_resource_state_pixel_shader_resource);
 	
 	SRVdesc des;

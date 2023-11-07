@@ -46,7 +46,7 @@ add_executable(${PROJECT_NAME} ${MY_SOURCE_LIST})
 
 # add dependancy
 add_subdirectory(backend_dx12)
-# add_subdirectory(backend_vk)
+add_subdirectory(backend_vk)
 
 # includes
 target_include_directories(${PROJECT_NAME}  PRIVATE ${THIRD_PARTY_DIR}/rapidjson/include)
@@ -57,7 +57,7 @@ target_include_directories(${PROJECT_NAME}  PRIVATE ${THIRD_PARTY_DIR}/DirectXMa
 target_compile_options(${PROJECT_NAME} PUBLIC "/EHsc")
 target_link_options(${PROJECT_NAME} PRIVATE "/entry:WinMainCRTStartup")
 target_link_libraries(${PROJECT_NAME} backend_dx12)
-# target_link_libraries(${PROJECT_NAME} backend_vk)
+target_link_libraries(${PROJECT_NAME} backend_vk)
 
 # copy files
 set(ASSIMP_BIN_DIR ${CMAKE_BINARY_DIR}/thirdParty/assimp/bin/)

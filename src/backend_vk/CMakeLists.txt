@@ -1,18 +1,12 @@
 cmake_minimum_required(VERSION 3.13.0)
 project(backend_vk VERSION 0.1.0)
 
-include(CTest)
-enable_testing()
+# dllexport
+set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 
-ADD_DEFINITIONS(-D_DEBUG)
-
-add_definitions(-DVK_USE_PLATFORM_XCB_KHR)
-set(#[[CMAKE_CXX_FLAGS_DEBUG]] "${CMAKE_CXX_FLAGS_DEBUG} -D_DEBUG")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++ -Wno-nullability-completeness")
-set(VOLK_STATIC_DEFINES VK_USE_PLATFORM_XLIB_KHR)
-
-find_package(PkgConfig REQUIRED)
-find_package(Vulkan REQUIRED)
+# definitions
+add_definitions(-D_DEBUG)
+# add_definitions(-DVK_USE_PLATFORM_XCB_KHR)
 
 # VARs
 set(CMAKE_BUILD_PARALLEL_LEVEL 16)
@@ -22,14 +16,9 @@ set(CMAKE_CXX_STANDARD_REQUIRED on)
 set(ROOT_FOLDER ${PROJECT_SOURCE_DIR})
 set(THIRD_PARTY_DIR ${ROOT_FOLDER}/../../thirdParty)
 set(THIRD_PARTY_IMGUI_DIR ${THIRD_PARTY_DIR}/imgui)
+set(VOLK_STATIC_DEFINES VK_USE_PLATFORM_WIN32_KHR)
 
-include_directories(${PROJECT_SOURCE_DIR})
-include_directories(${PROJECT_SOURCE_DIR}/../backend_interface)
-include_directories(${THIRD_PARTY_DIR}/imgui)
-include_directories(${THIRD_PARTY_DIR}/volk)
-include_directories(${THIRD_PARTY_DIR}/stb)
-include_directories(${THIRD_PARTY_DIR}/VulkanMemoryAllocator/include)
-
+# source
 add_library(${PROJECT_NAME} SHARED
     # volk
     ${THIRD_PARTY_DIR}/volk/volk.c
@@ -62,8 +51,23 @@ add_library(${PROJECT_NAME} SHARED
     Techniques.cpp
 )
 
+# includes
+target_include_directories(${PROJECT_NAME} PRIVATE ${PROJECT_SOURCE_DIR})
+target_include_directories(${PROJECT_NAME} PRIVATE ${PROJECT_SOURCE_DIR}/../backend_interface)
+target_include_directories(${PROJECT_NAME} PRIVATE ${THIRD_PARTY_DIR}/imgui)
+target_include_directories(${PROJECT_NAME} PRIVATE ${THIRD_PARTY_DIR}/volk)
+target_include_directories(${PROJECT_NAME} PRIVATE ${THIRD_PARTY_DIR}/stb)
+target_include_directories(${PROJECT_NAME} PRIVATE ${THIRD_PARTY_DIR}/VulkanMemoryAllocator/include)
+target_include_directories(${PROJECT_NAME} PRIVATE "C:\\VulkanSDK\\1.3.268.0\\Include")
 
-target_link_libraries(${PROJECT_NAME} Vulkan::Vulkan)
+# target_link_libraries(${PROJECT_NAME} Vulkan::Vulkan)
 
-target_link_libraries(${PROJECT_NAME} dl)
-target_link_libraries(${PROJECT_NAME} pthread)
+# copy files
+add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+COMMAND ${CMAKE_COMMAND} -E copy_if_different
+    "${CMAKE_BINARY_DIR}/src/backend_vk/backend_vkd.dll"
+    "${CMAKE_BINARY_DIR}/src"
+COMMAND ${CMAKE_COMMAND} -E copy_if_different
+    "${CMAKE_BINARY_DIR}/src/backend_vk/backend_vkd.pdb"
+    "${CMAKE_BINARY_DIR}/src"
+)

@@ -50,9 +50,9 @@ void Frontend::OnInit(const WindowHandler& hwnd, const std::filesystem::path &ro
 		if (bk_type == BackendType::bt_dx12) {
 			return CreateBackendDx12();
 		}
-		//else if (bk_type == BackendType::bt_vk) {
-		//	return CreateBackendVk();
-		//}
+		else if (bk_type == BackendType::bt_vk) {
+			return CreateBackendVk();
+		}
 
 		assert(false);
 		return (IBackend*)nullptr;
