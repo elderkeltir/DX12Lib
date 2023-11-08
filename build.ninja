@@ -3920,7 +3920,7 @@ build src\backend_dx12\install\local: phony src\backend_dx12\CMakeFiles\install\
 build cmake_object_order_depends_target_backend_vk: phony || src\backend_vk\CMakeFiles\backend_vk.dir
 
 build src\backend_vk\CMakeFiles\backend_vk.dir\__\__\thirdParty\volk\volk.c.obj: C_COMPILER__backend_vk_unscanned_Debug C$:\code\DX12Lib\thirdParty\volk\volk.c || cmake_object_order_depends_target_backend_vk
-  DEFINES = -DUNICODE -DWIN32 -D_AFXDLL -D_DEBUG -D_UNICODE -D_WINDOWS -Dbackend_vk_EXPORTS
+  DEFINES = -DUNICODE -DVK_USE_PLATFORM_WIN32_KHR -DWIN32 -D_AFXDLL -D_DEBUG -D_UNICODE -D_WINDOWS -Dbackend_vk_EXPORTS
   FLAGS = /DWIN32 /D_WINDOWS /W3 /MDd /Zi /Ob0 /Od /RTC1
   INCLUDES = -IC:\code\DX12Lib\src\backend_vk -IC:\code\DX12Lib\src\backend_vk\..\backend_interface -IC:\code\DX12Lib\src\backend_vk\..\..\thirdParty\imgui -IC:\code\DX12Lib\src\backend_vk\..\..\thirdParty\volk -IC:\code\DX12Lib\src\backend_vk\..\..\thirdParty\stb -IC:\code\DX12Lib\src\backend_vk\..\..\thirdParty\VulkanMemoryAllocator\include -IC:\VulkanSDK\1.3.268.0\Include
   OBJECT_DIR = src\backend_vk\CMakeFiles\backend_vk.dir
@@ -3929,7 +3929,7 @@ build src\backend_vk\CMakeFiles\backend_vk.dir\__\__\thirdParty\volk\volk.c.obj:
   TARGET_PDB = src\backend_vk\backend_vkd.pdb
 
 build src\backend_vk\CMakeFiles\backend_vk.dir\__\__\thirdParty\imgui\imgui.cpp.obj: CXX_COMPILER__backend_vk_unscanned_Debug C$:\code\DX12Lib\thirdParty\imgui\imgui.cpp || cmake_object_order_depends_target_backend_vk
-  DEFINES = -DUNICODE -DWIN32 -D_AFXDLL -D_DEBUG -D_UNICODE -D_WINDOWS -Dbackend_vk_EXPORTS
+  DEFINES = -DUNICODE -DVK_USE_PLATFORM_WIN32_KHR -DWIN32 -D_AFXDLL -D_DEBUG -D_UNICODE -D_WINDOWS -Dbackend_vk_EXPORTS
   FLAGS = /DWIN32 /D_WINDOWS /W3 /GR /EHsc /MDd /Zi /Ob0 /Od /RTC1 -std:c++17
   INCLUDES = -IC:\code\DX12Lib\src\backend_vk -IC:\code\DX12Lib\src\backend_vk\..\backend_interface -IC:\code\DX12Lib\src\backend_vk\..\..\thirdParty\imgui -IC:\code\DX12Lib\src\backend_vk\..\..\thirdParty\volk -IC:\code\DX12Lib\src\backend_vk\..\..\thirdParty\stb -IC:\code\DX12Lib\src\backend_vk\..\..\thirdParty\VulkanMemoryAllocator\include -IC:\VulkanSDK\1.3.268.0\Include
   OBJECT_DIR = src\backend_vk\CMakeFiles\backend_vk.dir
@@ -3938,7 +3938,7 @@ build src\backend_vk\CMakeFiles\backend_vk.dir\__\__\thirdParty\imgui\imgui.cpp.
   TARGET_PDB = src\backend_vk\backend_vkd.pdb
 
 build src\backend_vk\CMakeFiles\backend_vk.dir\__\__\thirdParty\imgui\imgui_draw.cpp.obj: CXX_COMPILER__backend_vk_unscanned_Debug C$:\code\DX12Lib\thirdParty\imgui\imgui_draw.cpp || cmake_object_order_depends_target_backend_vk
-  DEFINES = -DUNICODE -DWIN32 -D_AFXDLL -D_DEBUG -D_UNICODE -D_WINDOWS -Dbackend_vk_EXPORTS
+  DEFINES = -DUNICODE -DVK_USE_PLATFORM_WIN32_KHR -DWIN32 -D_AFXDLL -D_DEBUG -D_UNICODE -D_WINDOWS -Dbackend_vk_EXPORTS
   FLAGS = /DWIN32 /D_WINDOWS /W3 /GR /EHsc /MDd /Zi /Ob0 /Od /RTC1 -std:c++17
   INCLUDES = -IC:\code\DX12Lib\src\backend_vk -IC:\code\DX12Lib\src\backend_vk\..\backend_interface -IC:\code\DX12Lib\src\backend_vk\..\..\thirdParty\imgui -IC:\code\DX12Lib\src\backend_vk\..\..\thirdParty\volk -IC:\code\DX12Lib\src\backend_vk\..\..\thirdParty\stb -IC:\code\DX12Lib\src\backend_vk\..\..\thirdParty\VulkanMemoryAllocator\include -IC:\VulkanSDK\1.3.268.0\Include
   OBJECT_DIR = src\backend_vk\CMakeFiles\backend_vk.dir
@@ -3947,7 +3947,7 @@ build src\backend_vk\CMakeFiles\backend_vk.dir\__\__\thirdParty\imgui\imgui_draw
   TARGET_PDB = src\backend_vk\backend_vkd.pdb
 
 build src\backend_vk\CMakeFiles\backend_vk.dir\__\__\thirdParty\imgui\imgui_tables.cpp.obj: CXX_COMPILER__backend_vk_unscanned_Debug C$:\code\DX12Lib\thirdParty\imgui\imgui_tables.cpp || cmake_object_order_depends_target_backend_vk
-  DEFINES = -DUNICODE -DWIN32 -D_AFXDLL -D_DEBUG -D_UNICODE -D_WINDOWS -Dbackend_vk_EXPORTS
+  DEFINES = -DUNICODE -DVK_USE_PLATFORM_WIN32_KHR -DWIN32 -D_AFXDLL -D_DEBUG -D_UNICODE -D_WINDOWS -Dbackend_vk_EXPORTS
   FLAGS = /DWIN32 /D_WINDOWS /W3 /GR /EHsc /MDd /Zi /Ob0 /Od /RTC1 -std:c++17
   INCLUDES = -IC:\code\DX12Lib\src\backend_vk -IC:\code\DX12Lib\src\backend_vk\..\backend_interface -IC:\code\DX12Lib\src\backend_vk\..\..\thirdParty\imgui -IC:\code\DX12Lib\src\backend_vk\..\..\thirdParty\volk -IC:\code\DX12Lib\src\backend_vk\..\..\thirdParty\stb -IC:\code\DX12Lib\src\backend_vk\..\..\thirdParty\VulkanMemoryAllocator\include -IC:\VulkanSDK\1.3.268.0\Include
   OBJECT_DIR = src\backend_vk\CMakeFiles\backend_vk.dir
@@ -3956,7 +3956,7 @@ build src\backend_vk\CMakeFiles\backend_vk.dir\__\__\thirdParty\imgui\imgui_tabl
   TARGET_PDB = src\backend_vk\backend_vkd.pdb
 
 build src\backend_vk\CMakeFiles\backend_vk.dir\__\__\thirdParty\imgui\imgui_widgets.cpp.obj: CXX_COMPILER__backend_vk_unscanned_Debug C$:\code\DX12Lib\thirdParty\imgui\imgui_widgets.cpp || cmake_object_order_depends_target_backend_vk
-  DEFINES = -DUNICODE -DWIN32 -D_AFXDLL -D_DEBUG -D_UNICODE -D_WINDOWS -Dbackend_vk_EXPORTS
+  DEFINES = -DUNICODE -DVK_USE_PLATFORM_WIN32_KHR -DWIN32 -D_AFXDLL -D_DEBUG -D_UNICODE -D_WINDOWS -Dbackend_vk_EXPORTS
   FLAGS = /DWIN32 /D_WINDOWS /W3 /GR /EHsc /MDd /Zi /Ob0 /Od /RTC1 -std:c++17
   INCLUDES = -IC:\code\DX12Lib\src\backend_vk -IC:\code\DX12Lib\src\backend_vk\..\backend_interface -IC:\code\DX12Lib\src\backend_vk\..\..\thirdParty\imgui -IC:\code\DX12Lib\src\backend_vk\..\..\thirdParty\volk -IC:\code\DX12Lib\src\backend_vk\..\..\thirdParty\stb -IC:\code\DX12Lib\src\backend_vk\..\..\thirdParty\VulkanMemoryAllocator\include -IC:\VulkanSDK\1.3.268.0\Include
   OBJECT_DIR = src\backend_vk\CMakeFiles\backend_vk.dir
@@ -3965,7 +3965,7 @@ build src\backend_vk\CMakeFiles\backend_vk.dir\__\__\thirdParty\imgui\imgui_widg
   TARGET_PDB = src\backend_vk\backend_vkd.pdb
 
 build src\backend_vk\CMakeFiles\backend_vk.dir\VkBackend.cpp.obj: CXX_COMPILER__backend_vk_unscanned_Debug C$:\code\DX12Lib\src\backend_vk\VkBackend.cpp || cmake_object_order_depends_target_backend_vk
-  DEFINES = -DUNICODE -DWIN32 -D_AFXDLL -D_DEBUG -D_UNICODE -D_WINDOWS -Dbackend_vk_EXPORTS
+  DEFINES = -DUNICODE -DVK_USE_PLATFORM_WIN32_KHR -DWIN32 -D_AFXDLL -D_DEBUG -D_UNICODE -D_WINDOWS -Dbackend_vk_EXPORTS
   FLAGS = /DWIN32 /D_WINDOWS /W3 /GR /EHsc /MDd /Zi /Ob0 /Od /RTC1 -std:c++17
   INCLUDES = -IC:\code\DX12Lib\src\backend_vk -IC:\code\DX12Lib\src\backend_vk\..\backend_interface -IC:\code\DX12Lib\src\backend_vk\..\..\thirdParty\imgui -IC:\code\DX12Lib\src\backend_vk\..\..\thirdParty\volk -IC:\code\DX12Lib\src\backend_vk\..\..\thirdParty\stb -IC:\code\DX12Lib\src\backend_vk\..\..\thirdParty\VulkanMemoryAllocator\include -IC:\VulkanSDK\1.3.268.0\Include
   OBJECT_DIR = src\backend_vk\CMakeFiles\backend_vk.dir
@@ -3974,7 +3974,7 @@ build src\backend_vk\CMakeFiles\backend_vk.dir\VkBackend.cpp.obj: CXX_COMPILER__
   TARGET_PDB = src\backend_vk\backend_vkd.pdb
 
 build src\backend_vk\CMakeFiles\backend_vk.dir\CommandList.cpp.obj: CXX_COMPILER__backend_vk_unscanned_Debug C$:\code\DX12Lib\src\backend_vk\CommandList.cpp || cmake_object_order_depends_target_backend_vk
-  DEFINES = -DUNICODE -DWIN32 -D_AFXDLL -D_DEBUG -D_UNICODE -D_WINDOWS -Dbackend_vk_EXPORTS
+  DEFINES = -DUNICODE -DVK_USE_PLATFORM_WIN32_KHR -DWIN32 -D_AFXDLL -D_DEBUG -D_UNICODE -D_WINDOWS -Dbackend_vk_EXPORTS
   FLAGS = /DWIN32 /D_WINDOWS /W3 /GR /EHsc /MDd /Zi /Ob0 /Od /RTC1 -std:c++17
   INCLUDES = -IC:\code\DX12Lib\src\backend_vk -IC:\code\DX12Lib\src\backend_vk\..\backend_interface -IC:\code\DX12Lib\src\backend_vk\..\..\thirdParty\imgui -IC:\code\DX12Lib\src\backend_vk\..\..\thirdParty\volk -IC:\code\DX12Lib\src\backend_vk\..\..\thirdParty\stb -IC:\code\DX12Lib\src\backend_vk\..\..\thirdParty\VulkanMemoryAllocator\include -IC:\VulkanSDK\1.3.268.0\Include
   OBJECT_DIR = src\backend_vk\CMakeFiles\backend_vk.dir
@@ -3983,7 +3983,7 @@ build src\backend_vk\CMakeFiles\backend_vk.dir\CommandList.cpp.obj: CXX_COMPILER
   TARGET_PDB = src\backend_vk\backend_vkd.pdb
 
 build src\backend_vk\CMakeFiles\backend_vk.dir\CommandQueue.cpp.obj: CXX_COMPILER__backend_vk_unscanned_Debug C$:\code\DX12Lib\src\backend_vk\CommandQueue.cpp || cmake_object_order_depends_target_backend_vk
-  DEFINES = -DUNICODE -DWIN32 -D_AFXDLL -D_DEBUG -D_UNICODE -D_WINDOWS -Dbackend_vk_EXPORTS
+  DEFINES = -DUNICODE -DVK_USE_PLATFORM_WIN32_KHR -DWIN32 -D_AFXDLL -D_DEBUG -D_UNICODE -D_WINDOWS -Dbackend_vk_EXPORTS
   FLAGS = /DWIN32 /D_WINDOWS /W3 /GR /EHsc /MDd /Zi /Ob0 /Od /RTC1 -std:c++17
   INCLUDES = -IC:\code\DX12Lib\src\backend_vk -IC:\code\DX12Lib\src\backend_vk\..\backend_interface -IC:\code\DX12Lib\src\backend_vk\..\..\thirdParty\imgui -IC:\code\DX12Lib\src\backend_vk\..\..\thirdParty\volk -IC:\code\DX12Lib\src\backend_vk\..\..\thirdParty\stb -IC:\code\DX12Lib\src\backend_vk\..\..\thirdParty\VulkanMemoryAllocator\include -IC:\VulkanSDK\1.3.268.0\Include
   OBJECT_DIR = src\backend_vk\CMakeFiles\backend_vk.dir
@@ -3992,7 +3992,7 @@ build src\backend_vk\CMakeFiles\backend_vk.dir\CommandQueue.cpp.obj: CXX_COMPILE
   TARGET_PDB = src\backend_vk\backend_vkd.pdb
 
 build src\backend_vk\CMakeFiles\backend_vk.dir\Fence.cpp.obj: CXX_COMPILER__backend_vk_unscanned_Debug C$:\code\DX12Lib\src\backend_vk\Fence.cpp || cmake_object_order_depends_target_backend_vk
-  DEFINES = -DUNICODE -DWIN32 -D_AFXDLL -D_DEBUG -D_UNICODE -D_WINDOWS -Dbackend_vk_EXPORTS
+  DEFINES = -DUNICODE -DVK_USE_PLATFORM_WIN32_KHR -DWIN32 -D_AFXDLL -D_DEBUG -D_UNICODE -D_WINDOWS -Dbackend_vk_EXPORTS
   FLAGS = /DWIN32 /D_WINDOWS /W3 /GR /EHsc /MDd /Zi /Ob0 /Od /RTC1 -std:c++17
   INCLUDES = -IC:\code\DX12Lib\src\backend_vk -IC:\code\DX12Lib\src\backend_vk\..\backend_interface -IC:\code\DX12Lib\src\backend_vk\..\..\thirdParty\imgui -IC:\code\DX12Lib\src\backend_vk\..\..\thirdParty\volk -IC:\code\DX12Lib\src\backend_vk\..\..\thirdParty\stb -IC:\code\DX12Lib\src\backend_vk\..\..\thirdParty\VulkanMemoryAllocator\include -IC:\VulkanSDK\1.3.268.0\Include
   OBJECT_DIR = src\backend_vk\CMakeFiles\backend_vk.dir
@@ -4001,7 +4001,7 @@ build src\backend_vk\CMakeFiles\backend_vk.dir\Fence.cpp.obj: CXX_COMPILER__back
   TARGET_PDB = src\backend_vk\backend_vkd.pdb
 
 build src\backend_vk\CMakeFiles\backend_vk.dir\HeapBuffer.cpp.obj: CXX_COMPILER__backend_vk_unscanned_Debug C$:\code\DX12Lib\src\backend_vk\HeapBuffer.cpp || cmake_object_order_depends_target_backend_vk
-  DEFINES = -DUNICODE -DWIN32 -D_AFXDLL -D_DEBUG -D_UNICODE -D_WINDOWS -Dbackend_vk_EXPORTS
+  DEFINES = -DUNICODE -DVK_USE_PLATFORM_WIN32_KHR -DWIN32 -D_AFXDLL -D_DEBUG -D_UNICODE -D_WINDOWS -Dbackend_vk_EXPORTS
   FLAGS = /DWIN32 /D_WINDOWS /W3 /GR /EHsc /MDd /Zi /Ob0 /Od /RTC1 -std:c++17
   INCLUDES = -IC:\code\DX12Lib\src\backend_vk -IC:\code\DX12Lib\src\backend_vk\..\backend_interface -IC:\code\DX12Lib\src\backend_vk\..\..\thirdParty\imgui -IC:\code\DX12Lib\src\backend_vk\..\..\thirdParty\volk -IC:\code\DX12Lib\src\backend_vk\..\..\thirdParty\stb -IC:\code\DX12Lib\src\backend_vk\..\..\thirdParty\VulkanMemoryAllocator\include -IC:\VulkanSDK\1.3.268.0\Include
   OBJECT_DIR = src\backend_vk\CMakeFiles\backend_vk.dir
@@ -4010,7 +4010,7 @@ build src\backend_vk\CMakeFiles\backend_vk.dir\HeapBuffer.cpp.obj: CXX_COMPILER_
   TARGET_PDB = src\backend_vk\backend_vkd.pdb
 
 build src\backend_vk\CMakeFiles\backend_vk.dir\VkMemoryHelper.cpp.obj: CXX_COMPILER__backend_vk_unscanned_Debug C$:\code\DX12Lib\src\backend_vk\VkMemoryHelper.cpp || cmake_object_order_depends_target_backend_vk
-  DEFINES = -DUNICODE -DWIN32 -D_AFXDLL -D_DEBUG -D_UNICODE -D_WINDOWS -Dbackend_vk_EXPORTS
+  DEFINES = -DUNICODE -DVK_USE_PLATFORM_WIN32_KHR -DWIN32 -D_AFXDLL -D_DEBUG -D_UNICODE -D_WINDOWS -Dbackend_vk_EXPORTS
   FLAGS = /DWIN32 /D_WINDOWS /W3 /GR /EHsc /MDd /Zi /Ob0 /Od /RTC1 -std:c++17
   INCLUDES = -IC:\code\DX12Lib\src\backend_vk -IC:\code\DX12Lib\src\backend_vk\..\backend_interface -IC:\code\DX12Lib\src\backend_vk\..\..\thirdParty\imgui -IC:\code\DX12Lib\src\backend_vk\..\..\thirdParty\volk -IC:\code\DX12Lib\src\backend_vk\..\..\thirdParty\stb -IC:\code\DX12Lib\src\backend_vk\..\..\thirdParty\VulkanMemoryAllocator\include -IC:\VulkanSDK\1.3.268.0\Include
   OBJECT_DIR = src\backend_vk\CMakeFiles\backend_vk.dir
@@ -4019,7 +4019,7 @@ build src\backend_vk\CMakeFiles\backend_vk.dir\VkMemoryHelper.cpp.obj: CXX_COMPI
   TARGET_PDB = src\backend_vk\backend_vkd.pdb
 
 build src\backend_vk\CMakeFiles\backend_vk.dir\VkDevice.cpp.obj: CXX_COMPILER__backend_vk_unscanned_Debug C$:\code\DX12Lib\src\backend_vk\VkDevice.cpp || cmake_object_order_depends_target_backend_vk
-  DEFINES = -DUNICODE -DWIN32 -D_AFXDLL -D_DEBUG -D_UNICODE -D_WINDOWS -Dbackend_vk_EXPORTS
+  DEFINES = -DUNICODE -DVK_USE_PLATFORM_WIN32_KHR -DWIN32 -D_AFXDLL -D_DEBUG -D_UNICODE -D_WINDOWS -Dbackend_vk_EXPORTS
   FLAGS = /DWIN32 /D_WINDOWS /W3 /GR /EHsc /MDd /Zi /Ob0 /Od /RTC1 -std:c++17
   INCLUDES = -IC:\code\DX12Lib\src\backend_vk -IC:\code\DX12Lib\src\backend_vk\..\backend_interface -IC:\code\DX12Lib\src\backend_vk\..\..\thirdParty\imgui -IC:\code\DX12Lib\src\backend_vk\..\..\thirdParty\volk -IC:\code\DX12Lib\src\backend_vk\..\..\thirdParty\stb -IC:\code\DX12Lib\src\backend_vk\..\..\thirdParty\VulkanMemoryAllocator\include -IC:\VulkanSDK\1.3.268.0\Include
   OBJECT_DIR = src\backend_vk\CMakeFiles\backend_vk.dir
@@ -4028,7 +4028,7 @@ build src\backend_vk\CMakeFiles\backend_vk.dir\VkDevice.cpp.obj: CXX_COMPILER__b
   TARGET_PDB = src\backend_vk\backend_vkd.pdb
 
 build src\backend_vk\CMakeFiles\backend_vk.dir\ResourceDescriptor.cpp.obj: CXX_COMPILER__backend_vk_unscanned_Debug C$:\code\DX12Lib\src\backend_vk\ResourceDescriptor.cpp || cmake_object_order_depends_target_backend_vk
-  DEFINES = -DUNICODE -DWIN32 -D_AFXDLL -D_DEBUG -D_UNICODE -D_WINDOWS -Dbackend_vk_EXPORTS
+  DEFINES = -DUNICODE -DVK_USE_PLATFORM_WIN32_KHR -DWIN32 -D_AFXDLL -D_DEBUG -D_UNICODE -D_WINDOWS -Dbackend_vk_EXPORTS
   FLAGS = /DWIN32 /D_WINDOWS /W3 /GR /EHsc /MDd /Zi /Ob0 /Od /RTC1 -std:c++17
   INCLUDES = -IC:\code\DX12Lib\src\backend_vk -IC:\code\DX12Lib\src\backend_vk\..\backend_interface -IC:\code\DX12Lib\src\backend_vk\..\..\thirdParty\imgui -IC:\code\DX12Lib\src\backend_vk\..\..\thirdParty\volk -IC:\code\DX12Lib\src\backend_vk\..\..\thirdParty\stb -IC:\code\DX12Lib\src\backend_vk\..\..\thirdParty\VulkanMemoryAllocator\include -IC:\VulkanSDK\1.3.268.0\Include
   OBJECT_DIR = src\backend_vk\CMakeFiles\backend_vk.dir
@@ -4037,7 +4037,7 @@ build src\backend_vk\CMakeFiles\backend_vk.dir\ResourceDescriptor.cpp.obj: CXX_C
   TARGET_PDB = src\backend_vk\backend_vkd.pdb
 
 build src\backend_vk\CMakeFiles\backend_vk.dir\DescriptorHeapCollection.cpp.obj: CXX_COMPILER__backend_vk_unscanned_Debug C$:\code\DX12Lib\src\backend_vk\DescriptorHeapCollection.cpp || cmake_object_order_depends_target_backend_vk
-  DEFINES = -DUNICODE -DWIN32 -D_AFXDLL -D_DEBUG -D_UNICODE -D_WINDOWS -Dbackend_vk_EXPORTS
+  DEFINES = -DUNICODE -DVK_USE_PLATFORM_WIN32_KHR -DWIN32 -D_AFXDLL -D_DEBUG -D_UNICODE -D_WINDOWS -Dbackend_vk_EXPORTS
   FLAGS = /DWIN32 /D_WINDOWS /W3 /GR /EHsc /MDd /Zi /Ob0 /Od /RTC1 -std:c++17
   INCLUDES = -IC:\code\DX12Lib\src\backend_vk -IC:\code\DX12Lib\src\backend_vk\..\backend_interface -IC:\code\DX12Lib\src\backend_vk\..\..\thirdParty\imgui -IC:\code\DX12Lib\src\backend_vk\..\..\thirdParty\volk -IC:\code\DX12Lib\src\backend_vk\..\..\thirdParty\stb -IC:\code\DX12Lib\src\backend_vk\..\..\thirdParty\VulkanMemoryAllocator\include -IC:\VulkanSDK\1.3.268.0\Include
   OBJECT_DIR = src\backend_vk\CMakeFiles\backend_vk.dir
@@ -4046,7 +4046,7 @@ build src\backend_vk\CMakeFiles\backend_vk.dir\DescriptorHeapCollection.cpp.obj:
   TARGET_PDB = src\backend_vk\backend_vkd.pdb
 
 build src\backend_vk\CMakeFiles\backend_vk.dir\GpuResource.cpp.obj: CXX_COMPILER__backend_vk_unscanned_Debug C$:\code\DX12Lib\src\backend_vk\GpuResource.cpp || cmake_object_order_depends_target_backend_vk
-  DEFINES = -DUNICODE -DWIN32 -D_AFXDLL -D_DEBUG -D_UNICODE -D_WINDOWS -Dbackend_vk_EXPORTS
+  DEFINES = -DUNICODE -DVK_USE_PLATFORM_WIN32_KHR -DWIN32 -D_AFXDLL -D_DEBUG -D_UNICODE -D_WINDOWS -Dbackend_vk_EXPORTS
   FLAGS = /DWIN32 /D_WINDOWS /W3 /GR /EHsc /MDd /Zi /Ob0 /Od /RTC1 -std:c++17
   INCLUDES = -IC:\code\DX12Lib\src\backend_vk -IC:\code\DX12Lib\src\backend_vk\..\backend_interface -IC:\code\DX12Lib\src\backend_vk\..\..\thirdParty\imgui -IC:\code\DX12Lib\src\backend_vk\..\..\thirdParty\volk -IC:\code\DX12Lib\src\backend_vk\..\..\thirdParty\stb -IC:\code\DX12Lib\src\backend_vk\..\..\thirdParty\VulkanMemoryAllocator\include -IC:\VulkanSDK\1.3.268.0\Include
   OBJECT_DIR = src\backend_vk\CMakeFiles\backend_vk.dir
@@ -4055,7 +4055,7 @@ build src\backend_vk\CMakeFiles\backend_vk.dir\GpuResource.cpp.obj: CXX_COMPILER
   TARGET_PDB = src\backend_vk\backend_vkd.pdb
 
 build src\backend_vk\CMakeFiles\backend_vk.dir\SwapChain.cpp.obj: CXX_COMPILER__backend_vk_unscanned_Debug C$:\code\DX12Lib\src\backend_vk\SwapChain.cpp || cmake_object_order_depends_target_backend_vk
-  DEFINES = -DUNICODE -DWIN32 -D_AFXDLL -D_DEBUG -D_UNICODE -D_WINDOWS -Dbackend_vk_EXPORTS
+  DEFINES = -DUNICODE -DVK_USE_PLATFORM_WIN32_KHR -DWIN32 -D_AFXDLL -D_DEBUG -D_UNICODE -D_WINDOWS -Dbackend_vk_EXPORTS
   FLAGS = /DWIN32 /D_WINDOWS /W3 /GR /EHsc /MDd /Zi /Ob0 /Od /RTC1 -std:c++17
   INCLUDES = -IC:\code\DX12Lib\src\backend_vk -IC:\code\DX12Lib\src\backend_vk\..\backend_interface -IC:\code\DX12Lib\src\backend_vk\..\..\thirdParty\imgui -IC:\code\DX12Lib\src\backend_vk\..\..\thirdParty\volk -IC:\code\DX12Lib\src\backend_vk\..\..\thirdParty\stb -IC:\code\DX12Lib\src\backend_vk\..\..\thirdParty\VulkanMemoryAllocator\include -IC:\VulkanSDK\1.3.268.0\Include
   OBJECT_DIR = src\backend_vk\CMakeFiles\backend_vk.dir
@@ -4064,7 +4064,7 @@ build src\backend_vk\CMakeFiles\backend_vk.dir\SwapChain.cpp.obj: CXX_COMPILER__
   TARGET_PDB = src\backend_vk\backend_vkd.pdb
 
 build src\backend_vk\CMakeFiles\backend_vk.dir\ShaderManager.cpp.obj: CXX_COMPILER__backend_vk_unscanned_Debug C$:\code\DX12Lib\src\backend_vk\ShaderManager.cpp || cmake_object_order_depends_target_backend_vk
-  DEFINES = -DUNICODE -DWIN32 -D_AFXDLL -D_DEBUG -D_UNICODE -D_WINDOWS -Dbackend_vk_EXPORTS
+  DEFINES = -DUNICODE -DVK_USE_PLATFORM_WIN32_KHR -DWIN32 -D_AFXDLL -D_DEBUG -D_UNICODE -D_WINDOWS -Dbackend_vk_EXPORTS
   FLAGS = /DWIN32 /D_WINDOWS /W3 /GR /EHsc /MDd /Zi /Ob0 /Od /RTC1 -std:c++17
   INCLUDES = -IC:\code\DX12Lib\src\backend_vk -IC:\code\DX12Lib\src\backend_vk\..\backend_interface -IC:\code\DX12Lib\src\backend_vk\..\..\thirdParty\imgui -IC:\code\DX12Lib\src\backend_vk\..\..\thirdParty\volk -IC:\code\DX12Lib\src\backend_vk\..\..\thirdParty\stb -IC:\code\DX12Lib\src\backend_vk\..\..\thirdParty\VulkanMemoryAllocator\include -IC:\VulkanSDK\1.3.268.0\Include
   OBJECT_DIR = src\backend_vk\CMakeFiles\backend_vk.dir
@@ -4073,7 +4073,7 @@ build src\backend_vk\CMakeFiles\backend_vk.dir\ShaderManager.cpp.obj: CXX_COMPIL
   TARGET_PDB = src\backend_vk\backend_vkd.pdb
 
 build src\backend_vk\CMakeFiles\backend_vk.dir\TextureLoader.cpp.obj: CXX_COMPILER__backend_vk_unscanned_Debug C$:\code\DX12Lib\src\backend_vk\TextureLoader.cpp || cmake_object_order_depends_target_backend_vk
-  DEFINES = -DUNICODE -DWIN32 -D_AFXDLL -D_DEBUG -D_UNICODE -D_WINDOWS -Dbackend_vk_EXPORTS
+  DEFINES = -DUNICODE -DVK_USE_PLATFORM_WIN32_KHR -DWIN32 -D_AFXDLL -D_DEBUG -D_UNICODE -D_WINDOWS -Dbackend_vk_EXPORTS
   FLAGS = /DWIN32 /D_WINDOWS /W3 /GR /EHsc /MDd /Zi /Ob0 /Od /RTC1 -std:c++17
   INCLUDES = -IC:\code\DX12Lib\src\backend_vk -IC:\code\DX12Lib\src\backend_vk\..\backend_interface -IC:\code\DX12Lib\src\backend_vk\..\..\thirdParty\imgui -IC:\code\DX12Lib\src\backend_vk\..\..\thirdParty\volk -IC:\code\DX12Lib\src\backend_vk\..\..\thirdParty\stb -IC:\code\DX12Lib\src\backend_vk\..\..\thirdParty\VulkanMemoryAllocator\include -IC:\VulkanSDK\1.3.268.0\Include
   OBJECT_DIR = src\backend_vk\CMakeFiles\backend_vk.dir
@@ -4082,7 +4082,7 @@ build src\backend_vk\CMakeFiles\backend_vk.dir\TextureLoader.cpp.obj: CXX_COMPIL
   TARGET_PDB = src\backend_vk\backend_vkd.pdb
 
 build src\backend_vk\CMakeFiles\backend_vk.dir\RootSignature.cpp.obj: CXX_COMPILER__backend_vk_unscanned_Debug C$:\code\DX12Lib\src\backend_vk\RootSignature.cpp || cmake_object_order_depends_target_backend_vk
-  DEFINES = -DUNICODE -DWIN32 -D_AFXDLL -D_DEBUG -D_UNICODE -D_WINDOWS -Dbackend_vk_EXPORTS
+  DEFINES = -DUNICODE -DVK_USE_PLATFORM_WIN32_KHR -DWIN32 -D_AFXDLL -D_DEBUG -D_UNICODE -D_WINDOWS -Dbackend_vk_EXPORTS
   FLAGS = /DWIN32 /D_WINDOWS /W3 /GR /EHsc /MDd /Zi /Ob0 /Od /RTC1 -std:c++17
   INCLUDES = -IC:\code\DX12Lib\src\backend_vk -IC:\code\DX12Lib\src\backend_vk\..\backend_interface -IC:\code\DX12Lib\src\backend_vk\..\..\thirdParty\imgui -IC:\code\DX12Lib\src\backend_vk\..\..\thirdParty\volk -IC:\code\DX12Lib\src\backend_vk\..\..\thirdParty\stb -IC:\code\DX12Lib\src\backend_vk\..\..\thirdParty\VulkanMemoryAllocator\include -IC:\VulkanSDK\1.3.268.0\Include
   OBJECT_DIR = src\backend_vk\CMakeFiles\backend_vk.dir
@@ -4091,7 +4091,7 @@ build src\backend_vk\CMakeFiles\backend_vk.dir\RootSignature.cpp.obj: CXX_COMPIL
   TARGET_PDB = src\backend_vk\backend_vkd.pdb
 
 build src\backend_vk\CMakeFiles\backend_vk.dir\DynamicGpuHeap.cpp.obj: CXX_COMPILER__backend_vk_unscanned_Debug C$:\code\DX12Lib\src\backend_vk\DynamicGpuHeap.cpp || cmake_object_order_depends_target_backend_vk
-  DEFINES = -DUNICODE -DWIN32 -D_AFXDLL -D_DEBUG -D_UNICODE -D_WINDOWS -Dbackend_vk_EXPORTS
+  DEFINES = -DUNICODE -DVK_USE_PLATFORM_WIN32_KHR -DWIN32 -D_AFXDLL -D_DEBUG -D_UNICODE -D_WINDOWS -Dbackend_vk_EXPORTS
   FLAGS = /DWIN32 /D_WINDOWS /W3 /GR /EHsc /MDd /Zi /Ob0 /Od /RTC1 -std:c++17
   INCLUDES = -IC:\code\DX12Lib\src\backend_vk -IC:\code\DX12Lib\src\backend_vk\..\backend_interface -IC:\code\DX12Lib\src\backend_vk\..\..\thirdParty\imgui -IC:\code\DX12Lib\src\backend_vk\..\..\thirdParty\volk -IC:\code\DX12Lib\src\backend_vk\..\..\thirdParty\stb -IC:\code\DX12Lib\src\backend_vk\..\..\thirdParty\VulkanMemoryAllocator\include -IC:\VulkanSDK\1.3.268.0\Include
   OBJECT_DIR = src\backend_vk\CMakeFiles\backend_vk.dir
@@ -4100,7 +4100,7 @@ build src\backend_vk\CMakeFiles\backend_vk.dir\DynamicGpuHeap.cpp.obj: CXX_COMPI
   TARGET_PDB = src\backend_vk\backend_vkd.pdb
 
 build src\backend_vk\CMakeFiles\backend_vk.dir\Techniques.cpp.obj: CXX_COMPILER__backend_vk_unscanned_Debug C$:\code\DX12Lib\src\backend_vk\Techniques.cpp || cmake_object_order_depends_target_backend_vk
-  DEFINES = -DUNICODE -DWIN32 -D_AFXDLL -D_DEBUG -D_UNICODE -D_WINDOWS -Dbackend_vk_EXPORTS
+  DEFINES = -DUNICODE -DVK_USE_PLATFORM_WIN32_KHR -DWIN32 -D_AFXDLL -D_DEBUG -D_UNICODE -D_WINDOWS -Dbackend_vk_EXPORTS
   FLAGS = /DWIN32 /D_WINDOWS /W3 /GR /EHsc /MDd /Zi /Ob0 /Od /RTC1 -std:c++17
   INCLUDES = -IC:\code\DX12Lib\src\backend_vk -IC:\code\DX12Lib\src\backend_vk\..\backend_interface -IC:\code\DX12Lib\src\backend_vk\..\..\thirdParty\imgui -IC:\code\DX12Lib\src\backend_vk\..\..\thirdParty\volk -IC:\code\DX12Lib\src\backend_vk\..\..\thirdParty\stb -IC:\code\DX12Lib\src\backend_vk\..\..\thirdParty\VulkanMemoryAllocator\include -IC:\VulkanSDK\1.3.268.0\Include
   OBJECT_DIR = src\backend_vk\CMakeFiles\backend_vk.dir
@@ -4118,11 +4118,11 @@ build src\backend_vk\CMakeFiles\backend_vk.dir\Techniques.cpp.obj: CXX_COMPILER_
 
 build src\backend_vk\backend_vkd.dll src\backend_vk\backend_vkd.lib: CXX_SHARED_LIBRARY_LINKER__backend_vk_Debug src\backend_vk\CMakeFiles\backend_vk.dir\__\__\thirdParty\volk\volk.c.obj src\backend_vk\CMakeFiles\backend_vk.dir\__\__\thirdParty\imgui\imgui.cpp.obj src\backend_vk\CMakeFiles\backend_vk.dir\__\__\thirdParty\imgui\imgui_draw.cpp.obj src\backend_vk\CMakeFiles\backend_vk.dir\__\__\thirdParty\imgui\imgui_tables.cpp.obj src\backend_vk\CMakeFiles\backend_vk.dir\__\__\thirdParty\imgui\imgui_widgets.cpp.obj src\backend_vk\CMakeFiles\backend_vk.dir\VkBackend.cpp.obj src\backend_vk\CMakeFiles\backend_vk.dir\CommandList.cpp.obj src\backend_vk\CMakeFiles\backend_vk.dir\CommandQueue.cpp.obj src\backend_vk\CMakeFiles\backend_vk.dir\Fence.cpp.obj src\backend_vk\CMakeFiles\backend_vk.dir\HeapBuffer.cpp.obj src\backend_vk\CMakeFiles\backend_vk.dir\VkMemoryHelper.cpp.obj src\backend_vk\CMakeFiles\backend_vk.dir\VkDevice.cpp.obj src\backend_vk\CMakeFiles\backend_vk.dir\ResourceDescriptor.cpp.obj src\backend_vk\CMakeFiles\backend_vk.dir\DescriptorHeapCollection.cpp.obj src\backend_vk\CMakeFiles\backend_vk.dir\GpuResource.cpp.obj src\backend_vk\CMakeFiles\backend_vk.dir\SwapChain.cpp.obj src\backend_vk\CMakeFiles\backend_vk.dir\ShaderManager.cpp.obj src\backend_vk\CMakeFiles\backend_vk.dir\TextureLoader.cpp.obj src\backend_vk\CMakeFiles\backend_vk.dir\RootSignature.cpp.obj src\backend_vk\CMakeFiles\backend_vk.dir\DynamicGpuHeap.cpp.obj src\backend_vk\CMakeFiles\backend_vk.dir\Techniques.cpp.obj
   LANGUAGE_COMPILE_FLAGS = /DWIN32 /D_WINDOWS /W3 /GR /EHsc /MDd /Zi /Ob0 /Od /RTC1
-  LINK_FLAGS = /machine:x64 /debug /INCREMENTAL
+  LINK_FLAGS = /machine:x64 /debug /INCREMENTAL  /DEF:src\backend_vk\CMakeFiles\backend_vk.dir\.\exports.def
   LINK_LIBRARIES = kernel32.lib user32.lib gdi32.lib winspool.lib shell32.lib ole32.lib oleaut32.lib uuid.lib comdlg32.lib advapi32.lib
   OBJECT_DIR = src\backend_vk\CMakeFiles\backend_vk.dir
-  POST_BUILD = cd .
-  PRE_LINK = cd .
+  POST_BUILD = cmd.exe /C "cd /D C:\code\DX12Lib\src\backend_vk && "C:\Program Files\CMake\bin\cmake.exe" -E copy_if_different C:/code/DX12Lib/src/backend_vk/backend_vkd.dll C:/code/DX12Lib/src && "C:\Program Files\CMake\bin\cmake.exe" -E copy_if_different C:/code/DX12Lib/src/backend_vk/backend_vkd.pdb C:/code/DX12Lib/src"
+  PRE_LINK = cmd.exe /C ""C:\Program Files\CMake\bin\cmake.exe" -E __create_def C:\code\DX12Lib\src\backend_vk\CMakeFiles\backend_vk.dir\.\exports.def C:\code\DX12Lib\src\backend_vk\CMakeFiles\backend_vk.dir\.\exports.def.objs && cd C:\code\DX12Lib"
   RESTAT = 1
   TARGET_COMPILE_PDB = src\backend_vk\CMakeFiles\backend_vk.dir\
   TARGET_FILE = src\backend_vk\backend_vkd.dll

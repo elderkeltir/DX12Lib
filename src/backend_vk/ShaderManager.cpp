@@ -69,7 +69,7 @@ ShaderManager::ShaderBlob* ShaderManager::Load(const std::wstring& name, const s
 	}
 
 	// Re-Compile
-	std::string dxc_fullpath = (m_shader_source_dir.parent_path().parent_path() / "DirectXShaderCompiler" / "build" / "bin" / "dxc").string();
+	std::string dxc_fullpath = (m_shader_source_dir.parent_path() / "thirdParty" / "DirectXShaderCompiler" / "bin" / "x64" / "dxc.exe").string();
 	std::stringstream command;
 	command << dxc_fullpath;
     command << " -T ";

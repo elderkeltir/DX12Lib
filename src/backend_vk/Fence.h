@@ -1,4 +1,4 @@
-#pragma one
+#pragma once
 
 #include "IFence.h"
 #include <volk.h>

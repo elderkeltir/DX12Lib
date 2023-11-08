@@ -1,10 +1,14 @@
 #include "SwapChain.h"
+#include <vulkan/vulkan_win32.h>
 #include "VkBackend.h"
 #include "CommandQueue.h"
 #include "vk_helper.h"
 #include "HeapBuffer.h"
 #include "VkDevice.h"
-#include "GpuResource.h"
+#include "VkGpuResource.h"
+
+#include <Windows.h>
+
 
 extern VkBackend* gBackend;
 class GLFWwindow;
@@ -15,9 +19,12 @@ void SwapChain::OnInit(const WindowHandler& window_hndl, uint32_t width, uint32_
     VkDevice device = gBackend->GetDevice()->GetNativeObject();
     VkPhysicalDevice physical_device = gBackend->GetDevice()->GetPhysicalDevice();
 
-    VkSurfaceKHR (*CreateSurface)(VkInstance inst, GLFWwindow * window) = (VkSurfaceKHR (*)(VkInstance, GLFWwindow *))window_hndl.callback;
+	VkWin32SurfaceCreateInfoKHR createInfo = {};
+	createInfo.sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR;
+	createInfo.hinstance = *(HINSTANCE*)window_hndl.instance; // Your Windows HINSTANCE
+	createInfo.hwnd = *(HWND*)window_hndl.ptr; // Your Windows HWND
 
-    m_surface = CreateSurface(gBackend->GetInstance(), (GLFWwindow*)window_hndl.ptr);
+	VK_CHECK(vkCreateWin32SurfaceKHR(gBackend->GetInstance(), &createInfo, nullptr, &m_surface));
 
     VkFormat format = GetSwapchainFormat();
     VkImageAspectFlags aspect = VK_IMAGE_ASPECT_COLOR_BIT;
@@ -35,8 +42,8 @@ void SwapChain::OnInit(const WindowHandler& window_hndl, uint32_t width, uint32_
 
 	for (uint32_t i = 0; i < imageCount; ++i)
 	{
-        std::unique_ptr<IGpuResource> rt(new GpuResource);
-		((GpuResource*)rt.get())->InitBuffer();
+        std::unique_ptr<IGpuResource> rt(new VkGpuResource);
+		((VkGpuResource*)rt.get())->InitBuffer();
         if (std::shared_ptr<IHeapBuffer> buf = rt->GetBuffer().lock()){
             HeapBuffer* buffer = (HeapBuffer*) buf.get();
             buffer->SetImage(images[i], format, aspect);
@@ -47,7 +54,7 @@ void SwapChain::OnInit(const WindowHandler& window_hndl, uint32_t width, uint32_
 	}
 
 	// depth buffer
-    m_depth_stencil.reset(new GpuResource);
+    m_depth_stencil.reset(new VkGpuResource);
     HeapType h_type = (HeapType)(HeapType::ht_default | HeapType::ht_image_depth_stencil_attachment | ht_aspect_depth_bit); // TODO: fill in
     ResourceDesc res_desc;
     res_desc.format = ResourceFormat::rf_d32_float;
@@ -138,6 +145,7 @@ VkFormat SwapChain::GetSwapchainFormat() const{
     VkPhysicalDevice physical_device = gBackend->GetDevice()->GetPhysicalDevice();
 
 	uint32_t formatCount = 0;
+	assert(vkGetPhysicalDeviceSurfaceFormatsKHR);
 	VK_CHECK(vkGetPhysicalDeviceSurfaceFormatsKHR(physical_device, m_surface, &formatCount, 0));
 	assert(formatCount > 0);
 

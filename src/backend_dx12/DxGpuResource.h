@@ -2,11 +2,13 @@
 
 #include "IGpuResource.h"
 
-#include <volk.h>
+#include <wrl.h>
+using Microsoft::WRL::ComPtr;
+struct ID3D12Resource;
 
-class GpuResource : public IGpuResource {
+class DxGpuResource : public IGpuResource {
 public:
-    ~GpuResource();
+    ~DxGpuResource();
     void CreateBuffer(HeapType type, uint32_t bufferSize, ResourceState initial_state, std::optional<std::wstring> dbg_name = std::nullopt) override;
     void CreateTexture(HeapType type, const ResourceDesc &res_desc, ResourceState initial_state, const ClearColor *clear_val, std::optional<std::wstring> dbg_name = std::nullopt) override;
     
@@ -33,26 +35,7 @@ public:
         m_current_state = new_state;
     }
 
-    void SetFrameBuffer(VkFramebuffer fb) {
-        m_fb = fb;
-    }
-    VkFramebuffer GetFrameBuffer() const {
-        return m_fb;
-    }
-
-    void SetRenderPass(VkRenderPass rp) {
-        m_rp = rp;
-    }
-    VkRenderPass GetRenderPass() const {
-        return m_rp;
-    }
-
-    const ResourceDesc& GetResourceDesc() const {
-        return m_res_desc;
-    }
-
-    void InitBuffer();
-
+    void SetBuffer(ComPtr<ID3D12Resource> res);
 private:
     void ResetViews();
     std::shared_ptr<IHeapBuffer> m_buffer;
@@ -62,9 +45,6 @@ private:
     std::shared_ptr<IResourceDescriptor> m_uav;
     std::shared_ptr<IResourceDescriptor> m_cbv;
     std::shared_ptr<IndexVufferView> m_index_view;
-    VkFramebuffer m_fb;
-    VkRenderPass m_rp;
-    ResourceDesc m_res_desc;
 
     ResourceState m_current_state{ ResourceState::rs_resource_state_common };
 };

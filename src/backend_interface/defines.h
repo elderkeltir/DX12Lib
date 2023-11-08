@@ -495,7 +495,7 @@ struct CPUdescriptor {
 
 struct WindowHandler {
     uint64_t ptr;
-
+    uint64_t instance;
     std::vector<const char*> extensions;
     void* callback;
 };
@@ -512,6 +512,23 @@ IBackend* CreateBackendDx12();
 void DestroyBackendDx12();
 IBackend* CreateBackendVk();
 void DestroyBackendVk();
+
+enum class BackendType {
+    bt_dx12,
+    bt_vk
+};
+
+class IGpuResource;
+extern IGpuResource* CreateGpuResourceDx();
+extern IGpuResource* CreateGpuResourceVk();
+inline IGpuResource* CreateGpuResource(BackendType bk_type) {
+    if (bk_type == BackendType::bt_dx12) {
+        return CreateGpuResourceDx();
+    }
+    else {
+        return CreateGpuResourceVk();
+    }
+}
 
 enum BindingId {
     bi_model_cb = 0,

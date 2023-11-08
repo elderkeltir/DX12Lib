@@ -2,7 +2,7 @@
 #include "defines.h"
 #include "dx12_helper.h"
 #include "DxBackend.h"
-#include "GpuResource.h"
+#include "DxGpuResource.h"
 #include "CommandQueue.h"
 
 #include <directx/d3dx12.h>
@@ -54,7 +54,7 @@ void SwapChain::OnInit(IDXGIFactory4* pFactory, const WindowHandler& window_hndl
 			ComPtr<ID3D12Resource> renderTarget;
 			ThrowIfFailed(m_swapChain->GetBuffer(i, IID_PPV_ARGS(&renderTarget)));
 			SetName(renderTarget, std::wstring(L"render_target_").append(std::to_wstring(i)).c_str());
-			GpuResource* res = new GpuResource;
+			DxGpuResource* res = new DxGpuResource;
 			res->SetBuffer(renderTarget);
 			m_renderTargets[i].reset(res);
 			m_renderTargets[i]->CreateRTV();
@@ -63,7 +63,7 @@ void SwapChain::OnInit(IDXGIFactory4* pFactory, const WindowHandler& window_hndl
 
 	// Create the depth stencil view.
 	{
-		m_depthStencil.reset(new GpuResource);
+		m_depthStencil.reset(new DxGpuResource);
 		ClearColor depthOptimizedClearValue = {};
 		depthOptimizedClearValue.format = ResourceFormat::rf_d32_float;
 		depthOptimizedClearValue.isDepth = true;

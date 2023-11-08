@@ -2,7 +2,7 @@
 #include "CommandList.h"
 #include "CommandQueue.h"
 #include "VkDevice.h"
-#include "GpuResource.h"
+#include "VkGpuResource.h"
 #include "IResourceDescriptor.h"
 #include "SwapChain.h"
 #include "VkMemoryHelper.h"
@@ -51,6 +51,8 @@ void VkBackend::CreateInstance(const std::vector<const char*> &extensions) {
     std::vector<const char*> extensions_vk = extensions;
     extensions_vk.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
     extensions_vk.push_back(VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME);
+    extensions_vk.push_back(VK_KHR_SURFACE_EXTENSION_NAME);
+    extensions_vk.push_back(VK_KHR_WIN32_SURFACE_EXTENSION_NAME);
 
     createInfo.ppEnabledExtensionNames = extensions_vk.data();
     createInfo.enabledExtensionCount = extensions_vk.size();
@@ -229,7 +231,7 @@ void VkBackend::CreateFrameBuffer(std::vector<IGpuResource*> &rts, IGpuResource 
 	uint32_t size = rts.size() + (depth ? 1 : 0);
 	std::vector<VkImageView> attachments(size);
 	for (uint32_t i = 0; i < rts.size(); i++){
-		GpuResource *  rt = (GpuResource*)rts[i];
+		VkGpuResource *  rt = (VkGpuResource*)rts[i];
 		if (std::shared_ptr<IResourceDescriptor> rtv = rt->GetRTV().lock()){
 			attachments[i] = (VkImageView)rtv->GetCPUhandle().ptr;
 		}
@@ -254,7 +256,7 @@ void VkBackend::CreateFrameBuffer(std::vector<IGpuResource*> &rts, IGpuResource 
 	VkDevice device = m_device->GetNativeObject();
 	VK_CHECK(vkCreateFramebuffer(device, &createInfo, 0, &framebuffer));
 
-	GpuResource *  rt = (GpuResource*) ( !rts.empty() ? rts.front() : depth);
+	VkGpuResource *  rt = (VkGpuResource*) ( !rts.empty() ? rts.front() : depth);
 	rt->SetFrameBuffer(framebuffer);
 	rt->SetRenderPass(rp);
 }

@@ -1,7 +1,7 @@
 #include "CommandList.h"
 #include "Techniques.h"
 #include "vk_helper.h"
-#include "GpuResource.h"
+#include "VkGpuResource.h"
 #include "HeapBuffer.h"
 #include "CommandQueue.h"
 #include "DynamicGpuHeap.h"
@@ -139,7 +139,7 @@ void CommandList::SetRenderTargets(const std::vector<IGpuResource*>& resources, 
         m_current_renderpass = nullptr;
     }
 
-    GpuResource *  rt = (GpuResource*) ( !resources.empty() ? resources.front() : depth_stencil_descriptor);
+    VkGpuResource *  rt = (VkGpuResource*) ( !resources.empty() ? resources.front() : depth_stencil_descriptor);
 
 	VkRenderPassBeginInfo passBeginInfo = { VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO };
 	passBeginInfo.renderPass = rt->GetRenderPass();

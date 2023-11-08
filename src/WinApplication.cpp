@@ -80,6 +80,7 @@ int WinApplication::Run(HINSTANCE hInstance, LPSTR pCmdLine, int nCmdShow)
     // Initialize the sample. OnInit is defined in each child-implementation of DXApp.
     WindowHandler w_hndl;
     w_hndl.ptr = (uint64_t)&m_hwnd;
+    w_hndl.instance = (uint64_t)&hInstance;
     std::filesystem::path root_dir;
 
     // find absolute path

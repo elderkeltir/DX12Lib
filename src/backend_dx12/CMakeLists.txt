@@ -37,7 +37,7 @@ add_library(${PROJECT_NAME} SHARED
     "ShaderManager.cpp"
     "HeapBuffer.cpp"
     "ResourceDescriptor.cpp"
-    "GpuResource.cpp"
+    "DxGpuResource.cpp"
     "DescriptorHeapCollection.cpp"
     "CommandQueue.cpp"
     "Techniques.cpp"

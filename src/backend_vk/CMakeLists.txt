@@ -6,7 +6,7 @@ set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 
 # definitions
 add_definitions(-D_DEBUG)
-# add_definitions(-DVK_USE_PLATFORM_XCB_KHR)
+add_definitions(-DVK_USE_PLATFORM_WIN32_KHR) 
 
 # VARs
 set(CMAKE_BUILD_PARALLEL_LEVEL 16)
@@ -16,7 +16,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED on)
 set(ROOT_FOLDER ${PROJECT_SOURCE_DIR})
 set(THIRD_PARTY_DIR ${ROOT_FOLDER}/../../thirdParty)
 set(THIRD_PARTY_IMGUI_DIR ${THIRD_PARTY_DIR}/imgui)
-set(VOLK_STATIC_DEFINES VK_USE_PLATFORM_WIN32_KHR)
+# set(VOLK_STATIC_DEFINES VK_USE_PLATFORM_WIN32_KHR)
+
 
 # source
 add_library(${PROJECT_NAME} SHARED
@@ -39,7 +40,7 @@ add_library(${PROJECT_NAME} SHARED
     VkDevice.cpp
     ResourceDescriptor.cpp
     DescriptorHeapCollection.cpp
-    GpuResource.cpp
+    VkGpuResource.cpp
     #Console.cpp
     #ConsoleCommands.cpp
     SwapChain.cpp
