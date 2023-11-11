@@ -518,18 +518,6 @@ enum class BackendType {
     bt_vk
 };
 
-class IGpuResource;
-extern IGpuResource* CreateGpuResourceDx();
-extern IGpuResource* CreateGpuResourceVk();
-inline IGpuResource* CreateGpuResource(BackendType bk_type) {
-    if (bk_type == BackendType::bt_dx12) {
-        return CreateGpuResourceDx();
-    }
-    else {
-        return CreateGpuResourceVk();
-    }
-}
-
 enum BindingId {
     bi_model_cb = 0,
     bi_g_buffer_tex_table = 1,

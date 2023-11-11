@@ -32,7 +32,7 @@ bool RenderQuad::CreateQuadTexture(uint32_t width, uint32_t height, const std::v
             std::vector<std::shared_ptr<IGpuResource>> &set_resources = m_textures[n];
             set_resources.resize(formats.size());
             for (uint32_t m = 0; m < formats.size(); m++){
-                set_resources[m].reset(CreateGpuResource());
+                set_resources[m].reset(CreateGpuResource(gFrontend->GetBackendType()));
                 std::shared_ptr<IGpuResource>& res = set_resources[m];
 
                 uint32_t res_flags = ResourceDesc::ResourceFlags::rf_allow_render_target;

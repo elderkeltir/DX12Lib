@@ -39,10 +39,6 @@ public:
         kb_d,
         kb_tilda
     };
-    enum class BackendType {
-        bt_dx12,
-        bt_vk
-    };
 public:
     Frontend(uint32_t width, uint32_t height, std::wstring name);
     ~Frontend();
@@ -69,6 +65,7 @@ public:
     uint32_t FrameId() const;
     std::weak_ptr<Level> GetLevel() { return m_level; }
     uint32_t GetRenderMode() const;
+    BackendType GetBackendType() const { return m_bk_type; }
 
     const ITechniques::Technique* GetTechniqueById(uint32_t id) const;
     const IRootSignature* GetRootSignById(uint32_t id);
@@ -114,6 +111,7 @@ protected:
     std::chrono::duration<float> m_total_time;
     std::chrono::duration<float> m_dt;
     uint32_t m_frame_id{ 0 };
+    BackendType m_bk_type;
 
     std::shared_ptr<Level> m_level;
 

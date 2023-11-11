@@ -135,7 +135,7 @@ void Level::Load(const std::wstring& name) {
             }
         }
 
-        m_lights_res.reset(CreateGpuResource());
+        m_lights_res.reset(CreateGpuResource(gFrontend->GetBackendType()));
         uint32_t cb_size = calc_cb_size(LightsNum * sizeof(LevelLight));
         HeapType h_type = HeapType(HeapType::ht_default | HeapType::ht_buff_uniform_buffer);
         m_lights_res->CreateBuffer(h_type, cb_size, ResourceState::rs_resource_state_vertex_and_constant_buffer, std::wstring(L"lights_buffer_").append(m_name));

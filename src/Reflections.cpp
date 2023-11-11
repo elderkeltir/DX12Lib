@@ -13,7 +13,7 @@ void Reflections::Initialize()
 		const uint32_t height = gFrontend->GetHeight();
 
 		for (uint32_t i = 0; i < rt_num; i++) {
-			m_reflection_map[i].reset(CreateGpuResource());
+			m_reflection_map[i].reset(CreateGpuResource(gFrontend->GetBackendType()));
 			auto& res = *m_reflection_map[i];
 
 			HeapType h_type = HeapType(HeapType::ht_default | HeapType::ht_image_storage | HeapType::ht_image_sampled | HeapType::ht_aspect_color_bit);

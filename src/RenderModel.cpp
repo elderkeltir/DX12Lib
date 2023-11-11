@@ -86,28 +86,28 @@ void RenderModel::LoadTextures(ICommandList* command_list){
             case TextureType::DiffuseTexture:
                 flag = db_diffuse_tx;
                 if (m_dirty & flag){
-                    m_diffuse_tex.reset(CreateGpuResource());
+                    m_diffuse_tex.reset(CreateGpuResource(gFrontend->GetBackendType()));
                     res = m_diffuse_tex.get();
                 }
                 break;
             case TextureType::NormalTexture:
                 flag = db_normals_tx;
                 if (m_dirty & flag){
-                    m_normals_tex.reset(CreateGpuResource());
+                    m_normals_tex.reset(CreateGpuResource(gFrontend->GetBackendType()));
                     res = m_normals_tex.get();
                 }
                 break;
             case TextureType::MetallicTexture:
                 flag = db_metallic_tx;
                 if(m_dirty & flag){
-                    m_metallic_tex.reset(CreateGpuResource());
+                    m_metallic_tex.reset(CreateGpuResource(gFrontend->GetBackendType()));
                     res = m_metallic_tex.get();
                 }
                 break;
 			case TextureType::RoughTexture:
 				flag = db_rough_tx;
 				if (m_dirty & flag) {
-                    m_roughness_tex.reset(CreateGpuResource());
+                    m_roughness_tex.reset(CreateGpuResource(gFrontend->GetBackendType()));
 					res = m_roughness_tex.get();
 				}
 				break;
@@ -240,7 +240,7 @@ IGpuResource* RenderModel::GetTexture(TextureType type)
 
 void RenderModel::LoadConstantData(ICommandList* command_list){
     if (m_dirty & db_rt_cbv){
-        m_constant_buffer.reset(CreateGpuResource());
+        m_constant_buffer.reset(CreateGpuResource(gFrontend->GetBackendType()));
         uint32_t cb_size = calc_cb_size(sizeof(ConstantBufferManager::ModelCB));
         HeapType h_type = HeapType(HeapType::ht_upload | HeapType::ht_buff_uniform_buffer);
         m_constant_buffer->CreateBuffer(h_type, cb_size, ResourceState::rs_resource_state_generic_read, std::wstring(L"models_cbv_").append(m_name));

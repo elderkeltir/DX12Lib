@@ -17,7 +17,7 @@ void Sun::Initialize(ICommandList* command_list)
 		const float height = (float)gFrontend->GetHeight();
 
 		for (uint32_t i = 0; i < rt_num; i++) {
-			m_shadow_map[i].reset(CreateGpuResource());
+			m_shadow_map[i].reset(CreateGpuResource(gFrontend->GetBackendType()));
 
 			ClearColor depthOptimizedClearValue = {};
 			depthOptimizedClearValue.format = ResourceFormat::rf_d32_float;

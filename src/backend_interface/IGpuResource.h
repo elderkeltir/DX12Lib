@@ -49,5 +49,7 @@ public:
 #endif
 
 extern "C" {
-    EXPORT IGpuResource* CreateGpuResource();
+    EXPORT IGpuResource* CreateGpuResourceDx();
+    EXPORT IGpuResource* CreateGpuResourceVk();
+    EXPORT IGpuResource* CreateGpuResource(BackendType bk_type);
 }

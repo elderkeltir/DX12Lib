@@ -28,7 +28,7 @@ static void AddToConsoleLogCallback(const std::string& line) {
 void ImguiHelper::CreateQuadTexture(uint32_t width, uint32_t height, ResourceFormat formats, uint32_t texture_nums) {
 	for (uint32_t n = 0; n < texture_nums; n++)
 	{
-		m_rts[n].reset(CreateGpuResource());
+		m_rts[n].reset(CreateGpuResourceDx());
 		IGpuResource* res = m_rts[n].get();
 
 		uint32_t res_flags = ResourceDesc::ResourceFlags::rf_allow_render_target;

@@ -94,7 +94,7 @@ int WinApplication::Run(HINSTANCE hInstance, LPSTR pCmdLine, int nCmdShow)
     }
 
     assert(m_dx12 ^ m_vk);
-    Frontend::BackendType bk_type = m_dx12 ? Frontend::BackendType::bt_dx12 : Frontend::BackendType::bt_vk;
+    BackendType bk_type = m_dx12 ? BackendType::bt_dx12 : BackendType::bt_vk;
 
     m_frontend->OnInit(w_hndl, root_dir, bk_type);
 

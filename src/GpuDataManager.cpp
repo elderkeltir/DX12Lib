@@ -2,6 +2,9 @@
 #include "ICommandList.h"
 #include "IGpuResource.h"
 #include <string>
+#include "Frontend.h"
+
+extern Frontend* gFrontend;
 
 uint64_t GpuDataManager::AllocateVertexBuffer(uint32_t size) {
     m_dirty = true;
@@ -15,7 +18,7 @@ void GpuDataManager::DeallocateVertexBuffer(uint64_t start, uint32_t size) {
 
 void GpuDataManager::Initialize()
 {
-    m_vertex_buffer_res.reset(CreateGpuResource());
+    m_vertex_buffer_res.reset(CreateGpuResource(gFrontend->GetBackendType()));
     HeapType h_type = HeapType(HeapType::ht_default | HeapType::ht_buff_srv_buffer);
     m_vertex_buffer_res->CreateBuffer(h_type, vertex_storage_size, ResourceState::rs_resource_state_all_shader_resource, std::wstring(L"vertex_buffer"));
     SRVdesc desc;

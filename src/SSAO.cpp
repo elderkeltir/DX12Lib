@@ -8,11 +8,14 @@
 #include "FreeCamera.h"
 #include "ICommandList.h"
 #include "ConstantBufferManager.h"
+#include "Frontend.h"
+
+extern Frontend* gFrontend;
 
 
 SSAO::SSAO() :
-	m_ssao_quad_random_vals(CreateGpuResource()),
-	m_ssao_cb(CreateGpuResource()),
+	m_ssao_quad_random_vals(CreateGpuResource(gFrontend->GetBackendType())),
+	m_ssao_cb(CreateGpuResource(gFrontend->GetBackendType())),
 	m_cbuffer_cpu(std::make_unique<SsaoConstants>())
 {
 
@@ -24,7 +27,7 @@ void SSAO::Initialize(uint32_t width, uint32_t height, std::optional<std::wstrin
 		for (uint32_t i = 0; i < 3; i++) {
 
 			auto& res = m_ssao_resurces[i];
-			res.reset(CreateGpuResource());
+			res.reset(CreateGpuResource(gFrontend->GetBackendType()));
 
 			ResourceState res_state = ResourceState::rs_resource_state_non_pixel_shader_resource;
 			if (i == 2) {

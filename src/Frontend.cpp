@@ -18,6 +18,16 @@
 
 Frontend* gFrontend = nullptr;
 
+class IGpuResource;
+IGpuResource* CreateGpuResource(BackendType bk_type) {
+	if (bk_type == BackendType::bt_dx12) {
+		return CreateGpuResourceDx();
+	}
+	else {
+		return CreateGpuResourceVk();
+	}
+}
+
 #define BEGIN_EVENT(cmd_list, name) m_backend->DebugSectionBegin(cmd_list, name)
 #define END_EVENT(cmd_list) m_backend->DebugSectionEnd(cmd_list)
 
@@ -38,10 +48,11 @@ Frontend::~Frontend()
 {
 }
 
-void Frontend::OnInit(const WindowHandler& hwnd, const std::filesystem::path &root_dir, Frontend::BackendType bk_type)
+void Frontend::OnInit(const WindowHandler& hwnd, const std::filesystem::path &root_dir, BackendType bk_type)
 {
 	m_start_time = std::chrono::system_clock::now();
 	gFrontend = this;
+	m_bk_type = bk_type;
 
 	// create backend
 	ResourceManager::OnInit(root_dir);
